@@ -581,7 +581,8 @@ def validate_lpf(tempfn, format):
 
     # TODO: handle json-lines
     jdata = json.loads(infile.read())
-    if len(set(['type', '@context', 'features']) - set(jdata.keys())) > 0 \
+    set_list = ['type', '@context', 'features']
+    if len(set(set_list) - set(jdata.keys())) > 0 \
             or jdata['type'] != 'FeatureCollection' \
             or len(jdata['features']) == 0:
         print('not valid GeoJSON-LD')

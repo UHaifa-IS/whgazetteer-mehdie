@@ -1571,7 +1571,8 @@ def ds_insert_lpf(request, pk):
                                     if t['identifier'][:4] == 'aat:' else None
                                 fclass_list.append(fc)
                             else:
-                                fc = None
+                                fc = FEATURE_CLASSES[3][0]
+                                # fc = None
                             print('from feat[types]:', t)
                             print('PlaceType record newpl,newpl.src_id,t,fc', newpl, newpl.src_id, t, fc)
                             objs['PlaceTypes'].append(PlaceType(
@@ -1657,9 +1658,11 @@ def ds_insert_lpf(request, pk):
                         raiser('Name', e)
 
                     try:
+                        print(' !!!!!!!!!!!!!!!! ')
+                        print(objs['PlaceTypes'][0].place)
                         PlaceType.objects.bulk_create(objs['PlaceTypes'])
                     except DataError as de:
-                        raiser('Type', e)
+                        raiser('Type', de)
 
                     try:
                         PlaceWhen.objects.bulk_create(objs['PlaceWhens'])
