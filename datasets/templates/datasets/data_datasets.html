@@ -78,7 +78,11 @@
                 <th>status <i class="fa fa-sort ml-1" data-id=6 ref=asc></i></th>
                 <!--{ if user.is_superuser %}-->
                 {% if beta_or_better %}
-                <th>owner <i class="fa fa-sort ml-1" data-id=7 ref=asc></i></th>{% endif %}
+                <th>owner <i class="fa fa-sort ml-1" data-id=7 ref=asc></i></th>
+                {% endif %}
+                <th>type</th>
+{#                <th>related to:</th>#}
+
               </thead>
               <tbody>
                 {% for d in dataset_list %}
@@ -98,6 +102,10 @@
                     {% if beta_or_better %}
                     <td>{{ d.owner|truncatechars:20 }}</td>
                     {% endif %}
+                    <td>{{ d.datatype }}</td>
+{#                    {% for place in d.places.all %}#}
+{#                        <td>{{ place.id }} - {{ place.title }}</td>#}
+{#                    {% endfor %}#}
                   </tr>
                 {% endfor %}
               </tbody>
