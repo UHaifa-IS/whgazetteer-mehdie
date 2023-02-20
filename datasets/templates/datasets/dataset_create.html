@@ -7,7 +7,7 @@
 {% load fontawesome %}
 {% load dataset_extras %}
 {% block extra_head %}
-    
+
 {% endblock %}
 
 <div class="container">
@@ -36,12 +36,17 @@
 		    {% if insert_error %}<p>error on insert</p>{% endif %}
 	      <table class="ds-table">
           <tr>
+            <td><b>Type</b></td>
+
+            <td>{{ form.datatype }}</td>
+          </tr>
+          <tr>
             <td><b>Title &#x02733;</b></td>
             <td>{{ form.title }}</td>
           </tr>
           <tr>
-            <td><b>Label &#x02733;</b> 
-              <a  id="label_help" class="pointer"data-toggle="popover" title="Dataset label" 
+            <td><b>Label &#x02733;</b>
+              <a  id="label_help" class="pointer"data-toggle="popover" title="Dataset label"
                 data-content="" tabindex=99 data-trigger="focus">{% fontawesome_icon 'question-circle' color='#993300' %}</a>
             </td>
             <td>{{ form.label }}</td>
@@ -63,8 +68,8 @@
             <td>{{ form.contributors }}</td>
           </tr>
           <tr>
-            <td><b>URI base</b> 
-              <a class="pointer" id="uribase_help" data-toggle="popover" title="URI base" 
+            <td><b>URI base</b>
+              <a class="pointer" id="uribase_help" data-toggle="popover" title="URI base"
                 data-content="" tabindex=98 data-trigger="focus">{% fontawesome_icon 'question-circle' color='#993300' %}</a>
             </td>
             <td>{{ form.uri_base }}</td>
@@ -109,7 +114,7 @@
         {% endif %}
         <!-- status, format, delimiter, numrows, header  -->
         <input type="hidden" name="owner" value='{{ user.id }}'></input>
-        <input type="hidden" name="datatype" value="place"></input>
+{#        <input type="hidden" name="datatype"></input>#}
         <input type="hidden" name="rev" value=-1></input>
         <input type="hidden" name="df_status" value='uploaded'></input>
         <input type="hidden" name="delimiter" value='fubar'></input>
@@ -139,7 +144,7 @@
         </ul>
         <p>After making corrections, try reloading the file</p><hr/>
       {% elif context.action == 'broken' %}
-        <h5>{% fontawesome_icon 'exclamation-circle' color="#993333" %} 
+        <h5>{% fontawesome_icon 'exclamation-circle' color="#993333" %}
           Uh oh! Something has gone wrong during format validation, and the problem could not be determined.
         </h5><p>An email has been sent to WHG staff, and we will look into it and get back to you soon. You can double-check your file formatting and try again, or wait for our response.</p>
       {% else %}
@@ -172,10 +177,10 @@
     $("#uribase_help").attr(
       'data-content', "If your records are published and each place has a landing page, enter the URI base prefix, e.g. <span class='ml-2'><i>http://mygaz.org/places/</i></span><br/>Otherwise leave blank, and they will be assigned a WHG base URI."
     )
-  
+
     $('#id_format option[value="delimited"]').prop('selected',true)
-    $('#id_datatype option[value="anno"]').prop('disabled',true)
-    $('#id_datatype option[value="source"]').prop('disabled',true)
+    {#$('#id_datatype option[value="anno"]').prop('disabled',true)#}
+    {#$('#id_datatype option[value="source"]').prop('disabled',true)#}
 
     $("#btn_upload").on('click', function(){
       console.log('upload_data spinner')
@@ -192,7 +197,7 @@
   $("[rel='tooltip']").tooltip();
   function startUploadSpinner() {
     window.spinner_upload = new Spin.Spinner().spin();
-    $("#upload_spinner").append(spinner_upload.el);   
+    $("#upload_spinner").append(spinner_upload.el);
   }
   // help modals
   $(".help-matches").click(function(){
@@ -214,7 +219,7 @@
     show: {effect: "fade",duration: 400 },
     hide: {effect: "fade",duration: 400 }
   });
-  
+
 </script>
 
 {% endblock %}

@@ -56,7 +56,7 @@ COMMENT_TAGS_REVIEW = [
 
 DATATYPES = [
     ('place', 'Places'),
-    ('anno', 'Traces')
+    ('people', 'People')
 ]
 
 ERAS = [
