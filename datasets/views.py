@@ -683,7 +683,7 @@ def tsv_2_csv(data):
     return f'media/{user}/{name}.csv'
 
 
-def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language):
+def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, user):
     d1 = DatasetFile.objects.get(dataset_id=dataset_1)
     d2 = DatasetFile.objects.get(dataset_id=dataset_2)
     m_dataset = d1.file.name
@@ -707,7 +707,8 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language):
         dataset_2=dataset_1 if dataset_id == dataset_2 else dataset_2,
         csv_url=response.json()["csv download url"],
         aug_geom=aug_geom,
-        lang=language
+        lang=language,
+        user=user.id
     )
 
     return response.json()["csv download url"], response.status_code
@@ -741,7 +742,7 @@ def ds_recon(request, pk):
             dt_2 = m_dataset if m_dataset != '0' else p_dataset
 
             # try:
-            csv_url, status_code = mehdi_er(dt_1, dt_2, ds.id, aug_geom, language)
+            csv_url, status_code = mehdi_er(dt_1, dt_2, ds.id, aug_geom, language, user)
             # except Exception as e:
             #     return HttpResponse('Something went wrong with service "mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/" ')
             if status_code > 200 and status_code != 400:

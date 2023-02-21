@@ -26,24 +26,25 @@ from main.models import Log
 from elasticsearch7 import Elasticsearch
 from whg.celery import app
 
-## global for all es connections in this file?
-# es = Elasticsearch([{'host': '0.0.0.0',
-#                      'port': 9200,
-#                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
-#                      'timeout': 30,
-#                      'max_retries': 10,
-#                      'retry_on_timeout': True}])
+# global for all es connections in this file?
+es = Elasticsearch([{'host': '0.0.0.0',
+                     'port': 9200,
+                     'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
+                     'timeout': 30,
+                     'max_retries': 10,
+                     'retry_on_timeout': True}])
 
-es = Elasticsearch([  # TODO for test
-    {
-        "host": "34.147.87.121",
-        "port": 9200,
-        'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
-        "timeout": 30,
-        "max_retries": 10,
-        "retry_on_timeout": True
-    }
-])
+
+# es = Elasticsearch([  # TODO for test
+#     {
+#         "host": "34.147.87.121",
+#         "port": 9200,
+#         'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
+#         "timeout": 30,
+#         "max_retries": 10,
+#         "retry_on_timeout": True
+#     }
+# ])
 
 
 @shared_task(name="testy")
@@ -754,6 +755,7 @@ def align_match_data(pk, *args, **kwargs):
     start = datetime.datetime.now()
     dataset = get_object_or_404(Dataset, id=pk)
     dataset_2 = get_object_or_404(Dataset, id=kwargs.get('dataset_2'))
+    user = get_object_or_404(User, pk=kwargs['user'])
     language = kwargs['lang']
 
     csv_data = pd.read_csv(kwargs.get('csv_url'))
@@ -833,6 +835,15 @@ def align_match_data(pk, *args, **kwargs):
         )
         count_hit += 1
     end = datetime.datetime.now()
+
+    task_emailer.delay(
+        align_match_data.request.id,
+        dataset.label,
+        user.username,
+        user.email,
+        count_hit,
+        len(csv_data.values)
+    )
 
     return {
         'count': dataset.places.all().count(),
