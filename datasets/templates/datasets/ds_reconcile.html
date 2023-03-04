@@ -163,6 +163,9 @@
                       <img src="{% static 'images/whg_accessioning.svg'%}" width="80"/>
                     {% elif t.task_name == 'align_whg'%}
                       <img src="{% static 'images/whg_aligning.svg'%}" width="80"/>
+                    {% elif t.task_name == 'align_match_data'%}
+                        <br>
+                        <h3 style="background-color:powderblue;"><i>{{ t.result|get:"dt2_name"|safe }}</i></h3>
                     {% endif %}
                   </div>
                 </div> <!-- row -->
