@@ -853,7 +853,8 @@ def align_match_data(pk, *args, **kwargs):
         'pass2': 0,  # TODO fix
         'pass3': 0,
         'no_hits': {'count': len(csv_data.values) - count_hit},
-        'elapsed': elapsed(end - start)
+        'elapsed': elapsed(end - start),
+        'dt2_name': dataset_2.title
     }
 
 
