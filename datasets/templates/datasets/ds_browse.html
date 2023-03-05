@@ -14,7 +14,7 @@
   <script src="{% static 'js/aliases.js' %}"></script>
   <script src="{% static 'js/easyprint.js' %}"></script>
   <script src="https://npmcdn.com/@turf/turf/turf.min.js"></script>
-  
+
   <link rel="stylesheet" href="{% static 'css/spin.css' %}"/>
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.24/b-1.7.0/b-colvis-1.7.0/b-html5-1.7.0/cr-1.5.3/fh-3.1.8/sc-2.0.3/sp-1.2.2/sl-1.3.3/datatables.min.css"/>
 
@@ -57,14 +57,14 @@
           <a class="nav-link" id="log-tab" href="{% url 'datasets:ds_log' id=ds.id %}" role="tab"
              aria-controls="log" aria-selected="true">Log & Comments</a>
       </li>
-  </ul>  
+  </ul>
   <div class="tab-content">
     <div id="browse" class="tab-pane fade show active" role="tabpanel" aria-labelledby="browse-tab">
         <div class="container mt-3 pl-0">
           <div class="row">
             <div id="drftable_detail" class="col-sm-5">
               <div class="toomany"></div>
-              
+
               {%comment%}
               <div id="filter_group" class="">Display&nbsp;
                 points: <input id="cb_point" class="gtype" data-g="point" type="checkbox" checked />&nbsp;
@@ -72,9 +72,9 @@
                 areas: <input id="cb_poly" class="gtype" data-g="poly" type="checkbox" checked />
               </div>
               {%endcomment%}
-              
+
               <div id="map" style="height:300px;"></div>
-              
+
               <!-- time slider eventually -->
               {%comment%}
               <div id="nouislider" class="my-2"></div>
@@ -83,7 +83,7 @@
                 {{ds.minmax.0}}<span class="float-right">{{ds.minmax.1}}
               </div>-->
               {%endcomment%}
-              
+
               <div id="row_detail">
                 <div id="detail" class="small"></div>
               </div>
@@ -128,10 +128,10 @@
 
 <script type="text/javascript">
 
-  
+
   /* // slider experiment
   var html5Slider = document.getElementById('nouislider');
-  
+
   noUiSlider.create(html5Slider, {
       start: [10, 30],
       connect: true,
@@ -141,14 +141,14 @@
       }
   });
   */
-  
+
   /* // toggle layers
   $(".gtype").click(function(e){
     e.preventDefault()
     console.log('toggle', $(this).data('g'))
   })
   */
-  
+
   $(function(){
     localStorage.setItem('filter', '99')
     wdtask = "{{wdtask}}" == "True"?true:false
@@ -156,10 +156,10 @@
     whgtask = "{{whgtask}}" == "True"?true:false
 
     buildSelect()
-    
+
     startTableSpinner()
     startDetailSpinner()
-    
+
     window.dslabel = "{{ ds.label }}"
     window.filter = "{{ filter }}"
     table = $('#placetable').DataTable({
@@ -174,7 +174,7 @@
       ,scrollY: 400
       ,select: true
       ,order: [[2, 'asc']]
-      ,columns: 
+      ,columns:
       [
           {"data": "id"},
           {"data": "src_id"},
@@ -184,11 +184,11 @@
           {"data": "review_wd"},
           {"data": "review_tgn"},
           {"data": "review_whg"},
-          {"data": "revwd", "visible": wdtask?true:false, 
+          {"data": "revwd", "visible": wdtask?true:false,
             "orderable":false},
-          {"data": "revtgn", "visible": tgntask?true:false, 
+          {"data": "revtgn", "visible": tgntask?true:false,
             "orderable":false},
-          {"data": "revwhg", "visible": whgtask?true:false, 
+          {"data": "revwhg", "visible": whgtask?true:false,
             "orderable":false}
       ]
       ,columnDefs:[
@@ -205,7 +205,7 @@
       spinner_table.stop()
       setRowEvents();
     })
-    
+
     // help popups
     $(".help-matches").click(function(){
       page=$(this).data('id')
@@ -227,7 +227,7 @@
       hide: {effect: "fade",duration: 400 }
     });
   })  //** end onload()
-  
+
   // activate all tooltips
   $("[rel='tooltip']").tooltip();
 
@@ -249,7 +249,7 @@
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] }
     });
-    
+
     const zIndex4 = mappy.addLayer({
       id: 'z-index-4',
       type: 'symbol',
@@ -299,7 +299,7 @@
             'type': 'geojson',
             'data': data.collection
         })
-        
+
         // render to map
         // z-index points:4, poly-outlines:3. poly:2, lines:1
         mappy.addLayer({
@@ -311,10 +311,10 @@
             'circle-color': '#ff9900',
             'circle-radius': {
               stops: [[1, 2], [3, 3], [16, 10]]
-            }        
+            }
           },
           'filter': ['==', '$type', 'Point']
-        }, 'z-index-4');  
+        }, 'z-index-4');
 
         // dashed outline for polygons
         mappy.addLayer({
@@ -330,7 +330,7 @@
           },
           'filter': ['==', '$type', 'Polygon']
         }, 'z-index-3');
-        
+
         mappy.addLayer({
           'id': 'gl_active_poly',
           'type': 'fill',
@@ -351,11 +351,11 @@
             'line-color': 'lightblue',
             'line-width': {
               stops: [[1, 1], [4, 2], [16, 4]]
-            }        
+            }
           },
           'filter': ['==', '$type', 'LineString']
-        }, 'z-index-1');  
-          
+        }, 'z-index-1');
+
         mappy.fitBounds(envelope.bbox, {padding: 30})
         spinner_map.stop()
       }
@@ -370,26 +370,26 @@
       // restore full opacity in case it was dimmed
       mappy.setPaintProperty('gl_active_point', 'circle-opacity', 1.0);
       mappy.setPaintProperty(
-        'gl_active_point', 'circle-radius', 
+        'gl_active_point', 'circle-radius',
           { 'property':'pid',
             'type':'categorical',
             'default': 3,
             'stops':[[Number(pid), 8]]}
       );
       mappy.setPaintProperty(
-        'gl_active_point', 'circle-stroke-color', 
+        'gl_active_point', 'circle-stroke-color',
           { 'property':'pid',
             'type':'categorical',
             'stops':[[Number(pid), '#666']]}
       );
       mappy.setPaintProperty(
-        'gl_active_point', 'circle-stroke-width', 
+        'gl_active_point', 'circle-stroke-width',
           { 'property':'pid',
             'type':'categorical',
             'stops':[[Number(pid), 1]]}
       );
       mappy.setPaintProperty(
-        'gl_active_point', 'circle-color', 
+        'gl_active_point', 'circle-color',
           { 'property':'pid',
             'default':'#ff9900',
             'type':'categorical',
@@ -399,48 +399,48 @@
       // fade points when polygon is highlighted
       mappy.setPaintProperty('gl_active_point', 'circle-opacity', 0.4);
       mappy.setPaintProperty(
-        'gl_active_poly', 'fill-outline-color', 
+        'gl_active_poly', 'fill-outline-color',
           { 'property':'pid',
             'default': 'grey',
             'type':'categorical',
             'stops':[[Number(pid), 'red']]}
       );
       mappy.setPaintProperty(
-        'gl_active_poly', 'fill-color', 
+        'gl_active_poly', 'fill-color',
           { 'property':'pid',
             'default': "rgba(255,0,0, 0.4)",
             // 'default': "rgba(255,255,255,0.0)",
             'type':'categorical',
             // 'type':'categorical',
             'stops':[[Number(pid), 'rgba(0,128,0,1.0)']]}
-      );     
+      );
 
     } else if(geom.type.includes('Line')) {
       mappy.setPaintProperty(
-        'gl_active_line', 'line-color', 
+        'gl_active_line', 'line-color',
           { 'property':'pid',
             'default': "lightblue",
             'type':'categorical',
             'stops':[[Number(pid), 'blue']]}
-      );           
+      );
       mappy.setPaintProperty(
-        'gl_active_line', 'line-width', 
+        'gl_active_line', 'line-width',
           { 'property':'pid',
             'default': 1,
             'type':'categorical',
             'stops':[[Number(pid), 2]]}
-      );           
+      );
     }
-    
+
     // zoom to feature
     if(geom.type.toLowerCase() == 'point'){
       flycoords = typeof(coords[0]) == 'number'?coords:coords[0]
       mappy.flyTo({'center': flycoords, 'zoom': 7})
     } else {
       bbox=turf.envelope(geom).bbox
-      mappy.fitBounds(bbox, { padding: 30})      
-    }      
-      
+      mappy.fitBounds(bbox, { padding: 30})
+    }
+
   }
 
   function popupMaker(place, lnglat){
@@ -461,10 +461,10 @@
     while (Math.abs(lnglat.lng - coordinates[0]) > 180) {
       coordinates[0] += lnglat.lng > coordinates[0] ? 360 : -360;
     }
-    
+
     // highlight row
     // console.log('making popup', pid, coordinates)
-      
+
     // popup
     var html='<b>'+title+'</b><br/>'+'<a href="javascript:getPlace('+pid+')">fetch info</a>'
     if(min != 'null'){
@@ -478,21 +478,21 @@
   // all this for a popup, on ONE layer
   // TODO: repeat for lines and polygons
   mappy.on('click', 'gl_active_point', function (e) {
-    // console.log('e.lngLat', e.lngLat)
+    //console.log('elbek')
     //lng = e.lngLat.lng
     lnglat = e.lngLat
     //lngLat = e.lngLat
     place=e.features[0]
     //console.log('clicked point, lng', place, lng)
-    // 
+    //
     popupMaker(place, lnglat)
   });
-  
+
   mappy.on('click', 'gl_active_line', function (e) {
     lnglat = e.lngLat
     place=e.features[0]
     // console.log('clicked line, lngLat', place, lnglat)
-    // 
+    //
     popupMaker(place, lnglat)
   });
 
@@ -500,10 +500,10 @@
     lnglat = e.lngLat
     place=e.features[0]
     // console.log('clicked line, lngLat', place, lnglat)
-    // 
+    //
     popupMaker(place, lnglat)
   });
-  
+
   // Change the cursor to a pointer when the mouse is over the point layer.
   mappy.on('mouseenter', 'gl_active_point', function () {
     mappy.getCanvas().style.cursor = 'pointer';
@@ -512,7 +512,7 @@
   mappy.on('mouseleave', 'gl_active_point', function () {
     mappy.getCanvas().style.cursor = '';
   });
-  
+
   mappy.on('mouseenter', 'gl_active_line', function () {
     mappy.getCanvas().style.cursor = 'pointer';
   });
@@ -528,8 +528,8 @@
   mappy.on('mouseleave', 'gl_active_poly', function () {
     mappy.getCanvas().style.cursor = '';
   });
-  
-  // generic 
+
+  // generic
   function zoomTo(pid) {
     console.log('zoomTo()',pid)
     l = idToFeature[pid]
@@ -552,7 +552,7 @@
     .search( v )
     .draw();
     $("#status_select").val(localStorage.getItem('filter'))
-  }    
+  }
   function clearFilters() {
     // clear
     table
@@ -560,8 +560,8 @@
     .search( '' )
     .draw();
     $("#status_select").val('99')
-  }    
-  
+  }
+
   // table events
   // TODO: use datatables methods?
   function setRowEvents(){
@@ -610,16 +610,16 @@
       // highlight this row, clear others
       var selected = $(this).hasClass("highlight-row");
       $("#placetable tr").removeClass("highlight-row");
-      
+
       if(!selected)
         $(this).removeClass( "rowhover" );
         $(this).addClass("highlight-row");
 
       // fetch its detail
       getPlace(pid)
-      
-    }) 
-        
+
+    })
+
     row = $("#drftable_list table tbody")[0].rows[0]
     pid = parseInt(row.cells[0].textContent)
     // highlight first row, fetch detail, but don't zoomTo() it
@@ -628,27 +628,27 @@
     getPlace(pid)
   }
 
-  // build select 
+  // build select
   function buildSelect(){
     select = '<label>Review filters: <select name="status" aria-controls="placetable" id="status_select" class="datatables_length">'+
     '<option value="99" selected="selected">All</option>'
-    
-    if(wdtask){ select += 
+
+    if(wdtask){ select +=
     '<option disabled>-----wikidata-----</option>'+
     '<option value="50">Needs review (wd)</option>'+
     '<option value="51">Reviewed (wd)</option>'+
     '<option value="52">Deferred (wd)</option>'}
-    if(tgntask){ select += 
+    if(tgntask){ select +=
     '<option disabled>-------tgn-------</option>'+
     '<option value="60">Needs review (tgn)</option>'+
     '<option value="61">Reviewed (tgn)</option>'+
-    '<option value="62">Deferred (tgn)</option>'}    
-    if(whgtask){ select += 
+    '<option value="62">Deferred (tgn)</option>'}
+    if(whgtask){ select +=
     '<option disabled>-------whg-------</option>'+
     '<option value="70">Needs review </option>'+
     '<option value="71">Reviewed </option>'+
     '<option value="72">Deferred </option>'}
-    
+
     select +='</select></label>'
     return select
   }
@@ -658,13 +658,13 @@
     // abbreviate links not in aliases.base_urls
     if(identifier.startsWith('http')) {
       let tag = identifier.replace(/.+\/\/|www.|\..+/g, '')
-      link = '<a href="'+identifier+'" target="_blank">'+tag+'{% fontawesome_icon 'external-link' color='#336699' %},  </a>'          
+      link = '<a href="'+identifier+'" target="_blank">'+tag+'{% fontawesome_icon 'external-link' color='#336699' %},  </a>'
     } else {
-    link = '<a href="" class="ext" data-target="#ext_site">'+identifier+'{% fontawesome_icon 'external-link' color='#336699' %}</a>, '    
+    link = '<a href="" class="ext" data-target="#ext_site">'+identifier+'{% fontawesome_icon 'external-link' color='#336699' %}</a>, '
     }
     return link
   }
-  
+
   // builds link for external placetype record
   function url_exttype(type) {
     link = ' <a href="#" class="exttab" data-id='+type.identifier+
@@ -678,7 +678,7 @@
       // gets 'in', 'earliest' or 'latest'
       starts.push(Object.values(timespans[t].start)[0])
       ends.push(!!timespans[t].end ? Object.values(timespans[t].end)[0] : -1)
-    } 
+    }
     //console.log('starts',starts,'ends',ends)
     minmax=[Math.max.apply(null, starts),Math.max.apply(null, ends)]
     return minmax
@@ -688,7 +688,7 @@
   function parsePlace(data) {
     window.featdata = data
 
-    function onlyUnique(array) { 
+    function onlyUnique(array) {
       const map = new Map();
       const result = [];
       for (const item of array) {
@@ -705,7 +705,7 @@
     }
     //timespan_arr = []
     //
-    // TITLE 
+    // TITLE
     descrip = '<p><b>Title</b>: <span id="row_title" class="larger text-danger">'+data.title+'</span>'
     //
     // NAME VARIANTS
@@ -734,16 +734,16 @@
       } else if ('sourceLabel' in type) {
         str = type.sourceLabel !='' ? type.sourceLabel + '; ' : ''
       }
-      if(type.label!=''){ 
-        str += url_exttype(type) + ' ' 
+      if(type.label!=''){
+        str += url_exttype(type) + ' '
       }
       typeids+=str
     }
     descrip += typeids.replace(/(; $)/g, "") +'</p>'
-    
+
     //
     // LINKS
-    // 
+    //
     descrip += '<p class="mb-0"><b>Links</b>: <i>original: </i>'
     close_count = added_count = related_count = 0
     html_close = html_added = html_related = ''
@@ -770,20 +770,20 @@
     // RELATED
     //right=''
     if (data.related.length > 0) {
-      parent='<p class="mb-0"><b>Parent(s)</b>: '; 
+      parent='<p class="mb-0"><b>Parent(s)</b>: ';
       related='<p class="mb-0"><b>Related</b>: ';
       for (r in data.related){
         rel = data.related[r]
         //console.log('rel',rel)
         if (rel.relation_type == 'gvp:broaderPartitive'){
           parent += '<span class="h1em">'+rel.label
-          parent += 'when' in rel && !('timespans' in rel.when) ? 
-            ', '+rel.when.start.in+'-'+rel.when.end.in : 
+          parent += 'when' in rel && !('timespans' in rel.when) ?
+            ', '+rel.when.start.in+'-'+rel.when.end.in :
             'when' in rel && ('timespans' in rel.when) ? ', '+
               minmaxer(rel.when.timespans) : ''
               //rel.when.timespans : ''
           parent += '</span>; '
-        } 
+        }
         else {
           related += '<p class="small h1em">'+rel.label+ ', '+rel.when.start.in+'-'+rel.when.end.in+'</p>'
         }
@@ -814,7 +814,7 @@
     //console.log('data.minmax',data.minmax)
     mm=data.minmax
     if(data.minmax && !(mm[0] == null && mm[1] == null)) {
-      descrip += '<p><b>When</b>: earliest: '+data.minmax[0]+'; latest: '+data.minmax[1]    
+      descrip += '<p><b>When</b>: earliest: '+data.minmax[0]+'; latest: '+data.minmax[1]
     }
 
     // if geom(s) and 'certainty', add it
@@ -827,7 +827,7 @@
     descrip += '</div>'
     return descrip
   }
-  
+
   // fetch complete-ish place record
   function getPlace(pid){
     console.log('getPlace()', pid)
@@ -835,7 +835,7 @@
       url: "/api/place/"+pid,
       }).done(function( data ) {
         console.log('place data', data)
-        {#$("#detail").html(parsePlace(data))#}
+        $("#detail").html(parsePlace(data))
         spinner_detail.stop()
         // events on detail items
         $('.ext').on('click', function(e) {
@@ -847,7 +847,7 @@
             url = str
           } else {
             var re = /(http|bnf|cerl|dbp|gn|gnd|gov|loc|pl|tgn|viaf|wd|wdlocal|whg|wp):(.*?)$/;
-            url=base_urls[str.match(re)[1]]+str.match(re)[2] 
+            url=base_urls[str.match(re)[1]]+str.match(re)[2]
             console.log('getPlace() url', url, encodeURI(url))
           }
           window.open(url, '_blank');
@@ -865,28 +865,28 @@
     });
     //spinner_detail.stop()
   }
-  
+
   // spinners
   spin_opts = { scale: .5, top: '50%'}
   function startTableSpinner(){
     window.spinner_table = new Spin.Spinner(spin_opts).spin();
-    $("#drftable_list").append(spinner_table.el);   
+    $("#drftable_list").append(spinner_table.el);
   }
   function startFilterSpinner(){
     window.spinner_filter = new Spin.Spinner(spin_opts).spin();
-    $("#status_filter").append(spinner_filter.el);   
+    $("#status_filter").append(spinner_filter.el);
   }
   function startDetailSpinner(){
     window.spinner_detail = new Spin.Spinner(spin_opts).spin();
-    $("#row_detail").append(spinner_detail.el);   
+    $("#row_detail").append(spinner_detail.el);
   }
   function startMapSpinner(){
     //console.log('startMapSpinner()')
     window.spinner_map = new Spin.Spinner(spin_opts).spin();
-    $("#map").append(spinner_map.el);   
+    $("#map").append(spinner_map.el);
   }
   //*
-  
+
 </script>
 {% endblock %}
 
