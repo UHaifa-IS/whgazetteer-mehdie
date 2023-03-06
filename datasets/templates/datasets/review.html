@@ -228,7 +228,11 @@
                 {% endif %}
                 <!-- {{ form.json.value }} -->
                   <p><strong>Title/Preferred</strong>: <span class="text-danger h6">{{ form.json.value|get:"title" }}</span></p>
-                  <p><strong>Explanation</strong>: <span>Fuzzy match (confidence {{form.score.value|floatformat:2}}) </span></p>
+
+                  <p class="scroll65"><strong>Explanation</strong>:
+                        Fuzzy match (confidence {{form.score.value|floatformat:2}})
+                  </p>
+
                 {% if authority|startswith:'whg' or authority|startswith:'match_data' %}
                   <p><strong>WHG place id</strong>: {{ form.json.value|get:"place_id" }}</p>
                   <p><strong>Source (id)</strong>: {{ form.json.value|get:"dataset" }} ({{ form.json.value|get:"src_id" }})</p>
