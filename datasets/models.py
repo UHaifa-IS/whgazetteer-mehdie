@@ -320,7 +320,7 @@ class Hit(models.Model):
     query_pass = models.CharField(max_length=12, choices=PASSES)
     src_id = models.CharField(max_length=2044)
     score = models.FloatField()
-
+    explanations = models.TextField(verbose_name='Explanations', blank=True, null=True)
     reviewed = models.BooleanField(default=False)
     matched = models.BooleanField(default=False)
     flag = models.BooleanField(default=False)

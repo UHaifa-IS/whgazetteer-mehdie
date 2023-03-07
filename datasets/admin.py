@@ -15,7 +15,7 @@ class DatasetFileAdmin(GuardedModelAdmin):
 
 @admin.register(Hit)
 class HitAdmin(admin.ModelAdmin):
-    list_display = ('id', 'query_pass', 'reviewed', 'task_id', 'authrecord_id', 'relation_type', 'src_id')
+    list_display = ('id', 'query_pass', 'reviewed', 'task_id', 'authrecord_id', 'relation_type', 'src_id', 'explanations')
 
 
 admin.site.register(DatasetFile, DatasetFileAdmin)

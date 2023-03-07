@@ -228,10 +228,11 @@
                 {% endif %}
                 <!-- {{ form.json.value }} -->
                   <p><strong>Title/Preferred</strong>: <span class="text-danger h6">{{ form.json.value|get:"title" }}</span></p>
-
-                  <p class="scroll65"><strong>Explanation</strong>:
-                        Fuzzy match (confidence {{form.score.value|floatformat:2}})
+                {% if form.explanations.value|length > 0 %}
+                  <p class="exp"><strong>Explanation</strong>:
+                      {{form.explanations.value}}
                   </p>
+                {% endif %}
 
                 {% if authority|startswith:'whg' or authority|startswith:'match_data' %}
                   <p><strong>WHG place id</strong>: {{ form.json.value|get:"place_id" }}</p>
@@ -320,6 +321,14 @@
      <div id="helpme" class="my-3"><div>
   </div>
 </div>
+
+<style>
+p.exp {
+    width:350px;
+    height: 40px;
+    overflow: auto;
+}
+</style>
 
 <script type="text/javascript">
   $(".help-matches").click(function(){

@@ -829,6 +829,7 @@ def align_match_data(pk, *args, **kwargs):
             json=normalize(qobj, qobj['type'], language),
             src_id=place.src_id,
             score=data[4],
+            explanations=data[3],
             geom=None,
             reviewed=False,
             matched=False,

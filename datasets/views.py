@@ -433,7 +433,7 @@ def review(request, pk, tid, passnum):
     # build formset from hits, add to context
     HitFormset = modelformset_factory(
         Hit,
-        fields=('id', 'authority', 'authrecord_id', 'query_pass', 'score', 'json', 'relation_type'),
+        fields=('id', 'authority', 'authrecord_id', 'query_pass', 'score', 'json', 'relation_type', 'explanations'),
         form=HitModelForm, extra=0)
     formset = HitFormset(request.POST or None, queryset=raw_hits)
     context['formset'] = formset
@@ -727,6 +727,7 @@ def ds_recon(request, pk):
         auth = request.POST['recon']
         aug_geom = request.POST['geom'] if 'geom' in request.POST else ''
         language = request.LANGUAGE_CODE
+        print(auth)
         if auth == 'match_data':
 
             m_dataset = request.POST['m_dataset']
@@ -883,11 +884,11 @@ def task_delete(request, tid, scope="foo"):
     # delete dataset from index
     # undoes any acceessioning work
     # set status back to reconciling
-    ds = Dataset.objects.get(id=dsid)
+    ds = Dataset.objects.get(id=dsid[:2])
     ds.ds_status = 'reconciling'
     ds.save()
 
-    return redirect('/datasets/' + dsid + '/reconcile')
+    return redirect('/datasets/' + dsid[:2] + '/reconcile')
 
 
 """
