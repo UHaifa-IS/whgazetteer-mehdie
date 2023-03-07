@@ -884,11 +884,11 @@ def task_delete(request, tid, scope="foo"):
     # delete dataset from index
     # undoes any acceessioning work
     # set status back to reconciling
-    ds = Dataset.objects.get(id=dsid[:2])
+    ds = Dataset.objects.get(id=dsid[0:2])
     ds.ds_status = 'reconciling'
     ds.save()
 
-    return redirect('/datasets/' + dsid[:2] + '/reconcile')
+    return redirect('/datasets/' + dsid[0:2] + '/reconcile')
 
 
 """
