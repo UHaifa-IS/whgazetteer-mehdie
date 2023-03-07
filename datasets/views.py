@@ -887,7 +887,7 @@ def task_delete(request, tid, scope="foo"):
 
     if ',' in dsid:
         dsid = dsid[:-1]
-    ds = Dataset.objects.filter(id=dsid)
+    ds = Dataset.objects.get(id=dsid)
 
     ds.ds_status = 'reconciling'
     ds.save()
