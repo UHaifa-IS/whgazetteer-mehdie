@@ -884,9 +884,15 @@ def task_delete(request, tid, scope="foo"):
     # delete dataset from index
     # undoes any acceessioning work
     # set status back to reconciling
+    print(dsid)
+    print(dsid)
+    print(dsid)
+    print(dsid)
+    print(dsid)
 
     ds = Dataset.objects.filter(id=dsid[0:2])
     if ds.exists():
+        ds = ds.first()
         ds.ds_status = 'reconciling'
         ds.save()
 
