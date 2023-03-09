@@ -8,13 +8,22 @@ from elasticsearch7 import Elasticsearch
 from elastic.es_utils import makeDoc
 from sentry_sdk import capture_exception
 
-es = Elasticsearch([{'host': 'localhost',
+# es = Elasticsearch([{'host': 'localhost',
+#                      'port': 9200,
+#                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
+#                      'timeout': 30,
+#                      'max_retries': 10,
+#                      'retry_on_timeout': True
+#                      }])
+
+es = Elasticsearch([{'host': '0.0.0.0',
                      'port': 9200,
                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                      'timeout': 30,
                      'max_retries': 10,
-                     'retry_on_timeout': True
-                     }])
+                     'retry_on_timeout': True}])
+
+
 idx = 'whg'
 
 dsid = 586  # 'diamonds' current file: user_whgadmin/diamonds135_rev3_g6cvm1l.tsv

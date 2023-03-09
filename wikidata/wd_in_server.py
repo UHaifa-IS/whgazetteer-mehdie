@@ -10,7 +10,7 @@ from collections import OrderedDict
 from datetime import date
 from django.contrib.gis.geos import MultiPoint, Point
 from elasticsearch import Elasticsearch
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 
 wd = './'
 #wd = '/Users/karlg/Documents/Repos/_whgdata/elastic/wikidata/'

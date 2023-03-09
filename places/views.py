@@ -58,7 +58,7 @@ class PlacePortalView(DetailView):
   def get_object(self):
     id_ = self.kwargs.get("id")
     print('args',self.args,'kwargs:',self.kwargs)
-    es = Elasticsearch([{'host': 'localhost',
+    es = Elasticsearch([{'host': '0.0.0.0',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                          'timeout': 30,
@@ -77,7 +77,7 @@ class PlacePortalView(DetailView):
     context['mbtokenkg'] = settings.MAPBOX_TOKEN_KG
     context['mbtokenwhg'] = settings.MAPBOX_TOKEN_WHG
     context['mbtokenmb'] = settings.MAPBOX_TOKEN_MB
-    es = Elasticsearch([{'host': 'localhost',
+    es = Elasticsearch([{'host': '0.0.0.0',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                          'timeout': 30,
