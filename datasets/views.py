@@ -36,13 +36,20 @@ from datasets.tasks import align_wdlocal, align_idx, align_tgn, maxID, align_mat
 from elastic.es_utils import makeDoc, removePlacesFromIndex, replaceInIndex
 from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateModelForm
 
-es = Elasticsearch([{'host': 'localhost',
+# es = Elasticsearch([{'host': 'localhost',
+#                      'port': 9200,
+#                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
+#                      'timeout': 30,
+#                      'max_retries': 10,
+#                      'retry_on_timeout': True
+#                      }])
+
+es = Elasticsearch([{'host': '0.0.0.0',
                      'port': 9200,
                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                      'timeout': 30,
                      'max_retries': 10,
-                     'retry_on_timeout': True
-                     }])
+                     'retry_on_timeout': True}])
 
 """
   email various, incl. Celery down notice
@@ -83,13 +90,13 @@ def link_uri(auth, id):
 
 def indexMatch(pid, hit_pid=None):
     from elasticsearch7 import Elasticsearch
-    es = Elasticsearch([{'host': 'localhost',
+    es = Elasticsearch([{'host': '0.0.0.0',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                          'timeout': 30,
                          'max_retries': 10,
-                         'retry_on_timeout': True
-                         }])
+                         'retry_on_timeout': True}])
+
     idx = 'whg'
     place = get_object_or_404(Place, id=pid)
 
@@ -185,13 +192,13 @@ def indexMatch(pid, hit_pid=None):
 
 def indexMultiMatch(pid, matchlist):
     from elasticsearch7 import Elasticsearch, RequestError
-    es = Elasticsearch([{'host': 'localhost',
+    es = Elasticsearch([{'host': '0.0.0.0',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                          'timeout': 30,
                          'max_retries': 10,
-                         'retry_on_timeout': True
-                         }])
+                         'retry_on_timeout': True}])
+
     idx = 'whg'
     place = Place.objects.get(id=pid)
     from elastic.es_utils import makeDoc
@@ -1284,13 +1291,13 @@ def ds_update(request):
             # TODO: if new records, new recon task & accessioning tasks needed
             if compare_data['count_indexed'] > 0:
                 from elasticsearch7 import Elasticsearch
-                es = Elasticsearch([{'host': 'localhost',
+                es = Elasticsearch([{'host': '0.0.0.0',
+                                     'port': 9200,
                                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                                      'timeout': 30,
                                      'max_retries': 10,
-                                     'retry_on_timeout': True,
-                                     'port': 9200
-                                     }])
+                                     'retry_on_timeout': True}])
+
                 idx = 'whg'
 
                 result["indexed"] = True

@@ -96,7 +96,7 @@
 
                     <span class="mr-2 globeflash">
                         <a class="geolink" rel="tooltip"
-                            {% if ds_label == 'tgn_filtered_01' or authority == 'whg' or authority == 'idx'%}
+                            {% if ds_label == 'tgn_filtered_01' or authority == 'match_data'  or authority == 'whg' or authority == 'idx'%}
                               id="{{ form.json.value|get:"place_id" }}"
                             {% else %}
                               id="{{ record.id }}"
@@ -197,7 +197,7 @@
                     <span class="mr-2 globeflash">
                     <!--{ if form.json.value|get:"geoms" != Null }-->
                       <a class="geolink" rel="tooltip"
-                        {% if ds_label == 'tgn_filtered_01' or authority == 'whg' or authority == 'idx'%}
+                        {% if ds_label == 'tgn_filtered_01' or authority == 'match_data' or authority == 'whg' or authority == 'idx'%}
                           id="{{ form.json.value|get:"place_id" }}"
                         {% else %}
                           id="{{ form.authrecord_id.value }}"
@@ -508,7 +508,7 @@ p.exp {
 
     function fill(ds) {
       <!--console.log('ds',ds)-->
-      if (['tgn','wd','whg', 'md'].indexOf(ds)>=0){
+      if (['tgn','wd','whg', 'match_data'].indexOf(ds)>=0){
         return "orange"}
       else {
         return "green"}

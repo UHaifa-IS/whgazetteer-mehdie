@@ -8,7 +8,7 @@ from django.db.models import Q
 from datasets.models import Dataset, Hit
 idx = 'whg'
 from elastic.es_utils import deleteDatasetFromIndex
-es = Elasticsearch([{'host': 'localhost',
+es = Elasticsearch([{'host': '0.0.0.0',
                      'port': 9200,
                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                      'timeout': 30,

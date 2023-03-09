@@ -1,7 +1,7 @@
 # update ES records for this and that
 
 from elasticsearch import Elasticsearch
-es = Elasticsearch([{'host': 'localhost', 'port': 9200}])
+es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 
 from datasets.models import Dataset
 from places.models import Place
