@@ -97,7 +97,7 @@
                     <span class="mr-2 globeflash">
                         <a class="geolink" rel="tooltip"
                             {% if ds_label == 'tgn_filtered_01' or authority == 'match_data'  or authority == 'whg' or authority == 'idx'%}
-                              id="{{ form.json.value|get:"place_id" }}"
+                              id="{{ record.id }}"
                             {% else %}
                               id="{{ record.id }}"
                             {% endif %}
@@ -198,7 +198,7 @@
                     <!--{ if form.json.value|get:"geoms" != Null }-->
                       <a class="geolink" rel="tooltip"
                         {% if ds_label == 'tgn_filtered_01' or authority == 'match_data' or authority == 'whg' or authority == 'idx'%}
-                          id="{{ form.json.value|get:"place_id" }}"
+                          id="{{ form.authrecord_id.value }}"
                         {% else %}
                           id="{{ form.authrecord_id.value }}"
                         {% endif %}
@@ -455,9 +455,9 @@ p.exp {
   })
 
   $( ".geolink" ).hover(function() {
-      <!--console.log($(this))-->
+      {#console.log($(this))#}
       let id = $(this)[0].id
-      <!--console.log('id:',id)-->
+      console.log('id:',id)
       feat = idToFeature[id]
       ogcolor = feat.options.fillColor
       feat.setStyle(
