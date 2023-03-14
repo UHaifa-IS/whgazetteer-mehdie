@@ -537,7 +537,6 @@ def normalize(h, auth, language=None):
                         'id': h['src_id'],
                         'ds': 'md'
                     })
-                    # single MultiPoint geom if exists
                 rec.geoms = geoms
 
         # turn these identifier claims into links
@@ -810,7 +809,8 @@ def align_match_data(pk, *args, **kwargs):
             geoms = [g.jsonb for g in place_2.geoms.all()]
             # make everything a simple polygon hull for spatial filter
             for geom in geoms:
-                geom['coordinates'] = [geom['coordinates']]
+                # geom['coordinates'] = [geom['coordinates']]
+                geom['coordinates'] = geom['coordinates']
             qobj['geoms'] = geoms
 
         if len(place_2.links.all()) > 0:

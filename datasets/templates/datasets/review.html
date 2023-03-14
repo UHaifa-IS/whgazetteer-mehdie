@@ -97,7 +97,7 @@
                     <span class="mr-2 globeflash">
                         <a class="geolink" rel="tooltip"
                             {% if ds_label == 'tgn_filtered_01' or authority == 'match_data'  or authority == 'whg' or authority == 'idx'%}
-                              id="{{ form.json.value|get:"place_id" }}"
+                              id="{{ record.id }}"
                             {% else %}
                               id="{{ record.id }}"
                             {% endif %}
@@ -198,7 +198,7 @@
                     <!--{ if form.json.value|get:"geoms" != Null }-->
                       <a class="geolink" rel="tooltip"
                         {% if ds_label == 'tgn_filtered_01' or authority == 'match_data' or authority == 'whg' or authority == 'idx'%}
-                          id="{{ form.json.value|get:"place_id" }}"
+                          id="{{ form.authrecord_id.value }}"
                         {% else %}
                           id="{{ form.authrecord_id.value }}"
                         {% endif %}
@@ -455,9 +455,9 @@ p.exp {
   })
 
   $( ".geolink" ).hover(function() {
-      <!--console.log($(this))-->
+      {#console.log($(this))#}
       let id = $(this)[0].id
-      <!--console.log('id:',id)-->
+      console.log('id:',id)
       feat = idToFeature[id]
       ogcolor = feat.options.fillColor
       feat.setStyle(
@@ -488,14 +488,12 @@ p.exp {
   // initialize, render map
   // authority geom "geoms": [{"type": "point", "coordinates": [-72.8667, -13.6167]}]
   function map_init(map, options) {
-    // console.log('in map_init()')
     window.geom = {"type":"FeatureCollecton","features":[]}
 
     window.gelems = $('script').filter(function() {
       // return this.id.match(/[0-9]/) && this.text != '"null"';-->
       return this.id !='' && this.text != '"null"';
     });
-    console.log(gelems)
     for (i=0;i<gelems.length;i++){
       let t_geom = cleanJson(gelems[i].text)
       t_geom['properties'] = {"id": gelems[i].id,"ds": t_geom.ds!=null?t_geom.ds:ds}
@@ -503,24 +501,27 @@ p.exp {
       <!--if ('citation' in t_geom){-->
         <!--t_geom['properties'] = {"id":t_geom['citation']['id'] }-->
       <!--} else t_geom['properties'] = {"id": gelems[i].id,"ds": t_geom.ds!=null?t_geom.ds:ds}-->
+        {#console.log(t_geom, 't_geom')#}
+        {#t_geom.coordinates = t_geom.coordinates[0] // TODO#}
+        {#console.log(t_geom, 't_geom_test')#}
       geom['features'].push(t_geom)
     }
 
     function fill(ds) {
-      <!--console.log('ds',ds)-->
-      if (['tgn','wd','whg', 'match_data'].indexOf(ds)>=0){
+      if (['tgn','wd','whg', 'md'].indexOf(ds)>=0){
         return "orange"}
       else {
         return "green"}
     }
 
     if (geom['features'].length > 0) {
-      <!--console.log('geom: ',geom)-->
+      {#console.log('geom: ',geom)#}
       idToFeature = {} // for feature lookup
+        {#geom.features.splice(0, 1) // TODO#}
       features = L.geoJSON(geom, {
         pointToLayer: function (feature, latlng) {
-          <!--console.log('feature.properties',feature.properties)-->
-          <!--console.log('feature',feature)-->
+          {#console.log('feature.properties',feature.properties)#}
+          {#console.log('feature',feature)#}
           matchid = feature.properties.id
           marker = L.circleMarker(latlng,
             {
@@ -528,6 +529,7 @@ p.exp {
               color: "#333", fillColor: fill(feature.properties.ds)
             }
           ).bindPopup(matchid);
+          {#console.log('olreccdcdcdc')#}
           marker.on('click', function(){
             console.log('clicked marker w/id',feature.properties.id)
             // .matchbar background change, scroll to it
