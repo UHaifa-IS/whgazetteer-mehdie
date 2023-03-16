@@ -819,7 +819,7 @@ def align_match_data(pk, *args, **kwargs):
         else:
             qobj['authids'] = []
 
-        Hit.objects.create(
+        hit = Hit.objects.create(
             authority='md',
             authrecord_id=data[1],
             dataset=dataset,
@@ -834,6 +834,8 @@ def align_match_data(pk, *args, **kwargs):
             reviewed=False,
             matched=False,
         )
+        hit.json['tsv_variants'] = data[10]
+        hit.save()
         count_hit += 1
     end = datetime.datetime.now()
 
@@ -855,7 +857,8 @@ def align_match_data(pk, *args, **kwargs):
         'pass3': 0,
         'no_hits': {'count': len(csv_data.values) - count_hit},
         'elapsed': elapsed(end - start),
-        'dt2_name': dataset_2.title
+        'dt2_name': dataset_2.title,
+        'tsv_url': kwargs.get('tsv_url')
     }
 
 

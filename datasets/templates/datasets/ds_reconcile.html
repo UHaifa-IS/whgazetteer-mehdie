@@ -85,6 +85,9 @@
                     <p><b>ID</b>: {{ t.task_id }}</p>
 	                  {% if t.task_name != 'align_idx' or user|has_group:'admins' %}
                       <p id="{{ t.task_name }}" class="small">
+                      {% if t.result|get:"tsv_url" %}
+                        <a href='{{ t.result|get:"tsv_url" }}'>Download Match File</a><br>
+                      {% endif %}
                       <a class="confirm-del-all" data-id={{t.task_id}} href="{% url 'datasets:task-delete' tid=t.task_id scope='task' %}">Delete task & hits, clear matches {% fontawesome_icon 'trash' color='#ff0000' %}
                       </a><br/>
                       <a class="confirm-del-geoms" href="{% url 'datasets:task-delete' tid=t.task_id scope='geoms'%}">
