@@ -43,7 +43,7 @@ class CommentModalForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         kwargs.pop('request')
         super().__init__(*args, **kwargs)
-        # self.fields['tag'].label = "Issue"
-        # # print('kwargs:', kwargs['initial']['next'])
-        # if '/def' in kwargs['initial']['next']:
-        #     self.fields['tag'].choices = COMMENT_TAGS_REVIEW
+        self.fields['tag'].label = "Issue"
+        # print('kwargs:', kwargs['initial']['next'])
+        if '/def' in kwargs['initial']['next']:
+            self.fields['tag'].choices = COMMENT_TAGS_REVIEW

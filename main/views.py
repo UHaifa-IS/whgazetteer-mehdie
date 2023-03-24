@@ -155,15 +155,14 @@ class CommentCreateView(BSModalCreateView):
     def get_form_kwargs(self, **kwargs):
         kwargs = super().get_form_kwargs()
         redirect_ = self.request.GET.get('next')
-        print(redirect_)
         if redirect_ is not None:
             self.success_url = redirect_
         else:
             self.success_url = '/mydata'
-        # if redirect_:
-        #     if 'initial' in kwargs.keys():
-        #         kwargs['initial'].update({'next': redirect_})
-        #     else:
-        #         kwargs['initial'] = {'next': redirect_}
+        if redirect_:
+            if 'initial' in kwargs.keys():
+                kwargs['initial'].update({'next': redirect_})
+            else:
+                kwargs['initial'] = {'next': redirect_}
         return kwargs
     # ** END
