@@ -708,6 +708,8 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, user):
     if response.status_code == 400:
         return response.json(), response.status_code
 
+    tsv_url = response.json()["csv download url"]
+
     align_match_data.delay(
         dataset_id,
         dataset_id=dataset_id,
@@ -715,10 +717,11 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, user):
         csv_url=response.json()["csv download url"],
         aug_geom=aug_geom,
         lang=language,
-        user=user.id
+        user=user.id,
+        tsv_url=tsv_url,
     )
 
-    return response.json()["csv download url"], response.status_code
+    return tsv_url, response.status_code
 
 
 def process_er(url):
@@ -770,7 +773,7 @@ def ds_recon(request, pk):
                                         f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
                                         f" If possible, we will proceed with the given fields."
                                         )
-            process_er(csv_url)
+            # process_er(csv_url)
             messages.add_message(request, messages.INFO,
                                  "<span class='text-success'>Your ER reconciliation task has been processsed.</span><br/>Download the csv file using the link below, results will appear below (you may have to refresh screen). <br/> <a href='{}'>Download Match File</a>".format(
                                      csv_url))

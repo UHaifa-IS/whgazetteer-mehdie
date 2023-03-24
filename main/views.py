@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect #, render_to_response
+from django.shortcuts import render, get_object_or_404, redirect  # , render_to_response
 from django.urls import reverse_lazy
 from django.views.generic.base import TemplateView
 from collection.models import Collection
@@ -14,13 +14,17 @@ from bootstrap_modal_forms.generic import BSModalCreateView
 
 from .forms import CommentModalForm, ContactForm
 from elasticsearch import Elasticsearch
+
 es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 from random import shuffle
+
+
 # import requests
 
 def custom_error_view(request, exception=None):
     print('error request', request.GET.__dict__)
-    return render(request, "main/500.html", {'error':'fubar'})
+    return render(request, "main/500.html", {'error': 'fubar'})
+
 
 # experiment with MapLibre
 class LibreView(TemplateView):
@@ -40,12 +44,12 @@ class Home2b(TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         context = super(Home2b, self).get_context_data(*args, **kwargs)
-        
+
         # deliver featured datasets and collections
         f_collections = Collection.objects.exclude(featured__isnull=True)
         f_datasets = list(Dataset.objects.exclude(featured__isnull=True))
         shuffle(f_datasets)
-        
+
         # 2 collections, rotate datasets randomly
         context['featured_coll'] = f_collections.order_by('featured')[:2]
         context['featured_ds'] = f_datasets
@@ -78,7 +82,8 @@ def statusView(request):
     try:
         q = {"query": {"bool": {"must": [{"match": {"place_id": "81011"}}]}}}
         res1 = es.search(index="whg", body=q)
-        context["status_index"] = "up" if (res1['hits']['total'] == 1 and res1['hits']['hits'][0]['_source']['title'] == 'Abydos') else "error"
+        context["status_index"] = "up" if (
+                res1['hits']['total'] == 1 and res1['hits']['hits'][0]['_source']['title'] == 'Abydos') else "error"
     except:
         context["status_index"] = "down"
 
@@ -102,30 +107,30 @@ def contactView(request):
         if form.is_valid():
             human = True
             name = form.cleaned_data['name']
-            username = form.cleaned_data['username'] # hidden input
+            username = form.cleaned_data['username']  # hidden input
             subject = form.cleaned_data['subject']
             from_email = form.cleaned_data['from_email']
-            message = name +' ('+username+'; '+from_email+'), on the subject of '+subject+' says: \n\n'+form.cleaned_data['message']
+            message = name + ' (' + username + '; ' + from_email + '), on the subject of ' + subject + ' says: \n\n' + \
+                      form.cleaned_data['message']
             subject_reply = "WHG message received"
-            message_reply = '\nWe received your message concerning "'+subject+'" and will respond soon.\n\n regards,\nThe WHG project team'
+            message_reply = '\nWe received your message concerning "' + subject + '" and will respond soon.\n\n regards,\nThe WHG project team'
             try:
                 send_mail(subject, message, from_email, ["mehdie.org@gmail.com"])
                 send_mail(subject_reply, message_reply, 'mehdie.org@gmail.com', [from_email])
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
-            return redirect('/success?return='+sending_url if sending_url else '/')
+            return redirect('/success?return=' + sending_url if sending_url else '/')
             # return redirect(sending_url)
         else:
             print('not valid, why?')
-                
+
     return render(request, "main/contact.html", {'form': form, 'user': request.user})
 
 
 def contactSuccessView(request, *args, **kwargs):
     returnurl = request.GET.get('return')
-    print('return, request', returnurl, str(request.GET))
     return HttpResponse(
-        '<div style="font-family:sans-serif;margin-top:3rem; width:50%; margin-left:auto; margin-right:auto;"><h4>Thank you for your message! We will reply soon.</h4><p><a href="'+returnurl+'">Return</a><p></div>')
+        '<div style="font-family:sans-serif;margin-top:3rem; width:50%; margin-left:auto; margin-right:auto;"><h4>Thank you for your message! We will reply soon.</h4><p><a href="' + returnurl + '">Return</a><p></div>')
 
 
 class CommentCreateView(BSModalCreateView):
@@ -138,28 +143,26 @@ class CommentCreateView(BSModalCreateView):
         form.instance.user = self.request.user
         place = get_object_or_404(Place, id=self.kwargs['rec_id'])
         form.instance.place_id = place
-        return super(CommentCreateView, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
-        context = super(CommentCreateView, self).get_context_data(*args, **kwargs)
+        context = super().get_context_data(**kwargs)
         context['place_id'] = self.kwargs['rec_id']
+        context['user'] = self.request.user
         return context
 
     # ** ADDED for referrer redirect
     def get_form_kwargs(self, **kwargs):
-        kwargs = super(CommentCreateView, self).get_form_kwargs()
-        redirect = self.request.GET.get('next')
-        print('redirect in get_form_kwargs():', redirect)
-        if redirect is not None:
-            self.success_url = redirect
+        kwargs = super().get_form_kwargs()
+        redirect_ = self.request.GET.get('next')
+        if redirect_ is not None:
+            self.success_url = redirect_
         else:
             self.success_url = '/mydata'
-        # print('cleaned_data in get_form_kwargs()',form.cleaned_data)
-        if redirect:
+        if redirect_:
             if 'initial' in kwargs.keys():
-                kwargs['initial'].update({'next': redirect})
+                kwargs['initial'].update({'next': redirect_})
             else:
-                kwargs['initial'] = {'next': redirect}
-        print('kwargs in get_form_kwargs():', kwargs)
+                kwargs['initial'] = {'next': redirect_}
         return kwargs
     # ** END
