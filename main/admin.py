@@ -9,4 +9,4 @@ class LogAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', 'user', 'place_id', 'note', 'created')
