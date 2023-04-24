@@ -298,7 +298,7 @@ def bundler(q, whgid, idx):
     es = Elasticsearch([{'host': 'localhost',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
-                         'http_auth': ('elastic', settings.ES_REST_PWD),
+                         # 'http_auth': ('elastic', settings.ES_REST_PWD), # this is superceded by api_key
                          'timeout': 30,
                          'max_retries': 10,
                          'retry_on_timeout': True}])
