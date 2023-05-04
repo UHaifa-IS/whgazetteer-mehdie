@@ -63,6 +63,7 @@ def testy():
 @app.task(name="make_download")
 def make_download(request, *args, **kwargs):
     # TODO: integrate progress_recorder for better progress bar in GUI
+    print('make_download() creating download file...')
     downloads_directory = os.path.join(settings.MEDIA_ROOT, 'downloads')
     if not os.path.exists(downloads_directory):
         os.makedirs(downloads_directory)
