@@ -25,6 +25,7 @@ from datasets.utils import bestParent, elapsed, getQ, HitRecord, hully, makeNow,
 from main.models import Log
 from elasticsearch7 import Elasticsearch
 from whg.celery import app
+import os
 
 # global for all es connections in this file?
 es = Elasticsearch([{'host': '0.0.0.0',
@@ -62,6 +63,10 @@ def testy():
 @app.task(name="make_download")
 def make_download(request, *args, **kwargs):
     # TODO: integrate progress_recorder for better progress bar in GUI
+    downloads_directory = os.path.join(settings.MEDIA_ROOT, 'downloads')
+    if not os.path.exists(downloads_directory):
+        os.makedirs(downloads_directory)
+
     username = request['username'] or "AnonymousUser"
     userid = request['userid'] or User.objects.get(username="AnonymousUser").id
     req_format = kwargs['format']
@@ -73,7 +78,7 @@ def make_download(request, *args, **kwargs):
         coll = Collection.objects.get(id=collid)
         qs = coll.places.all()
         req_format = 'lpf'
-        fn = 'media/downloads/' + username + '_' + collid + '_' + date + '.json'
+        fn = os.path.join(downloads_directory, username + '_' + collid + '_' + date + '.json')
         outfile = open(fn, 'w', encoding='utf-8')
         features = []
         for p in qs:
@@ -110,7 +115,7 @@ def make_download(request, *args, **kwargs):
             # get latest dataset file
             dsf = ds.file
             # make pandas dataframe
-            df = pd.read_csv('media/' + dsf.file.name, delimiter='\t', dtype={'id': 'str', 'aat_types': 'str'})
+            df = pd.read_csv(settings.MEDIA_ROOT + dsf.file.name, delimiter='\t', dtype={'id': 'str', 'aat_types': 'str'})
             # copy existing header to newheader for write
             header = list(df)
             newheader = deepcopy(header)
@@ -118,7 +123,8 @@ def make_download(request, *args, **kwargs):
             newheader = list(set(newheader + ['lon', 'lat', 'matches', 'geo_id', 'geo_source', 'geowkt']))
 
             # name and open csv file for writer
-            fn = 'media/downloads/' + username + '_' + dslabel + '_' + date + '.tsv'
+
+            fn = os.path.join(downloads_directory, username + '_' + dslabel + '_' + date + '.tsv')
             csvfile = open(fn, 'w', newline='', encoding='utf-8')
             writer = csv.writer(csvfile, delimiter='\t', quotechar='', quoting=csv.QUOTE_NONE)
 
@@ -177,7 +183,7 @@ def make_download(request, *args, **kwargs):
             csvfile.close()
         else:
             # make file name
-            fn = 'media/downloads/' + username + '_' + dslabel + '_' + date + '.json'
+            fn = os.path.join(downloads_directory, username + '_' + dslabel + '_' + date + '.json')
             outfile = open(fn, 'w', encoding='utf-8')
             features = []
             for p in qs:
@@ -1449,7 +1455,7 @@ def es_lookup_idx(qobj, *args, **kwargs):
                     }
                     if "parent" in relation.keys():
                         hitobj["parent"] = relation["parent"]
-                    if hitobj['_id'] not in [h['_id'] for h in hitobjlist]:
+                    if hitobj['_id'] not in [h1['_id'] for h1 in hitobjlist]:
                         result_obj["hits"].append(h)
                         hitobjlist.append(hitobj)
                     result_obj['total_hits'] = len((result_obj["hits"]))
@@ -1488,7 +1494,7 @@ def es_lookup_idx(qobj, *args, **kwargs):
                 }
                 if "parent" in relation.keys():
                     hitobj["parent"] = relation["parent"]
-                if hitobj['_id'] not in [h['_id'] for h in hitobjlist]:
+                if hitobj['_id'] not in [h1['_id'] for h1 in hitobjlist]:
                     result_obj["hits"].append(h)
                     hitobjlist.append(hitobj)
                 result_obj['total_hits'] = len(result_obj["hits"])
