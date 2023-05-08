@@ -110,7 +110,7 @@ def make_download(request, *args, **kwargs):
             qs = ds.places.all()
         count = str(len(qs))
 
-        if ds.format == 'delimited' and req_format in ['tsv', 'delimited']:
+        if req_format in ['tsv', 'delimited']:
 
             # get header as uploaded and create newheader w/any "missing" columns
             # get latest dataset file
