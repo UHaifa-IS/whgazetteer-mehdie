@@ -1,4 +1,6 @@
 from __future__ import absolute_import, unicode_literals
+
+import requests
 from celery import shared_task
 from django_celery_results.models import TaskResult
 from django.conf import settings
@@ -17,10 +19,9 @@ from sentry_sdk import capture_exception
 
 from areas.models import Area
 from collection.models import Collection
-from datasets.models import Dataset, Hit
+from datasets.models import Dataset, Hit, DatasetFile
 from datasets.static.hashes.parents import ccodes as cchash
 from datasets.static.hashes.qtypes import qtypes
-from datasets.views import mehdi_er
 from elastic.es_utils import makeDoc, build_qobj, profileHit
 from datasets.utils import bestParent, elapsed, getQ, HitRecord, hully, makeNow, parse_wkt, post_recon_update
 from main.models import Log
@@ -47,6 +48,50 @@ es = Elasticsearch([{'host': '0.0.0.0',
 #         "retry_on_timeout": True
 #     }
 # ])
+
+def tsv_2_csv(data):
+    tsv_file = data
+    csv_table = pd.read_table(f'media/{tsv_file}', sep='\t')
+    s = data.split('/')
+    user = s[0]
+    name = s[1].split('.')[0]
+    csv_table.to_csv(f'media/{user}/{name}.csv', index=False)
+
+    return f'media/{user}/{name}.csv'
+
+def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, user):
+    d1 = DatasetFile.objects.get(dataset_id=dataset_1)
+    d2 = DatasetFile.objects.get(dataset_id=dataset_2)
+    m_dataset = d1.file.name
+    p_dataset = d2.file.name
+    m_csv = tsv_2_csv(m_dataset)
+    p_csv = tsv_2_csv(p_dataset)
+
+    files = {
+        'first_csv': open(m_csv, 'rb'),
+        'second_csv': open(p_csv, 'rb')
+    }
+
+    response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
+
+    if response.status_code == 400:
+        return response.json(), response.status_code
+
+    tsv_url = response.json()["csv download url"]
+
+    align_match_data.delay(
+        dataset_id,
+        dataset_id=dataset_id,
+        dataset_2=dataset_1 if dataset_id == dataset_2 else dataset_2,
+        csv_url=response.json()["csv download url"],
+        aug_geom=aug_geom,
+        lang=language,
+        user=user.id,
+        tsv_url=tsv_url,
+    )
+
+    return tsv_url, response.status_code
+
 
 
 @shared_task(name="testy")
