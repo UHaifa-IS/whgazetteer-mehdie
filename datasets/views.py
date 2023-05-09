@@ -692,30 +692,35 @@ def ds_recon(request, pk):
 
         # Check the task status and get the result if it's ready.
         if task.ready():
-            csv_url, status_code = task.result
-            if status_code > 200 and status_code != 400:
-                return HttpResponse('Error with Datasets, check again')
-            if status_code == 400:
-                m_dataset = request.session['d1']
-                p_dataset = request.session['d2']
-                d1 = DatasetFile.objects.get(dataset_id=m_dataset)
-                d2 = DatasetFile.objects.get(dataset_id=p_dataset)
-                if csv_url['detail']['dataset1']:
-                    return HttpResponse("The dataset matching service expects the dataset to contain several fields."
-                                        f" {d1.dataset_id.title}"
-                                        f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
-                                        f" If possible, we will proceed with the given fields."
-                                        )
-                if csv_url['detail']['dataset2']:
-                    return HttpResponse("The dataset matching service expects the dataset to contain several fields."
-                                        f" {d2.dataset_id.title}"
-                                        f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
-                                        f" If possible, we will proceed with the given fields."
-                                        )
-            # process_er(csv_url)
-            messages.add_message(request, messages.INFO,
-                                 "<span class='text-success'>Your ER reconciliation task has been processsed.</span><br/>Download the csv file using the link below, results will appear below (you may have to refresh screen). <br/> <a href='{}'>Download Match File</a>".format(
-                                     csv_url))
+            if isinstance(task.result, PermissionError):
+                # Handle the PermissionError.
+                # You might want to return an HttpResponse explaining the error.
+                return HttpResponse('Permission error: ' + str(task.result))
+            else:
+                csv_url, status_code = task.result
+                if status_code > 200 and status_code != 400:
+                    return HttpResponse('Error with Datasets, check again')
+                if status_code == 400:
+                    m_dataset = request.session['d1']
+                    p_dataset = request.session['d2']
+                    d1 = DatasetFile.objects.get(dataset_id=m_dataset)
+                    d2 = DatasetFile.objects.get(dataset_id=p_dataset)
+                    if csv_url['detail']['dataset1']:
+                        return HttpResponse("The dataset matching service expects the dataset to contain several fields."
+                                            f" {d1.dataset_id.title}"
+                                            f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
+                                            f" If possible, we will proceed with the given fields."
+                                            )
+                    if csv_url['detail']['dataset2']:
+                        return HttpResponse("The dataset matching service expects the dataset to contain several fields."
+                                            f" {d2.dataset_id.title}"
+                                            f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
+                                            f" If possible, we will proceed with the given fields."
+                                            )
+                # process_er(csv_url)
+                messages.add_message(request, messages.INFO,
+                                     "<span class='text-success'>Your ER reconciliation task has been processsed.</span><br/>Download the csv file using the link below, results will appear below (you may have to refresh screen). <br/> <a href='{}'>Download Match File</a>".format(
+                                         csv_url))
             del request.session['task_id']  # Clear the task ID from the session.
 
 
