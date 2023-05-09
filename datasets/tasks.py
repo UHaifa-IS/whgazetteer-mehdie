@@ -77,7 +77,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
             'first_csv': open(m_csv, 'rb'),
             'second_csv': open(p_csv, 'rb')
         }
-
+        print("posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/")
         response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
 
         if response.status_code == 400:
@@ -95,7 +95,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
             user=userid,
             tsv_url=tsv_url,
         )
-
+        print("posted result to align_match_data")
         return tsv_url, response.status_code
 
 
