@@ -20,6 +20,7 @@ from collection.models import Collection
 from datasets.models import Dataset, Hit
 from datasets.static.hashes.parents import ccodes as cchash
 from datasets.static.hashes.qtypes import qtypes
+from datasets.views import mehdi_er
 from elastic.es_utils import makeDoc, build_qobj, profileHit
 from datasets.utils import bestParent, elapsed, getQ, HitRecord, hully, makeNow, parse_wkt, post_recon_update
 from main.models import Log
@@ -221,6 +222,11 @@ def make_download(request, *args, **kwargs):
     completed_message = {"msg": req_format + " written", "filename": fn, "rows": count}
     return completed_message
 
+@shared_task
+def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, user):
+    # Your existing code goes here.
+    csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, user)
+    return csv_url, status_code
 
 @app.task(name="task_emailer")
 def task_emailer(tid, dslabel, username, email, counthit, totalhits):

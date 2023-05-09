@@ -1,40 +1,41 @@
 import math
 import shutil
 import tempfile
-import requests
-import pandas as pd
+from pathlib import Path
+from shutil import copyfile
 
+import pandas as pd
+import requests
+from celery import current_app as celapp
+from celery.result import AsyncResult
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.utils import DataError
 from django.forms import modelformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import (CreateView, ListView, UpdateView, DeleteView, DetailView)
-from sentry_sdk import capture_exception
-from django.db import transaction
 from django_celery_results.models import TaskResult
 from elasticsearch7 import Elasticsearch
-from pathlib import Path
-from shutil import copyfile
 
-from places.models import *
-from datasets.utils import *
 from areas.models import Area
-from main.models import Log, Comment
-from resources.models import Resource
-from datasets.models import DatasetFile
-from celery import current_app as celapp
 from collection.models import Collection
-from main.choices import AUTHORITY_BASEURI
-from datasets.static.hashes.parents import ccodes as cchash
-from datasets.static.hashes import mimetypes_plus as mthash_plus
-from datasets.tasks import align_wdlocal, align_idx, align_tgn, maxID, align_match_data
-from elastic.es_utils import makeDoc, removePlacesFromIndex, replaceInIndex
 from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateModelForm
+from datasets.models import DatasetFile
+from datasets.static.hashes import mimetypes_plus as mthash_plus
+from datasets.static.hashes.parents import ccodes as cchash
+from datasets.tasks import maxID, align_match_data, run_mehdi_er
+from datasets.update import deleteFromIndex
+from datasets.utils import *
+from elastic.es_utils import makeDoc, removePlacesFromIndex, replaceInIndex
+from main.choices import AUTHORITY_BASEURI
+from main.models import Log, Comment
+from places.models import *
+from resources.models import Resource
 
 # es = Elasticsearch([{'host': 'localhost',
 #                      'port': 9200,
@@ -729,6 +730,41 @@ def process_er(url):
 
 
 def ds_recon(request, pk):
+    if 'task_id' in request.session:
+        # Retrieve the task.
+        task_id = request.session['task_id']
+        task = AsyncResult(task_id)
+
+        # Check the task status and get the result if it's ready.
+        if task.ready():
+            csv_url, status_code = task.result
+            if status_code > 200 and status_code != 400:
+                return HttpResponse('Error with Datasets, check again')
+            if status_code == 400:
+                m_dataset = request.session['d1']
+                p_dataset = request.session['d2']
+                d1 = DatasetFile.objects.get(dataset_id=m_dataset)
+                d2 = DatasetFile.objects.get(dataset_id=p_dataset)
+                if csv_url['detail']['dataset1']:
+                    return HttpResponse("The dataset matching service expects the dataset to contain several fields."
+                                        f" {d1.dataset_id.title}"
+                                        f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
+                                        f" If possible, we will proceed with the given fields."
+                                        )
+                if csv_url['detail']['dataset2']:
+                    return HttpResponse("The dataset matching service expects the dataset to contain several fields."
+                                        f" {d2.dataset_id.title}"
+                                        f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
+                                        f" If possible, we will proceed with the given fields."
+                                        )
+            # process_er(csv_url)
+            messages.add_message(request, messages.INFO,
+                                 "<span class='text-success'>Your ER reconciliation task has been processsed.</span><br/>Download the csv file using the link below, results will appear below (you may have to refresh screen). <br/> <a href='{}'>Download Match File</a>".format(
+                                     csv_url))
+            del request.session['task_id']  # Clear the task ID from the session.
+
+
+
     ds = get_object_or_404(Dataset, id=pk)
     # TODO: handle multipolygons from "#area_load" and "#area_draw"
     user = request.user
@@ -753,31 +789,15 @@ def ds_recon(request, pk):
             dt_2 = m_dataset if m_dataset != '0' else p_dataset
 
             # try:
-            csv_url, status_code = mehdi_er(dt_1, dt_2, ds.id, aug_geom, language, user)
-            # except Exception as e:
-            #     return HttpResponse('Something went wrong with service "mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/" ')
-            if status_code > 200 and status_code != 400:
-                return HttpResponse('Error with Datasets, check again')
-            if status_code == 400:
-                d1 = DatasetFile.objects.get(dataset_id=m_dataset)
-                d2 = DatasetFile.objects.get(dataset_id=p_dataset)
-                if csv_url['detail']['dataset1']:
-                    return HttpResponse("The dataset matching service expects the dataset to contain several fields."
-                                        f" {d1.dataset_id.title}"
-                                        f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
-                                        f" If possible, we will proceed with the given fields."
-                                        )
-                if csv_url['detail']['dataset2']:
-                    return HttpResponse("The dataset matching service expects the dataset to contain several fields."
-                                        f" {d2.dataset_id.title}"
-                                        f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
-                                        f" If possible, we will proceed with the given fields."
-                                        )
-            # process_er(csv_url)
+            task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user)
+            request.session['task_id'] = task.id
+            request.session['d1'] = m_dataset
+            request.session['d2'] = p_dataset
+
             messages.add_message(request, messages.INFO,
-                                 "<span class='text-success'>Your ER reconciliation task has been processsed.</span><br/>Download the csv file using the link below, results will appear below (you may have to refresh screen). <br/> <a href='{}'>Download Match File</a>".format(
-                                     csv_url))
+                                 "Your dataset matching task is being processed. Please wait a few minutes and refresh this page.")
             return redirect('/datasets/' + str(ds.id) + '/reconcile')
+
         if auth == 'idx' and ds.public == False:
             messages.add_message(request, messages.ERROR, """Dataset must be public before indexing!""")
             return redirect('/datasets/' + str(ds.id) + '/addtask')
