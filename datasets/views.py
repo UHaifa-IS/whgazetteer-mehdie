@@ -692,7 +692,7 @@ def ds_recon(request, pk):
 
         # Check the task status and get the result if it's ready.
         if task.ready():
-            if isinstance(task.result, PermissionError):
+            if isinstance(task.result, Exception):
                 messages.add_message(request, messages.INFO,
                                      "<span class='text-success'>Your ER reconciliation task has failed due to an "
                                      "error.</span><br/> {}".format(str(task.result)))
