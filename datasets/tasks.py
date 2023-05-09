@@ -59,7 +59,8 @@ def tsv_2_csv(data):
 
     return f'media/{user}/{name}.csv'
 
-def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, user):
+
+def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
     d1 = DatasetFile.objects.get(dataset_id=dataset_1)
     d2 = DatasetFile.objects.get(dataset_id=dataset_2)
     m_dataset = d1.file.name
@@ -86,12 +87,11 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, user):
         csv_url=response.json()["csv download url"],
         aug_geom=aug_geom,
         lang=language,
-        user=user.id,
+        user=userid,
         tsv_url=tsv_url,
     )
 
     return tsv_url, response.status_code
-
 
 
 @shared_task(name="testy")
@@ -162,7 +162,8 @@ def make_download(request, *args, **kwargs):
             # get latest dataset file
             dsf = ds.file
             # make pandas dataframe
-            df = pd.read_csv(settings.MEDIA_ROOT + dsf.file.name, delimiter='\t', dtype={'id': 'str', 'aat_types': 'str'})
+            df = pd.read_csv(settings.MEDIA_ROOT + dsf.file.name, delimiter='\t',
+                             dtype={'id': 'str', 'aat_types': 'str'})
             # copy existing header to newheader for write
             header = list(df)
             newheader = deepcopy(header)
@@ -267,11 +268,13 @@ def make_download(request, *args, **kwargs):
     completed_message = {"msg": req_format + " written", "filename": fn, "rows": count}
     return completed_message
 
+
 @shared_task
-def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, user):
+def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid):
     # Your existing code goes here.
-    csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, user)
+    csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid)
     return csv_url, status_code
+
 
 @app.task(name="task_emailer")
 def task_emailer(tid, dslabel, username, email, counthit, totalhits):

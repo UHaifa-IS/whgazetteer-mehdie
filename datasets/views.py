@@ -744,7 +744,7 @@ def ds_recon(request, pk):
             dt_2 = m_dataset if m_dataset != '0' else p_dataset
 
             # try:
-            task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user)
+            task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user.id)
             request.session['task_id'] = task.id
             request.session['d1'] = m_dataset
             request.session['d2'] = p_dataset
