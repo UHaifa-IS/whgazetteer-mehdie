@@ -719,9 +719,15 @@ def ds_recon(request, pk):
                                             )
                 # process_er(csv_url)
                 messages.add_message(request, messages.INFO,
-                                     "<span class='text-success'>Your ER reconciliation task has been processsed.</span><br/>Download the csv file using the link below, results will appear below (you may have to refresh screen). <br/> <a href='{}'>Download Match File</a>".format(
+                                     "<span class='text-success'>Your ER reconciliation task has been "
+                                     "processsed.</span><br/>Download the csv file using the link below, results will "
+                                     "appear below (you may have to refresh screen). <br/> <a href='{}'>Download "
+                                     "Match File</a>".format(
                                          csv_url))
             del request.session['task_id']  # Clear the task ID from the session.
+        else:
+            messages.add_message(request, messages.INFO,"<span class='text-success'>Your ER reconciliation task is "
+                                                        "showing the following status: {}".format(str(task.status)))
 
 
 

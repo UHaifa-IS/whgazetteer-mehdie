@@ -278,6 +278,7 @@ def make_download(request, *args, **kwargs):
 def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid):
     # Your existing code goes here.
     csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid)
+    print("received status from mehdie_er", status_code)
     return csv_url, status_code
 
 
