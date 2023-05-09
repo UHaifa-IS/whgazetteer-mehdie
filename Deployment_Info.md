@@ -21,3 +21,7 @@ sudo supervisorctl restart celery
 # Celery log
 
 sudo supervisorctl tail -10000 celery stderr
+
+# Celery config
+
+sudo vi /etc/supervisor/conf.d/celery.conf

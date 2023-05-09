@@ -1,6 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 
 import requests
+import tempfile
+import os
 from celery import shared_task
 from django_celery_results.models import TaskResult
 from django.conf import settings
@@ -49,15 +51,17 @@ es = Elasticsearch([{'host': '0.0.0.0',
 #     }
 # ])
 
-def tsv_2_csv(data):
+def tsv_2_csv(data, directory):
     tsv_file = data
     csv_table = pd.read_table(f'media/{tsv_file}', sep='\t')
-    s = data.split('/')
-    user = s[0]
-    name = s[1].split('.')[0]
-    csv_table.to_csv(f'media/{user}/{name}.csv', index=False)
+    # Derive the CSV file name from the TSV file name
+    base_name = os.path.basename(tsv_file)
+    name = os.path.splitext(base_name)[0]
+    csv_file_path = os.path.join(directory, f'{name}.csv')
 
-    return f'media/{user}/{name}.csv'
+    # Save the DataFrame to the CSV file
+    csv_table.to_csv(csv_file_path, index=False)
+    return csv_file_path
 
 
 def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
@@ -65,33 +69,34 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
     d2 = DatasetFile.objects.get(dataset_id=dataset_2)
     m_dataset = d1.file.name
     p_dataset = d2.file.name
-    m_csv = tsv_2_csv(m_dataset)
-    p_csv = tsv_2_csv(p_dataset)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        m_csv = tsv_2_csv(m_dataset, temp_dir)
+        p_csv = tsv_2_csv(p_dataset, temp_dir)
 
-    files = {
-        'first_csv': open(m_csv, 'rb'),
-        'second_csv': open(p_csv, 'rb')
-    }
+        files = {
+            'first_csv': open(m_csv, 'rb'),
+            'second_csv': open(p_csv, 'rb')
+        }
 
-    response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
+        response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
 
-    if response.status_code == 400:
-        return response.json(), response.status_code
+        if response.status_code == 400:
+            return response.json(), response.status_code
 
-    tsv_url = response.json()["csv download url"]
+        tsv_url = response.json()["csv download url"]
 
-    align_match_data.delay(
-        dataset_id,
-        dataset_id=dataset_id,
-        dataset_2=dataset_1 if dataset_id == dataset_2 else dataset_2,
-        csv_url=response.json()["csv download url"],
-        aug_geom=aug_geom,
-        lang=language,
-        user=userid,
-        tsv_url=tsv_url,
-    )
+        align_match_data.delay(
+            dataset_id,
+            dataset_id=dataset_id,
+            dataset_2=dataset_1 if dataset_id == dataset_2 else dataset_2,
+            csv_url=response.json()["csv download url"],
+            aug_geom=aug_geom,
+            lang=language,
+            user=userid,
+            tsv_url=tsv_url,
+        )
 
-    return tsv_url, response.status_code
+        return tsv_url, response.status_code
 
 
 @shared_task(name="testy")
