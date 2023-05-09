@@ -686,17 +686,21 @@ def process_er(url):
 
 def ds_recon(request, pk):
     if 'task_id' in request.session:
+        print("[DEBUG] task_id is set to {}".format(request.session['task_id']))
         # Retrieve the task.
         task_id = request.session['task_id']
         task = AsyncResult(task_id)
 
         # Check the task status and get the result if it's ready.
         if task.ready():
+            print("[DEBUG] task is ready")
             if isinstance(task.result, Exception):
+                print("[DEBUG] task has failed with exception {}".format(str(task.result)))
                 messages.add_message(request, messages.INFO,
                                      "<span class='text-success'>Your ER reconciliation task has failed due to an "
                                      "error.</span><br/> {}".format(str(task.result)))
             else:
+                print("[DEBUG] task has succeeded with result {}".format(str(task.result)))
                 csv_url, status_code = task.result
                 if status_code > 200 and status_code != 400:
                     return HttpResponse('Error with Datasets, check again')
@@ -755,6 +759,7 @@ def ds_recon(request, pk):
             dt_2 = m_dataset if m_dataset != '0' else p_dataset
 
             # try:
+            print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom, language, user.id))
             task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user.id)
             request.session['task_id'] = task.id
             request.session['d1'] = m_dataset
