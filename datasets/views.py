@@ -693,9 +693,9 @@ def ds_recon(request, pk):
         # Check the task status and get the result if it's ready.
         if task.ready():
             if isinstance(task.result, PermissionError):
-                # Handle the PermissionError.
-                # You might want to return an HttpResponse explaining the error.
-                return HttpResponse('Permission error: ' + str(task.result))
+                messages.add_message(request, messages.INFO,
+                                     "<span class='text-success'>Your ER reconciliation task has failed due to an "
+                                     "error.</span><br/> {}".format(str(task.result)))
             else:
                 csv_url, status_code = task.result
                 if status_code > 200 and status_code != 400:
