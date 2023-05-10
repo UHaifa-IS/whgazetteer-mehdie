@@ -76,7 +76,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
             'first_csv': open(m_csv, 'rb'),
             'second_csv': open(p_csv, 'rb')
         }
-        print("posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/")
+        print("posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
         response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
 
         if response.status_code == 400:
@@ -276,7 +276,7 @@ def make_download(request, *args, **kwargs):
 
 @shared_task
 def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid):
-    # Your existing code goes here.
+    print("running mehdi_er")
     csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid)
     print("received status from mehdie_er", status_code)
     return csv_url, status_code
