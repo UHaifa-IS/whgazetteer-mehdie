@@ -30,3 +30,6 @@ simplejson
 Shapely
 elasticsearch7==7.17.1
 sentry-sdk==1.14.0
+edtf
+validators
+redis

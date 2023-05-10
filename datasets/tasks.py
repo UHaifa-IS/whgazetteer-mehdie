@@ -2,7 +2,6 @@ from __future__ import absolute_import, unicode_literals
 
 import requests
 import tempfile
-import os
 from celery import shared_task
 from django_celery_results.models import TaskResult
 from django.conf import settings
@@ -215,7 +214,7 @@ def make_download(request, *args, **kwargs):
                     geowkt = newrow['geowkt'] if 'geowkt' in newrow else None
 
                     lonlat = [newrow['lon'], newrow['lat']] if \
-                        len(set(newrow.keys()) & set(['lon', 'lat'])) == 2 else None
+                        len(set(newrow.keys()) & {'lon', 'lat'}) == 2 else None
                     # lon/lat may be empty
                     if not geowkt and (not lonlat or None in lonlat or lonlat[0] == ''):
                         # get first db geometry & add to newrow dict
@@ -253,7 +252,8 @@ def make_download(request, *args, **kwargs):
 
             count = str(len(qs))
             result = {"type": "FeatureCollection",
-                      "@context": "https://raw.githubusercontent.com/LinkedPasts/linked-places/master/linkedplaces-context-v1.1.jsonld",
+                      "@context": "https://raw.githubusercontent.com/LinkedPasts/linked-places/master/linkedplaces"
+                                  "-context-v1.1.jsonld",
                       "filename": "/" + fn,
                       "decription": ds.description,
                       "features": features}
@@ -403,7 +403,7 @@ def wdTitle(variants, lang):
     else:
         vl_en = next((v for v in variants if v['lang'] == 'en'), None)
         vl_pref = next((v for v in variants if v['lang'] == lang), None)
-        vl_first = next((v for v in variants), None);
+        vl_first = next((v for v in variants), None)
         title = vl_pref['names'][0] + (' (' + vl_en['names'][0] + ')' if vl_en else '') \
             if vl_pref and lang != 'en' else vl_en['names'][0] if vl_en else vl_first['names'][0]
         return title
