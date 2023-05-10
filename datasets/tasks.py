@@ -29,6 +29,9 @@ from main.models import Log
 from elasticsearch7 import Elasticsearch
 from whg.celery import app
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # global for all es connections in this file?
 es = Elasticsearch([{'host': '0.0.0.0',
@@ -69,6 +72,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
     m_dataset = d1.file.name
     p_dataset = d2.file.name
     with tempfile.TemporaryDirectory() as temp_dir:
+        logger.info("converting tsv to csv")
         m_csv = tsv_2_csv(m_dataset, temp_dir)
         p_csv = tsv_2_csv(p_dataset, temp_dir)
 
@@ -76,7 +80,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
             'first_csv': open(m_csv, 'rb'),
             'second_csv': open(p_csv, 'rb')
         }
-        print("posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
+        logger.info("posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
         response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
 
         if response.status_code == 400:
@@ -94,7 +98,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
             user=userid,
             tsv_url=tsv_url,
         )
-        print("posted result to align_match_data")
+        logger.info("posted result to align_match_data")
         return tsv_url, response.status_code
 
 
@@ -901,7 +905,11 @@ def align_match_data(pk, *args, **kwargs):
             reviewed=False,
             matched=False,
         )
-        hit.json['tsv_variants'] = data[10]
+        if len(data) > 10:
+            hit.json['tsv_variants'] = data[10]
+        else:
+            print("Warning: data has fewer than 11 elements")
+            hit.json['tsv_variants'] = None  # or some other default value
         hit.save()
         count_hit += 1
     end = datetime.datetime.now()
