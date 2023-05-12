@@ -277,7 +277,7 @@ def make_download(request, *args, **kwargs):
     # for ajax, just report filename
     # Get the path relative to the media directory
     relative_path = os.path.relpath(fn, settings.MEDIA_ROOT)
-    file_url = default_storage.url(relative_path)
+    file_url = settings.URL_FRONT + default_storage.url(relative_path).lstrip('/')
 
     completed_message = {"msg": req_format + " written", "filename": file_url, "rows": count}
     return completed_message
