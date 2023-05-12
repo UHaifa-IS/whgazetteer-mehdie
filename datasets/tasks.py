@@ -10,6 +10,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from django.core.files.storage import default_storage
 
 import csv, datetime, itertools, re, time
 import pandas as pd
@@ -274,7 +275,11 @@ def make_download(request, *args, **kwargs):
         )
 
     # for ajax, just report filename
-    completed_message = {"msg": req_format + " written", "filename": fn, "rows": count}
+    # Get the path relative to the media directory
+    relative_path = os.path.relpath(fn, settings.MEDIA_ROOT)
+    file_url = default_storage.url(relative_path)
+
+    completed_message = {"msg": req_format + " written", "filename": file_url, "rows": count}
     return completed_message
 
 
