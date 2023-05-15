@@ -1755,8 +1755,11 @@ def ds_insert_tsv(request, pk):
                 datesobj = parsedates_tsv(start, end)
                 # returns {timespans:[{}],minmax[]}
 
-                description = r[header.index('description')] \
-                    if 'description' in header else ''
+                if 'description' in header:
+                    description = r[header.index('description')]
+                    print("[DEBUG] description: " + description)
+                else:
+                    description = ''
 
                 # create new Place object
                 # TODO: generate fclasses
@@ -1867,6 +1870,7 @@ def ds_insert_tsv(request, pk):
                 # PlaceDescription()
                 # @id, value, lang
                 if description != '':
+                    print("[DEBUG] description appended to PlaceDescription: " + description)
                     objs['PlaceDescription'].append(
                         PlaceDescription(
                             place=newpl,
