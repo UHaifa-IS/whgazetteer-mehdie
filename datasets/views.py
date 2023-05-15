@@ -1890,6 +1890,8 @@ def ds_insert_tsv(request, pk):
 
             PlaceRelated.objects.bulk_create(objs['PlaceRelated'], batch_size=10000)
 
+            PlaceDescription.objects.bulk_create(objs['PlaceDescription'], batch_size=10000)
+
             infile.close()
 
         except Exception as e:
