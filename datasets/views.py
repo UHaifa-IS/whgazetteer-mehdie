@@ -999,6 +999,10 @@ def dataset_file_delete(ds):
 
 
 def update_rels_tsv(pobj, row):
+    """
+    update related objects of a Place
+    """
+    print("DEBUG: update_rels_tsv()")
     header = list(row.keys())
     src_id = row['id']
     title = row['title']
@@ -1203,6 +1207,7 @@ def ds_update(request):
         # cur: user_whgadmin/diamonds135.tsv
         # new: user_whgadmin/diamonds135_rev2.tsv
         if file_format == 'delimited':
+            print('DEBUG: in ds_update: delimited')
             adf = pd.read_csv('media/' + compare_data['filename_cur'], delimiter='\t',
                               dtype={'id': 'str', 'ccodes': 'str'})
             bdf = pd.read_csv(filepath, delimiter='\t')
