@@ -455,6 +455,7 @@ def review(request, pk, tid, passnum):
         place_post = get_object_or_404(Place, pk=request.POST['place_id'])
         review_status = getattr(place_post, review_field)
         # proceed with POST only if place is unreviewed or deferred; else return to a GET (and next place)
+        print("[DEBUG] entered POST for review page, place_id: " + str(place_post.id) + ", review_status: " + str(review_status))
         # NB. other reviewer(s) *not* notified
         if review_status == 1:
             context["already"] = True
