@@ -474,7 +474,7 @@ def review(request, pk, tid, passnum):
                     matches += 1
                     # if wd or tgn, write place_geom, place_link record(s) now
                     # IF someone didn't just review it!
-                    if task.task_name[6:] in ['wdlocal', 'wd', 'tgn']:
+                    if task.task_name[6:] in ['wdlocal', 'wd', 'tgn', 'align_']:
                         hasGeom = 'geoms' in hits[x]['json'] and len(hits[x]['json']['geoms']) > 0
                         # create place_geom records if 'accept geometries' was checked
                         if kwargs['aug_geom'] == 'on' and hasGeom \
