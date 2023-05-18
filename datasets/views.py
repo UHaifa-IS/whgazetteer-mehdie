@@ -475,6 +475,7 @@ def review(request, pk, tid, passnum):
                     # if wd or tgn, write place_geom, place_link record(s) now
                     # IF someone didn't just review it!
                     if task.task_name[6:] in ['wdlocal', 'wd', 'tgn', 'align_']:
+                        print("[DEBUG] writing place_geom and place_link records")
                         hasGeom = 'geoms' in hits[x]['json'] and len(hits[x]['json']['geoms']) > 0
                         # create place_geom records if 'accept geometries' was checked
                         if kwargs['aug_geom'] == 'on' and hasGeom \
@@ -498,6 +499,7 @@ def review(request, pk, tid, passnum):
                         # create single PlaceLink for matched authority record
                         # TODO: this if: condition handled already?
                         if tid not in place_post.links.all().values_list('task_id', flat=True):
+                            print("[DEBUG] writing place_link record")
                             PlaceLink.objects.create(
                                 place=place_post,
                                 task_id=tid,
