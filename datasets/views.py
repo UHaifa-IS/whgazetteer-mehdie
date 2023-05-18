@@ -461,6 +461,7 @@ def review(request, pk, tid, passnum):
             context["already"] = True
             return redirect('/datasets/' + str(pk) + '/review/' + task.task_id + '/' + passnum)
         elif formset.is_valid():
+            print("[DEBUG] reading formset: {}".format(str(formset.cleaned_data)))
             hits = formset.cleaned_data
             matches = 0
             matched_for_idx = []  # for accession
@@ -468,6 +469,7 @@ def review(request, pk, tid, passnum):
             for x in range(len(hits)):
                 hit = hits[x]['id']
                 # is this hit a match?
+                print("[DEBUG] reading hit: {} task is {}".format(str(hits[x]), task.task_name))
                 if hits[x]['relation_type'] not in ['none']:
                     matches += 1
                     # if wd or tgn, write place_geom, place_link record(s) now
