@@ -81,7 +81,8 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
             'first_csv': open(m_csv, 'rb'),
             'second_csv': open(p_csv, 'rb')
         }
-        logger.info("posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
+        logger.info(
+            "posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
         response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
 
         if response.status_code == 400:
@@ -477,7 +478,7 @@ def normalize(h, auth, language=None):
         rec.variants = [n['toponym'] for n in h['names']]  # always >=1 names
         # TODO: fix grungy hack (index has both src_label and sourceLabel)
         key = 'src_label' if 'src_label' in h['types'][0] else 'sourceLabel'
-        rec.types = [t['label'] + ' (' + t[key] + ')' if t['label'] != None else t[key] \
+        rec.types = [t['label'] + ' (' + t[key] + ')' if t['label'] is not None else t[key] \
                      for t in h['types']] if len(h['types']) > 0 else []
         # TODO: rewrite ccDecode to handle all conditions coming from index
         rec.countries = ccDecode(h['ccodes']) if (
@@ -594,7 +595,7 @@ def normalize(h, auth, language=None):
         title = h['title']
 
         #  place_id, dataset, src_id, title
-        rec = HitRecord(-1, 'md', h['src_id'], title)
+        rec = HitRecord(h['place_id'], 'md', h['src_id'], title)
 
         # list of variant@lang (excldes chosen title)
         v_array = []
