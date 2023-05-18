@@ -79,6 +79,7 @@ def celeryUp():
 def link_uri(auth, id):
     baseuri = AUTHORITY_BASEURI[auth]
     uri = baseuri + str(id)
+    print("[DEBUG] link_uri generated this link: %s" % uri)
     return uri
 
 
@@ -507,8 +508,8 @@ def review(request, pk, tid, passnum):
                                 jsonb={
                                     "type": hits[x]['relation_type'],
                                     "identifier": link_uri(task.task_name, hits[x]['authrecord_id'] \
-                                        if hits[x]['authority'] != 'whg' else hits[x]['json']['place_id'])
-                                }
+                                        if hits[x]['authority'] not in ['whg', 'md'] else hits[x]['json']['place_id'])
+                                    }
                             )
 
                         # create multiple PlaceLink records (e.g. Wikidata)

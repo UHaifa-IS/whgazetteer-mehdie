@@ -19,6 +19,7 @@ AUTHORITIES = [
 ]
 
 AUTHORITY_BASEURI = {
+    'align_match_data': 'md:',
     'align_tgn': 'tgn:',
     'align_dbp': 'dbp:',
     'align_gn': 'gn:',
