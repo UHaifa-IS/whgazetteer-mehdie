@@ -77,8 +77,16 @@ def celeryUp():
 
 
 def link_uri(auth, id):
-    baseuri = AUTHORITY_BASEURI[auth]
-    uri = baseuri + str(id)
+    # if auth = 'align_match_data' look up the dataset_id in the Place record using the id which is actually a place_id
+    if auth == 'align_match_data':
+        place = Place.objects.get(id=id)
+        ds_id = place.dataset
+        src_id = place.src_id
+        uri = ds_id + ":" + src_id
+    else:
+        baseuri = AUTHORITY_BASEURI[auth]
+        uri = baseuri + str(id)
+
     print("[DEBUG] link_uri generated this link: %s" % uri)
     return uri
 
