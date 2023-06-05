@@ -894,13 +894,14 @@ def align_match_data(pk, *args, **kwargs):
             qobj['authids'] = l_list
         else:
             qobj['authids'] = []
-
+        task_id = align_match_data.request.id if align_match_data.request.id else 'manual upload'
+        logger.info(f"creating HITS from task_id: {task_id}")
         hit = Hit.objects.create(
             authority='md',
             authrecord_id=data[1],
             dataset=dataset,
             place=place,
-            task_id=align_match_data.request.id,
+            task_id=task_id,
             query_pass='pass1',
             json=normalize(qobj, qobj['type'], language),
             src_id=place.src_id,

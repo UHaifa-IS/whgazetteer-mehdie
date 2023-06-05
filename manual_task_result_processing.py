@@ -1,8 +1,14 @@
 """
 This script takes a csv file from the result of a matching task and uploads it into MEHDIE db and GUI
 """
+import os
+from django.core.wsgi import get_wsgi_application
 from datasets.tasks import align_match_data
 import argparse
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'whg.settings'
+application = get_wsgi_application()
+
 def process(dataset_1, dataset_2, aug_geom, language, userid, csv_url):
     align_match_data.delay(
         dataset_1,
