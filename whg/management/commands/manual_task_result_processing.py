@@ -1,26 +1,23 @@
 """
 This script takes a csv file from the result of a matching task and uploads it into MEHDIE db and GUI
 """
-import os
-from django.core.wsgi import get_wsgi_application
-from datasets.tasks import align_match_data
-import argparse
+from django.core.management.base import BaseCommand
 
-os.environ['DJANGO_SETTINGS_MODULE'] = 'whg.settings'
-application = get_wsgi_application()
+class Command(BaseCommand):
+    help = 'Makes a csv file from the result of a matching task and uploads it into MEHDIE db and GUI'
 
-def process(dataset_1, dataset_2, aug_geom, language, userid, csv_url):
-    align_match_data.delay(
-        dataset_1,
-        dataset_id=dataset_1,
-        dataset_2=dataset_2,
-        csv_url=csv_url,
-        aug_geom=aug_geom,
-        lang=language,
-        user=userid,
-        tsv_url=csv_url,
-    )
-
+    # A command must define handle()
+    def handle(self, *args, **options):
+        align_match_data.delay(
+                dataset_1,
+                dataset_id=dataset_1,
+                dataset_2=dataset_2,
+                csv_url=csv_url,
+                aug_geom=aug_geom,
+                lang=language,
+                user=userid,
+                tsv_url=csv_url,
+        )
 
 
 if __name__ == '__main__':
