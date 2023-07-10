@@ -28,7 +28,7 @@ from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateMo
 from datasets.models import DatasetFile
 from datasets.static.hashes import mimetypes_plus as mthash_plus
 from datasets.static.hashes.parents import ccodes as cchash
-from datasets.tasks import maxID, align_match_data, run_mehdi_er
+from datasets.tasks import maxID, align_match_data, run_mehdi_er, align_wdlocal, align_tgn, align_idx
 from datasets.update import deleteFromIndex
 from datasets.utils import *
 from elastic.es_utils import makeDoc, removePlacesFromIndex, replaceInIndex
