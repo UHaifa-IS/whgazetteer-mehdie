@@ -776,9 +776,15 @@ def ds_recon(request, pk):
             dt_1 = pk
             dt_2 = m_dataset if m_dataset != '0' else p_dataset
 
+            match_config_str = request.POST.get('match_config', '{}')
+            try:
+                match_config = json.loads(match_config_str)
+            except json.JSONDecodeError:
+                return HttpResponse('Invalid match_config format')
+
             # try:
-            print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom, language, user.id))
-            task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user.id)
+            print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom, language, user.id, match_config))
+            task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user.id, match_config)
             request.session['task_id'] = task.id
             request.session['d1'] = m_dataset
             request.session['d2'] = p_dataset

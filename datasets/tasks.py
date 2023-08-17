@@ -67,7 +67,11 @@ def tsv_2_csv(data, directory):
     return csv_file_path
 
 
-def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
+def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid,
+             match_config=None):
+    if match_config is None:
+        match_config = {'threshold': 0.9, 'phonetic_threshold': 0.87,
+                        'max_distance_km': 50}
     d1 = DatasetFile.objects.get(dataset_id=dataset_1)
     d2 = DatasetFile.objects.get(dataset_id=dataset_2)
     m_dataset = d1.file.name
@@ -83,7 +87,7 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid):
         }
         logger.info(
             "posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
-        response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files)
+        response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files, params = {match_config})
 
         if response.status_code == 400:
             return response.json(), response.status_code
