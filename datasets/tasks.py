@@ -87,7 +87,8 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid,
         }
         logger.info(
             "posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
-        response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files, params = {match_config})
+        response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files,
+                                 params = match_config)
 
         if response.status_code == 400:
             return response.json(), response.status_code
