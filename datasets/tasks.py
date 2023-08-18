@@ -288,9 +288,9 @@ def make_download(request, *args, **kwargs):
 
 
 @shared_task
-def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid):
+def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid, match_config):
     print("running mehdi_er")
-    csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid)
+    csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid, match_config)
     print("received status from mehdie_er", status_code)
     return csv_url, status_code
 
