@@ -778,8 +778,8 @@ def ds_recon(request, pk):
 
             match_config_str = request.POST.get('match_config', '{}')
             try:
-                match_config = json.loads(match_config_str)
                 print("Received match_config_str:", match_config_str)
+                match_config = json.loads(match_config_str)
             except json.JSONDecodeError:
                 return HttpResponse('Invalid match_config format, received: {}, expected valid JSON'.format(match_config_str))
 
