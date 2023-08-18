@@ -552,7 +552,7 @@
         phonetic_threshold: parseFloat(phonetic_threshold),
         max_distance_km: parseInt(max_distance_km)
     };
-
+    console.log("Generating match_config input:", hiddenInput.value);
     // Create a hidden input to send the JSON as a POST parameter
     let hiddenInput = document.createElement('input');
     hiddenInput.type = 'hidden';
