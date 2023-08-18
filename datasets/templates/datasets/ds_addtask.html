@@ -542,32 +542,6 @@
       "focus":{fillOpacity: 0.3, opacity: .5, color: "red", weight: 2, fillColor:"#ff9999"}}
   }
 
-document.getElementById('btn_startrecon').addEventListener('click', function(e) {
-    // Prevent default submission
-    e.preventDefault();
-
-    let threshold = document.getElementById('threshold').value;
-    let phonetic_threshold = document.getElementById('phonetic_threshold').value;
-    let max_distance_km = document.getElementById('max_distance_km').value;
-
-    let config = {
-        threshold: parseFloat(threshold),
-        phonetic_threshold: parseFloat(phonetic_threshold),
-        max_distance_km: parseInt(max_distance_km)
-    };
-
-    // Create a hidden input to send the JSON as a POST parameter
-    let hiddenInput = document.createElement('input');
-    hiddenInput.type = 'hidden';
-    hiddenInput.name = 'match_config';
-    hiddenInput.value = JSON.stringify(config);
-
-    document.querySelector('form').appendChild(hiddenInput);
-
-    // Alert and submit
-    alert("Preparing to submit form with match_config: " + hiddenInput.value);
-    document.querySelector('form').submit();
-});
 
 </script>
 {% endblock %}

@@ -464,7 +464,8 @@ def review(request, pk, tid, passnum):
         place_post = get_object_or_404(Place, pk=request.POST['place_id'])
         review_status = getattr(place_post, review_field)
         # proceed with POST only if place is unreviewed or deferred; else return to a GET (and next place)
-        print("[DEBUG] entered POST for review page, place_id: " + str(place_post.id) + ", review_status: " + str(review_status))
+        print("[DEBUG] entered POST for review page, place_id: " + str(place_post.id) + ", review_status: " + str(
+            review_status))
         # NB. other reviewer(s) *not* notified
         if review_status == 1:
             context["already"] = True
@@ -517,7 +518,7 @@ def review(request, pk, tid, passnum):
                                     "type": hits[x]['relation_type'],
                                     "identifier": link_uri(task.task_name, hits[x]['authrecord_id'] \
                                         if hits[x]['authority'] not in ['whg', 'md'] else hits[x]['json']['place_id'])
-                                    }
+                                }
                             )
 
                         # create multiple PlaceLink records (e.g. Wikidata)
@@ -725,20 +726,23 @@ def ds_recon(request, pk):
                         d1 = DatasetFile.objects.get(dataset_id=m_dataset)
                         d2 = DatasetFile.objects.get(dataset_id=p_dataset)
                     except Exception as e:
-                        print("Exception in ds_recon when trying to fetch dataset files for {} and {}".format(m_dataset, p_dataset))
+                        print("Exception in ds_recon when trying to fetch dataset files for {} and {}".format(m_dataset,
+                                                                                                              p_dataset))
                         raise e
                     if csv_url['detail']['dataset1']:
-                        return HttpResponse("The dataset matching service expects the dataset to contain several fields."
-                                            f" {d1.dataset_id.title}"
-                                            f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
-                                            f" If possible, we will proceed with the given fields."
-                                            )
+                        return HttpResponse(
+                            "The dataset matching service expects the dataset to contain several fields."
+                            f" {d1.dataset_id.title}"
+                            f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
+                            f" If possible, we will proceed with the given fields."
+                            )
                     if csv_url['detail']['dataset2']:
-                        return HttpResponse("The dataset matching service expects the dataset to contain several fields."
-                                            f" {d2.dataset_id.title}"
-                                            f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
-                                            f" If possible, we will proceed with the given fields."
-                                            )
+                        return HttpResponse(
+                            "The dataset matching service expects the dataset to contain several fields."
+                            f" {d2.dataset_id.title}"
+                            f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
+                            f" If possible, we will proceed with the given fields."
+                            )
                 # process_er(csv_url)
                 messages.add_message(request, messages.INFO,
                                      "<span class='text-success'>Your ER reconciliation task has been "
@@ -748,10 +752,8 @@ def ds_recon(request, pk):
                                          csv_url))
             del request.session['task_id']  # Clear the task ID from the session.
         else:
-            messages.add_message(request, messages.INFO,"<span class='text-success'>Your ER reconciliation task is "
-                                                        "showing the following status: {}".format(str(task.status)))
-
-
+            messages.add_message(request, messages.INFO, "<span class='text-success'>Your ER reconciliation task is "
+                                                         "showing the following status: {}".format(str(task.status)))
 
     ds = get_object_or_404(Dataset, id=pk)
     # TODO: handle multipolygons from "#area_load" and "#area_draw"
@@ -776,15 +778,16 @@ def ds_recon(request, pk):
             dt_1 = pk
             dt_2 = m_dataset if m_dataset != '0' else p_dataset
 
-            match_config_str = request.POST.get('match_config', '{}')
-            try:
-                print("Received match_config_str:", match_config_str)
-                match_config = json.loads(match_config_str)
-            except json.JSONDecodeError:
-                return HttpResponse('Invalid match_config format, received: {}, expected valid JSON'.format(match_config_str))
+            form_threshold = request.POST['threshold']
+            form_phonetic_threshold = request.POST['phonetic_threshold']
+            form_max_distance_km = request.POST['max_distance_km']
+
+            match_config = {'threshold': form_threshold, 'phonetic_threshold': form_phonetic_threshold
+                , 'max_distance_km': form_max_distance_km}
 
             # try:
-            print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom, language, user.id, match_config))
+            print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom,
+                                                                                       language, user.id, match_config))
             task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user.id, match_config)
             request.session['task_id'] = task.id
             request.session['d1'] = m_dataset
