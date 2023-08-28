@@ -722,12 +722,14 @@ def ds_recon(request, pk):
                 if status_code == 400:
                     m_dataset = request.session['d1']
                     p_dataset = request.session['d2']
+                    dt_2 = m_dataset if m_dataset != '0' else p_dataset
+
                     try:
-                        d1 = DatasetFile.objects.get(dataset_id=m_dataset)
-                        d2 = DatasetFile.objects.get(dataset_id=p_dataset)
+                        d1 = DatasetFile.objects.get(dataset_id=pk)
+                        d2 = DatasetFile.objects.get(dataset_id=dt_2)
                     except Exception as e:
-                        print("Exception in ds_recon when trying to fetch dataset files for {} and {}".format(m_dataset,
-                                                                                                              p_dataset))
+                        print("Exception in ds_recon when trying to fetch dataset files for {} and {}".format(pk,
+                                                                                                              dt_2))
                         raise e
                     if csv_url['detail']['dataset1']:
                         return HttpResponse(
