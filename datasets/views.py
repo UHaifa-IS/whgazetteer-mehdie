@@ -2646,7 +2646,18 @@ class DatasetAddTaskView(LoginRequiredMixin, DetailView):
         # pre-defined UN regions
         predefined = Area.objects.all().filter(type='predefined').values('id', 'title')
 
-        my_dataset = Dataset.objects.filter(owner=self.request.user).exclude(id=id_)
+        #my_dataset = Dataset.objects.filter(owner=self.request.user).exclude(id=id_)
+        # Datasets owned by the user
+        owned_datasets = Dataset.objects.filter(owner=self.request.user)
+
+        # Datasets shared with the user
+        shared_datasets = Dataset.objects.filter(datasetuser__user=self.request.user)
+
+        # Combining both querysets
+        all_datasets = owned_datasets | shared_datasets
+
+        # Excluding the datasets with the given id
+        my_dataset = all_datasets.exclude(id=id_).distinct()
         public_dataset = Dataset.objects.filter(public=True).exclude(owner=self.request.user)
 
         gothits = {}
