@@ -2651,7 +2651,7 @@ class DatasetAddTaskView(LoginRequiredMixin, DetailView):
         owned_datasets = Dataset.objects.filter(owner=self.request.user)
 
         # Datasets shared with the user
-        shared_datasets = Dataset.objects.filter(datasetuser__user=self.request.user)
+        shared_datasets = Dataset.objects.filter(collabs__user_id=self.request.user)
 
         # Combining both querysets
         all_datasets = owned_datasets | shared_datasets
