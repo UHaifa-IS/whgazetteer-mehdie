@@ -378,7 +378,7 @@ def review(request, pk, tid, passnum):
 
     # unreviewed place objects from place_ids (a single pass or all)
     # record_list = ds.places.order_by('id').filter(**{lookup: status}, pk__in=hitplaces)
-    record_list = ds.places.order_by('id').filter(pk__in=hitplaces)
+    record_list = ds.places.prefetch_related('descriptions').order_by('id').filter(pk__in=hitplaces)
 
     # no records left for pass (or in deferred queue)
     if len(record_list) == 0:

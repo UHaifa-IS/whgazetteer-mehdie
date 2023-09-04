@@ -4,6 +4,7 @@ from django import forms
 from django.db import models
 from datasets.models import Dataset, Hit, DatasetFile
 from main.choices import FORMATS, STATUS_FILE, HitRelationType
+from places.models import PlaceDescription
 
 
 class HitModelForm(forms.ModelForm):
@@ -25,11 +26,25 @@ class HitModelForm(forms.ModelForm):
             # 'relation_type': forms.TextInput(),
         }
 
+
+
     def __init__(self, *args, **kwargs):
         super(HitModelForm, self).__init__(*args, **kwargs)
 
         for key in self.fields:
             self.fields[key].required = False
+
+        self.description = None
+        if self.instance and self.instance.json:
+            candidate_id = self.instance.json.get('place_id')
+
+            try:
+                # Fetch the single PlaceDescription entry for the extracted place_id
+                self.description = PlaceDescription.objects.get(place_id=candidate_id)
+            except PlaceDescription.DoesNotExist:
+                pass
+
+
 
 
 class DatasetFileModelForm(forms.ModelForm):

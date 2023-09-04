@@ -139,7 +139,7 @@
             {% for g in record.geoms.all %}
               {{ g.jsonb|safe|json_script:record.id }}
             {% endfor %}
-            <p><strong>WHG place id</strong>: {{ record.id }} </p>
+            <p><strong>MEHDIE place id</strong>: {{ record.id }} </p>
             <p><strong>Source id</strong>: {{ record.src_id }}</p>
             <p class="scroll100"><strong>Name variants</strong>:<i>
               {% for name in record.names.all %}
@@ -304,13 +304,9 @@
                   {{ form.json.value|get:"minmax" }}</p>
                 {% endif %}
 
-                {% if form.json.value|get:"descriptions"|length > 0 %}
-                <!--{ if form.json.value|get:"descriptions" != null %} -->
-                  <p class="mb-0"><strong>Description(s)</strong>:</p>
-                  <div class="attest-element abbrev small">
-                  {% for d in form.json.value|get:"descriptions" %}
-                    ({{d.lang}}) {{ d.text }}{% endfor %}
-                  </div>
+                {% if form.description %}
+                    <p class="mb-0"><strong>Description(s)</strong>: <div class="attest-element abbrev small">{{ form.description.jsonb.value }}
+                </div>></p>
                 {% endif %}
               </div>
             {% endfor %}
@@ -320,7 +316,7 @@
     </form>
 
   {% endfor %} <!-- record in records -->
-  {% endif %}
+  {% endif %} <!-- nohits -->
   <div id="modal" class="modal fade" tabindex="-1" role="dialog" >
     <div class="modal-dialog modal-form" role="document">
       <div class="modal-content"></div>
