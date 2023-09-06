@@ -844,6 +844,7 @@ def align_match_data(pk, *args, **kwargs):
     places_2 = dataset_2.places.all()
     count_hit = 0
     for data in csv_data.values:
+        # 0: src_id, 1: target src_id. 2: relation, 3: confidence, 4: explanations
         place = places.filter(src_id=data[0])
         place_2 = places_2.filter(src_id=data[1])
 
@@ -910,8 +911,8 @@ def align_match_data(pk, *args, **kwargs):
             query_pass='pass1',
             json=normalize(qobj, qobj['type'], language),
             src_id=place.src_id,
-            score=data[4],
-            explanations=data[3],
+            score=data[3],
+            explanations=data[4],
             geom=None,
             reviewed=False,
             matched=False,
