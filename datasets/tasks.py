@@ -844,7 +844,7 @@ def align_match_data(pk, *args, **kwargs):
     places_2 = dataset_2.places.all()
     count_hit = 0
     for data in csv_data.values:
-        # 0: src_id, 1: target src_id. 2: relation, 3: confidence, 4: explanations
+        # 0: src_id, 1: target src_id. 2: relation, 3: confidence, 4: explanation
         place = places.filter(src_id=data[0])
         place_2 = places_2.filter(src_id=data[1])
 
@@ -918,7 +918,8 @@ def align_match_data(pk, *args, **kwargs):
             matched=False,
         )
         if len(data) > 10:
-            hit.json['tsv_variants'] = data[10]
+            if not pd.isna(data[10]):
+                hit.json['tsv_variants'] = data[10]
         else:
             print("Warning: data has fewer than 11 elements")
             hit.json['tsv_variants'] = None  # or some other default value
