@@ -1105,10 +1105,13 @@ class UpdateCountsView(View):
             # ids of all unreviewed places
             pids = list(set(taskhits.all().values_list("place_id", flat=True)))
             defcount = defcountfunc(t.task_name, pids, taskhits)
+            total_count =  0
+            for k in pcounts:
+                total_count += pcounts[k]
 
             updates[t.task_id] = {
                 "task": t.task_name,
-                "total": len(pids),
+                "total": total_count,
                 "pass0": pcounts['p0'],
                 "pass1": pcounts['p1'],
                 "pass2": pcounts['p2'],
