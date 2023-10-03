@@ -64,7 +64,7 @@
         <div class="col-sm-8">
           <span><button type="submit" id="btn_save" class="button-sm">Save</button>
             {% if deferred is False %}
-            <a id="defer_link" rel="tooltip" title="flag for separate review" class="small" href="{% url 'places:defer-review' pid=record.id auth=authority last=records.paginator.num_pages %}">defer</a>
+            <a id="defer_link" rel="tooltip" title="flag for separate review" class="small" href="{% url 'places:defer-review' pid=record.id auth=authority last=records.paginator.num_pages  tid=task_id%}">defer</a>
             {% endif %}
           <span class="step-links">
             {% if records.has_previous %}
@@ -238,7 +238,7 @@
                 {% endif %}
 
                 {% if authority|startswith:'whg' or authority|startswith:'match_data' %}
-                  <p><strong>WHG place id</strong>: {{ form.json.value|get:"place_id" }}</p>
+                  <p><strong>MEHDIE place id</strong>: {{ form.json.value|get:"place_id" }}</p>
                   <p><strong>Source (id)</strong>: {{ form.json.value|get:"dataset" }} ({{ form.json.value|get:"src_id" }})</p>
                 {% else %}
                   {% if authority|startswith:"wd" %}

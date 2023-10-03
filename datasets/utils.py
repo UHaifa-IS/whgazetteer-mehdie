@@ -1077,13 +1077,13 @@ class UpdateCountsView(View):
         ds = get_object_or_404(Dataset, id=request.GET.get('ds_id'))
 
         # deferred counts
-        def defcountfunc(taskname, pids):
+        def defcountfunc(taskname, place_ids, th):
             if taskname[6:] in ['whg', 'idx']:
-                return ds.places.filter(id__in=pids, review_whg=2).count()
+                return ds.places.filter(id__in=place_ids, review_whg=2).count()
             elif taskname[6:].startswith('wd'):
-                return ds.places.filter(id__in=pids, review_wd=2).count()
+                return ds.places.filter(id__in=place_ids, review_wd=2).count()
             else:
-                return ds.places.filter(id__in=pids, review_tgn=2).count()
+                return th.filter(flag=True).values('place_id').distinct().count()
 
         def placecounter(th):
             pcounts = {}
@@ -1104,7 +1104,7 @@ class UpdateCountsView(View):
             pcounts = placecounter(taskhits)
             # ids of all unreviewed places
             pids = list(set(taskhits.all().values_list("place_id", flat=True)))
-            defcount = defcountfunc(t.task_name, pids)
+            defcount = defcountfunc(t.task_name, pids, taskhits)
 
             updates[t.task_id] = {
                 "task": t.task_name,

@@ -331,13 +331,13 @@ def review(request, pk, tid, passnum):
     cnt_pass = Hit.objects.values('place_id').filter(task_id=tid, reviewed=False, query_pass=passnum).count()
     # TODO: refactor this awful mess; controls whether PASS appears in review dropdown
     cnt_pass0 = Hit.objects.values('place_id').filter(
-        task_id=tid, reviewed=False, query_pass='pass0').count()
+        task_id=tid, reviewed=False, flag=False, query_pass='pass0').count()
     cnt_pass1 = Hit.objects.values('place_id').filter(
-        task_id=tid, reviewed=False, query_pass='pass1').count()
+        task_id=tid, reviewed=False, flag=False, query_pass='pass1').count()
     cnt_pass2 = Hit.objects.values('place_id').filter(
-        task_id=tid, reviewed=False, query_pass='pass2').count()
+        task_id=tid, reviewed=False, flag=False, query_pass='pass2').count()
     cnt_pass3 = Hit.objects.values('place_id').filter(
-        task_id=tid, reviewed=False, query_pass='pass3').count()
+        task_id=tid, reviewed=False, flag=False, query_pass='pass3').count()
 
     # calling link passnum may be 'pass*', 'def', or '0and1' (for idx)
     # if 'pass*', just get place_ids for that pass
@@ -348,7 +348,15 @@ def review(request, pk, tid, passnum):
         hitplaces = Hit.objects.values_list('place_id', flat=True).filter(
             task_id=tid,
             reviewed=False,
+            flag = False,
             query_pass=passnum
+        )
+    elif passnum == 'def':
+        # all unreviewed
+        hitplaces = Hit.objects.values_list('place_id', flat=True).filter(
+            task_id=tid,
+            reviewed=True,
+            flag=True
         )
     else:
         # all unreviewed
@@ -552,6 +560,7 @@ def review(request, pk, tid, passnum):
                 # in any case, flag hit as reviewed...
                 hitobj = get_object_or_404(Hit, id=hit.id)
                 hitobj.reviewed = True
+                hitobj.flag = False
                 hitobj.relation_type = hits[x]['relation_type']
                 hitobj.save()
 
