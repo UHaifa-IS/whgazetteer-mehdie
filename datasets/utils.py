@@ -1109,13 +1109,14 @@ class UpdateCountsView(View):
             pids = list(set(taskhits.all().values_list("place_id", flat=True)))
             defcount = defcountfunc(t.task_name, pids, taskhits)
             total_count =  taskhits.count()
+            remaining=remaining_counts['p0']+remaining_counts['p1']+remaining_counts['p2']+remaining_counts['p3']
 
 
             updates[t.task_id] = {
                 "task": t.task_name,
                 "total_hits": total_count,
                 "distinct_places_hit": len(pids),
-                "remaining_places_to_review": total_count,
+                "remaining_places_to_review": remaining,
                 "pass0": remaining_counts['p0'],
                 "pass1": remaining_counts['p1'],
                 "pass2": remaining_counts['p2'],
