@@ -336,6 +336,16 @@ class Hit(models.Model):
     def __str__(self):
         return str(self.id)
 
+    def get_other_place(self):
+        if self.authority.isdigit():
+            try:
+                dataset_label = Dataset.objects.get(id=int(self.authority)).label
+                related_place = Place.objects.get(dataset=dataset_label, src_id=self.authrecord_id)
+                return related_place
+            except (Dataset.DoesNotExist, Place.DoesNotExist):
+                return None
+        return None
+
     class Meta:
         managed = True
         db_table = 'hits'
