@@ -938,7 +938,7 @@ def align_match_data(pk, *args, **kwargs):
 
     return {
         'count': dataset.places.all().count(),
-        'got_hits': count_hit,
+        'got_hits': csv_data['id_1'].nunique(),
         'total_hits': len(csv_data.values),
         'pass1': count_hit,
         'pass2': 0,  # TODO fix
