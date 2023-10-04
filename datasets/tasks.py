@@ -150,7 +150,7 @@ def make_download(request, *args, **kwargs):
                                 "geometries": [g.jsonb for g in p.geoms.all()]},
                    "names": [n.jsonb for n in p.names.all()],
                    "types": [t.jsonb for t in p.types.all()],
-                   "links": [l.jsonb for l in p.links.exclude(jsonb__contains='{"type": "different"}')],
+                   "links": [l.jsonb for l in p.links.exclude(jsonb__type__exact='different')],
                    "whens": [w.jsonb for w in p.whens.all()],
                    }
             features.append(rec)
@@ -213,7 +213,7 @@ def make_download(request, *args, **kwargs):
 
                 # LINKS (matches)
                 # get all distinct matches in db as string
-                links = (';').join(list(set([l.jsonb['identifier'] for l in p.links.exclude(jsonb__contains='{"type": "different"}')])))
+                links = (';').join(list(set([l.jsonb['identifier'] for l in p.links.exclude(jsonb__type__exact='different')])))
                 # replace whatever was in file
                 newrow['matches'] = links
 
