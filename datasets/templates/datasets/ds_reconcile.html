@@ -283,7 +283,7 @@
           console.log('updateTotals() counts', task, counts)
 
           // if all are reviewed, disable radio button
-          if(counts['total'] == 0 ){
+          if(counts['remaining_places_to_review'] == 0 ){
             $('.'+task).css('border', '2px dashed darkseagreen')
 	          if(task == 'align_wdlocal'){
 	            $("#authtag").html(task=='align_tgn'?'Getty TGN':'Wikidata')
@@ -292,11 +292,11 @@
 	          }
           }
 
-          $("#"+tid+'_remaining').html(counts['total'])
+          $("#"+tid+'_remaining').html(counts['remaining_places_to_review'])
           $("#"+tid+'_0').html(counts['pass0'])
-	        running_count = (counts['total']-counts['deferred'])
+	        running_count = (counts['remaining_places_to_review']-counts['deferred'])
           if(task=='align_idx'){
-            $("#"+tid+'_1').html(counts['total']-counts['deferred'])
+            $("#"+tid+'_1').html(counts['remaining_places_to_review']-counts['deferred'])
           } else {
             $("#"+tid+'_1').html(counts['pass1'])
           }

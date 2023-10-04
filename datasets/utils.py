@@ -1086,12 +1086,15 @@ class UpdateCountsView(View):
                 return th.filter(flag=True).values('place_id').distinct().count()
 
         def placecounter(th):
+            """
+            Counts the number of distinct places remaining to review per pass for a given task
+            """
             pcounts = {}
             # for th in taskhits.all():
-            pcounts['p0'] = th.filter(query_pass='pass0').values('place_id').distinct().count()
-            pcounts['p1'] = th.filter(query_pass='pass1').values('place_id').distinct().count()
-            pcounts['p2'] = th.filter(query_pass='pass2').values('place_id').distinct().count()
-            pcounts['p3'] = th.filter(query_pass='pass3').values('place_id').distinct().count()
+            pcounts['p0'] = th.filter(query_pass='pass0', reviewed=False).values('place_id').distinct().count()
+            pcounts['p1'] = th.filter(query_pass='pass1', reviewed=False).values('place_id').distinct().count()
+            pcounts['p2'] = th.filter(query_pass='pass2', reviewed=False).values('place_id').distinct().count()
+            pcounts['p3'] = th.filter(query_pass='pass3', reviewed=False).values('place_id').distinct().count()
             return pcounts
 
         updates = {}
@@ -1099,23 +1102,24 @@ class UpdateCountsView(View):
         # for t in ds.tasks.filter(status='SUCCESS'):
         #   taskhits = Hit.objects.filter(task_id=t.task_id, reviewed=False)
         for t in ds.tasks.filter(status='SUCCESS'):
-            taskhits = Hit.objects.filter(task_id=t.task_id, reviewed=False)
+            taskhits = Hit.objects.filter(task_id=t.task_id)
             # taskhits = Hit.objects.filter(task_id=t.task_id, reviewed=True)
-            pcounts = placecounter(taskhits)
+            remaining_counts = placecounter(taskhits)
             # ids of all unreviewed places
             pids = list(set(taskhits.all().values_list("place_id", flat=True)))
             defcount = defcountfunc(t.task_name, pids, taskhits)
-            total_count =  0
-            for k in pcounts:
-                total_count += pcounts[k]
+            total_count =  taskhits.count()
+
 
             updates[t.task_id] = {
                 "task": t.task_name,
-                "total": total_count,
-                "pass0": pcounts['p0'],
-                "pass1": pcounts['p1'],
-                "pass2": pcounts['p2'],
-                "pass3": pcounts['p3'],
+                "total_hits": total_count,
+                "distinct_places_hit": len(pids),
+                "remaining_places_to_review": total_count,
+                "pass0": remaining_counts['p0'],
+                "pass1": remaining_counts['p1'],
+                "pass2": remaining_counts['p2'],
+                "pass3": remaining_counts['p3'],
                 "deferred": defcount
             }
         return JsonResponse(updates, safe=False)
