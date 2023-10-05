@@ -1,24 +1,22 @@
 # datasets.models
-from django.conf import settings
-from django.contrib.postgres.fields import JSONField, ArrayField
-from django.contrib.gis.db import models as geomodels
-from django.contrib.gis.db.models import Collect, Extent
-from django.contrib.gis.geos import GeometryCollection, Polygon
 from django.contrib.auth.models import User
+from django.contrib.gis.db import models as geomodels
+from django.contrib.gis.db.models import Extent
+from django.contrib.postgres.fields import JSONField, ArrayField
 from django.db import models
-from django.db.models import Q
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.urls import reverse
-# from django.shortcuts import get_object_or_404
-
 from django_celery_results.models import TaskResult
-from elastic.es_utils import escount_ds
 from geojson import Feature
+from shapely.geometry import box, mapping
+
+from elastic.es_utils import escount_ds
 from main.choices import *
 from places.models import Place, PlaceGeom, PlaceLink
-import simplejson as json
-from shapely.geometry import box, mapping
+
+
+# from django.shortcuts import get_object_or_404
 
 
 def user_directory_path(instance, filename):
@@ -37,7 +35,8 @@ class Dataset(models.Model):
     owner = models.ForeignKey(User, related_name='datasets', on_delete=models.CASCADE)
     label = models.CharField(max_length=20, null=False, unique="True",
                              error_messages={
-                                 'unique': 'The dataset label entered is already in use, and must be unique. Try appending a version # or initials.'})
+                                 'unique': 'The dataset label entered is already in use, and must be unique. Try '
+                                           'appending a version # or initials.'})
     title = models.CharField(max_length=255, null=False)
     description = models.CharField(max_length=2044, null=False)
     webpage = models.URLField(null=True, blank=True)
@@ -87,7 +86,7 @@ class Dataset(models.Model):
 
     @property
     def collaborators(self):
-        ## includes roles: member, owner
+        # includes roles: member, owner
         team = DatasetUser.objects.filter(dataset_id_id=self.id).values_list('user_id_id')
         # members of whg_team group are collaborators on all datasets
         teamusers = User.objects.filter(id__in=team) | User.objects.filter(groups__name='whg_team')
@@ -101,13 +100,13 @@ class Dataset(models.Model):
         else:
             # substitute record count for *rough* estimate
             size = self.places.count() / 1000
-        min, sec = divmod(size, 60)
-        if min < 1:
-            result = "%02d sec" % (sec)
+        mnt, sec = divmod(size, 60)
+        if mnt < 1:
+            result = "%02d sec" % sec
         elif sec >= 10:
-            result = "%02d min %02d sec" % (min, sec)
+            result = "%02d min %02d sec" % (mnt, sec)
         else:
-            result = "%02d min" % (min)
+            result = "%02d min" % mnt
             # print("est. %02d min %02d sec" % (min, sec))
         return result
 
@@ -146,7 +145,7 @@ class Dataset(models.Model):
     @property
     def minmax(self):
         # TODO: temporal is sparse, sometimes [None, None]
-        timespans = [p.minmax for p in self.places.all() \
+        timespans = [p.minmax for p in self.places.all()
                      if p.minmax and len(p.minmax) == 2 and p.minmax[0]]
         # print('ds; timespans as model property', self.label, timespans)
         earliest = min([t[0] for t in timespans]) if len(timespans) > 0 else None
@@ -189,10 +188,9 @@ class Dataset(models.Model):
     # count of reviewed places
     @property
     def reviewed_places(self):
-        result = {}
-        result['rev_wd'] = self.places.filter(review_wd=1).count()
-        result['rev_tgn'] = self.places.filter(review_tgn=1).count()
-        result['rev_whg'] = self.places.filter(review_whg=1).count()
+        result = {'rev_wd': self.places.filter(review_wd=1).count(),
+                  'rev_tgn': self.places.filter(review_tgn=1).count(),
+                  'rev_whg': self.places.filter(review_whg=1).count()}
         return result
 
     # used in ds_compare()
