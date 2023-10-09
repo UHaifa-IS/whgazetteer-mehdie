@@ -175,7 +175,7 @@ def get_item(dictionary, key):
 
         # Return debug information
         return f"Key: {key}, Value: {value}"
-    return None
+    return "no value found"
 
 @register.filter(name='log')
 def log(value):
