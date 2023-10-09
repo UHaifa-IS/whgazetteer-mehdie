@@ -266,7 +266,7 @@
                         {{ t|add:"; " }}
                     {% endfor %}
                 {% else %}
-                    {{ form.id|log }}
+                    {{ form.id.value|log }}
                     {{ hit_supplemental.keys|log }}
                     {{ form.id.value|key_exists:hit_supplemental|yesno:"true,false" }}
                     {% if form.id.value in hit_supplemental %}
