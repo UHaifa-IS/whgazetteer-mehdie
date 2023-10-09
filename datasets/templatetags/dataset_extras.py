@@ -173,13 +173,9 @@ def get_item(dictionary, key):
         # Retrieve item from dictionary
         value = dictionary.get(key)
 
-        # Log the key and its corresponding value
-        print(f"Key: {key}, Value: {value}")
-
-        return value
+        # Return debug information
+        return f"Key: {key}, Value: {value}"
     return None
-
-
 
 @register.filter(name='log')
 def log(value):
