@@ -266,8 +266,8 @@
                         {{ t|add:"; " }}
                     {% endfor %}
                 {% else %}
-                    {{ hit.id|log }}
-                    {% if hit.id in hit_supplemental %}
+                    {{ form.id|log }}
+                    {% if form.id in hit_supplemental %}
                         {% with hit_data=hit.id|get_item:hit_supplemental %}
                             {% with hit_types=hit_data.types.all %}
                                 {% if hit_types|length == 0 %}
