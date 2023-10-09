@@ -267,6 +267,7 @@
                     {% endfor %}
                 {% else %}
                     {{ form.id|log }}
+                    {{ hit_supplemental.keys|log }}
                     {% if form.id in hit_supplemental %}
                         {% with hit_data=form.id|get_item:hit_supplemental %}
                             {{ hit_data|log }}
