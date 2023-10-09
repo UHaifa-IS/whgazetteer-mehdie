@@ -177,3 +177,8 @@ def log(value):
 @register.filter(name='type_name')
 def type_name(value):
     return str(type(value))
+
+@register.filter(name='key_exists')
+def key_exists(value, arg):
+    """Check if key exists in dictionary."""
+    return value in arg
