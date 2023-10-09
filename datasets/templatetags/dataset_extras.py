@@ -164,13 +164,21 @@ def url_it(val):
 @register.filter(name='get_item')
 def get_item(dictionary, key):
     if isinstance(dictionary, dict):
-        # Retrieve item from dictionary
+        # Convert key to integer if possible
         try:
-            key = int(key)  # Convert key to integer
+            key = int(key)
         except ValueError:
-            pass  # If conversion fails, use the original key
-        return dictionary.get(key)
+            pass
+
+        # Retrieve item from dictionary
+        value = dictionary.get(key)
+
+        # Log the key and its corresponding value
+        print(f"Key: {key}, Value: {value}")
+
+        return value
     return None
+
 
 
 @register.filter(name='log')
