@@ -269,6 +269,7 @@
                     {{ form.id|log }}
                     {% if form.id in hit_supplemental %}
                         {% with hit_data=hit.id|get_item:hit_supplemental %}
+                            {{ hit_data|log }}
                             {% with hit_types=hit_data.types.all %}
                                 {% if hit_types|length == 0 %}
                                     <i>none specified</i>
