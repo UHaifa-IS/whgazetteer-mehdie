@@ -262,20 +262,18 @@
 
                 <p class="mt-2 strong">Types:
                 {% if authority == 'whg' %}
-                  {% for t in form.json.value|get:"types" %}
-                    {{ t|add:"; " }}
-                  {% endfor %}</p>
+                    {% for t in form.json.value|get:"types" %}
+                        {{ t|add:"; " }}
+                    {% endfor %}
                 {% else %}
-                    {{ hit.id|log }}
-                    {{ hit_supplemental|log }}
                     {% if hit.id in hit_supplemental %}
-                             {% with hit_data=hit.id|get_item:hit_supplemental %}
-                                 {{ hit_data|log }}
-                                {% if hit_data.types|length == 0 %}
+                        {% with hit_data=hit.id|get_item:hit_supplemental %}
+                            {% with hit_types=hit_data.types.all %}
+                                {% if hit_types|length == 0 %}
                                     <i>none specified</i>
                                 {% else %}
                                     <ul>
-                                        {% for type_obj in hit_data.types %}
+                                        {% for type_obj in hit_types %}
                                             <li>
                                                 {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
                                             </li>
@@ -283,9 +281,9 @@
                                     </ul>
                                 {% endif %}
                             {% endwith %}
-
+                        {% endwith %}
                     {% endif %}
-                  {% endif %}
+                {% endif %}
 
                 {%comment%}
                 {% if form.json.value|get:"countries"|length > 0 %} 
