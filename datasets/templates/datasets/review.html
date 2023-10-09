@@ -270,18 +270,21 @@
                     {{ hit_supplemental.keys|log }}
                     {{ form.id.value|key_exists:hit_supplemental|yesno:"true,false" }}
                     {% if form.id.value in hit_supplemental %}
-                        {% with hit_data=hit_supplemental|get:form.id.value %}
-                            {% if hit_data.types|length == 0 %}
-                                <i>none specified</i>
-                            {% else %}
-                                <ul>
-                                    {% for type_obj in hit_data.types %}
-                                        <li>
-                                            {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% endif %}
+                        {% with hit_data=form.id.value|get_item:hit_supplemental %}
+                            {{ hit_data|log }}
+                            {% with hit_types=hit_data.types.all %}
+                                {% if hit_types|length == 0 %}
+                                    <i>none specified</i>
+                                {% else %}
+                                    <ul>
+                                        {% for type_obj in hit_types %}
+                                            <li>
+                                                {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            {% endwith %}
                         {% endwith %}
                     {% endif %}
 
