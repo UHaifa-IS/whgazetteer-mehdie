@@ -427,7 +427,7 @@ def review(request, pk, tid, passnum):
     # TODO create a supplemental dictionary for each hit retrieving the related place's types and parents
     hit_supplemental = {}
     for hit in raw_hits:
-        other_place : Place = Place.objects.get(id=hit.get_other_place())
+        other_place : Place = Place.objects.get(id=hit.get_other_place().id)
         if other_place is not None:
             hit_supplemental[hit.id] = {
                 'types': other_place.types,
