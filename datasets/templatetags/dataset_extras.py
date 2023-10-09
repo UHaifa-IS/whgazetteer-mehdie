@@ -163,10 +163,17 @@ def url_it(val):
 
 @register.filter(name='get_item')
 def get_item(dictionary, key):
-    return dictionary.get(key)
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None
 
 
 @register.filter(name='log')
 def log(value):
     print(value)
     return value
+
+
+@register.filter(name='type_name')
+def type_name(value):
+    return str(type(value))

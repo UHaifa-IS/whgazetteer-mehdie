@@ -266,8 +266,8 @@
                         {{ t|add:"; " }}
                     {% endfor %}
                 {% else %}
-                    <p>Hit ID: {{ hit.id }}</p>
-                    <p>Supplemental Data: {{ hit.id|get_item:hit_supplemental }}</p>
+                    <p>Hit ID ({{ hit.id|type_name }}): {{ hit.id }}</p>
+                    <p>Supplemental Data ({{ hit_supplemental|type_name }}): {{ hit_supplemental }}</p>
                     <p>Types:</p>
                     <ul>
                         {% with hit_data=hit.id|get_item:hit_supplemental %}
