@@ -164,6 +164,11 @@ def url_it(val):
 @register.filter(name='get_item')
 def get_item(dictionary, key):
     if isinstance(dictionary, dict):
+        # Retrieve item from dictionary
+        try:
+            key = int(key)  # Convert key to integer
+        except ValueError:
+            pass  # If conversion fails, use the original key
         return dictionary.get(key)
     return None
 
