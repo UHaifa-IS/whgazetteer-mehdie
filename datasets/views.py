@@ -424,6 +424,17 @@ def review(request, pk, tid, passnum):
         # accessioning -> get all regardless of pass
         raw_hits = Hit.objects.filter(place_id=placeid, task_id=tid).order_by('-score')
 
+    # TODO create a supplemental dictionary for each hit retrieving the related place's types and parents
+    hit_supplemental = {}
+    for hit in raw_hits:
+        other_place : Place = Place.objects.get(id=hit.get_other_place())
+        if other_place is not None:
+            hit_supplemental[hit.id] = {
+                'types': other_place.types,
+                'related': [] # TODO placeholder for related places
+            }
+
+
     # ??why? get pass contents for all of a place's hits
     passes = list(set([item for sublist in [[s['pass'] for s in h.json['sources']] for h in raw_hits]
                        for item in sublist])) if auth in ['whg', 'idx'] else None
@@ -440,6 +451,7 @@ def review(request, pk, tid, passnum):
     context = {
         'ds_id': pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list': raw_hits,
+        'hit_supplemental': hit_supplemental,
         'passes': passes,
         'authority': task.task_name[6:8] if auth == 'wdlocal' else task.task_name[6:],
         'records': records,

@@ -112,7 +112,6 @@
                               class="create-comment-review btn btn-sm" style="background-color:oldlace;">
                             {% fontawesome_icon 'edit' color='#336699' %}</button>
                         {% endif %}
-                    </span>
                 </div>
             </div>
 
@@ -187,10 +186,10 @@
         <!--available: ['whg_id', 'place_id', 'src_id', 'title', 'dataset', 'variants', 'types', 'ccodes', 'parents', 'descriptions', 'geoms', 'timespans', 'links']-->
           <div id="review_list" class="col-sm-8 pr-0">
             {% for form in formset %}
-              <input type="hidden" name="id" value='{{ form.id.value }}'></input>
-              <input type="hidden" name="authrecord_id" value='{{ form.authrecord_id.value }}'></input>
-              <input type="hidden" name="score" value='{{ form.score.value }}'></input>
-              <input type="hidden" name="query_pass" value='{{ form.query_pass.value }}'></input>
+              <input type="hidden" name="id" value='{{ form.id.value }}'/>
+              <input type="hidden" name="authrecord_id" value='{{ form.authrecord_id.value }}'/>
+              <input type="hidden" name="score" value='{{ form.score.value }}'/>
+              <input type="hidden" name="query_pass" value='{{ form.query_pass.value }}'/>
               {% for hidden in form.hidden_fields %}
                 {{ hidden }}
               {% endfor %}
@@ -218,7 +217,6 @@
                     {% fontawesome_icon 'edit' color='#336699' %}
                     </button>
                   {% endif %}
-                  </span>
                 </div>
               </div>
               {{ form.non_field_errors }}
@@ -267,15 +265,23 @@
                   {% for t in form.json.value|get:"types" %}
                     {{ t|add:"; " }}
                   {% endfor %}</p>
-
                 {% else %}
-                  {% if form.json.value|get:"types"|length == 0 %}
-                  <i>none specified</i>
-                  {% else %}
-                      <h1>{{ form.json.value|get:"types"}}</h1>
-                  {{ form.json.value|get:"types"}}
+                    {% if hit.id in hit_supplemental %}
+                             {% with hit_types=hit|get_item:hit_supplemental.types %}
+                                {% if hit_types|length == 0 %}
+                                    <i>none specified</i>
+                                {% else %}
+                                    <ul>
+                                        {% for type_obj in hit_types %}
+                                            <li>
+                                                {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                        {% endwith %}
+                    {% endif %}
                   {% endif %}
-                {% endif %}
 
                 {%comment%}
                 {% if form.json.value|get:"countries"|length > 0 %} 
