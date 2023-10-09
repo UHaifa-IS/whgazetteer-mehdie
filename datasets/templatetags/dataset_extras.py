@@ -164,3 +164,9 @@ def url_it(val):
 @register.filter(name='get_item')
 def get_item(dictionary, key):
     return dictionary.get(key)
+
+
+@register.filter(name='log')
+def log(value):
+    print(value)
+    return value

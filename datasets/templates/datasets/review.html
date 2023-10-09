@@ -266,8 +266,11 @@
                     {{ t|add:"; " }}
                   {% endfor %}</p>
                 {% else %}
+                    {{ hit.id|log }}
+                    {{ hit_supplemental|log }}
                     {% if hit.id in hit_supplemental %}
                              {% with hit_data=hit.id|get_item:hit_supplemental %}
+                                 {{ hit_data|log }}
                                 {% if hit_data.types|length == 0 %}
                                     <i>none specified</i>
                                 {% else %}
