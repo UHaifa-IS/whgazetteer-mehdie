@@ -269,8 +269,8 @@
                     {{ form.id|log }}
                     {{ hit_supplemental.keys|log }}
                     {{ form.id.value|key_exists:hit_supplemental|yesno:"true,false" }}
-                    {% if form.id in hit_supplemental %}
-                        {% with hit_data=form.id|get_item:hit_supplemental %}
+                    {% if form.id.value in hit_supplemental %}
+                        {% with hit_data=form.id.value|get_item:hit_supplemental %}
                             {{ hit_data|log }}
                             {% with hit_types=hit_data.types.all %}
                                 {% if hit_types|length == 0 %}
