@@ -266,23 +266,21 @@
                         {{ t|add:"; " }}
                     {% endfor %}
                 {% else %}
-                    {% if hit.id in hit_supplemental %}
+                    <p>Hit ID: {{ hit.id }}</p>
+                    <p>Supplemental Data: {{ hit.id|get_item:hit_supplemental }}</p>
+                    <p>Types:</p>
+                    <ul>
                         {% with hit_data=hit.id|get_item:hit_supplemental %}
                             {% with hit_types=hit_data.types.all %}
-                                {% if hit_types|length == 0 %}
-                                    <i>none specified</i>
-                                {% else %}
-                                    <ul>
-                                        {% for type_obj in hit_types %}
-                                            <li>
-                                                {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
+                                {% for type_obj in hit_types %}
+                                    <li>
+                                        {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
+                                    </li>
+                                {% endfor %}
                             {% endwith %}
                         {% endwith %}
-                    {% endif %}
+                    </ul>
+
                 {% endif %}
 
                 {%comment%}
