@@ -267,19 +267,20 @@
                   {% endfor %}</p>
                 {% else %}
                     {% if hit.id in hit_supplemental %}
-                             {% with hit_types=hit|get_item:hit_supplemental.types %}
-                                {% if hit_types|length == 0 %}
+                             {% with hit_data=hit.id|get_item:hit_supplemental %}
+                                {% if hit_data.types|length == 0 %}
                                     <i>none specified</i>
                                 {% else %}
                                     <ul>
-                                        {% for type_obj in hit_types %}
+                                        {% for type_obj in hit_data.types %}
                                             <li>
                                                 {{ type_obj.jsonb.label }} ({{ type_obj.jsonb.sourceLabel }})
                                             </li>
                                         {% endfor %}
                                     </ul>
                                 {% endif %}
-                        {% endwith %}
+                            {% endwith %}
+
                     {% endif %}
                   {% endif %}
 
