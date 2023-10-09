@@ -434,6 +434,9 @@ def review(request, pk, tid, passnum):
                 'related': [] # TODO placeholder for related places
             }
 
+    known_id = 82044  # for debug
+    print(hit_supplemental.get(known_id))
+
 
     # ??why? get pass contents for all of a place's hits
     passes = list(set([item for sublist in [[s['pass'] for s in h.json['sources']] for h in raw_hits]
