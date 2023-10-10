@@ -430,10 +430,9 @@ def review(request, pk, tid, passnum):
         other_place : Place = Place.objects.get(id=hit.get_other_place().id)
         if other_place is not None:
             hit_supplemental[hit.id] = {
-                'types': list(other_place.types.all()),
-                'related': [] # TODO placeholder for related places
+                'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
+                'related': []  # TODO placeholder for related places
             }
-
     known_id = 82044  # for debug
     print(hit_supplemental.get(known_id))
 

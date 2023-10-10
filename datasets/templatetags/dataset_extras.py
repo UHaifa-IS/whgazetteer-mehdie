@@ -168,13 +168,11 @@ def get_item(dictionary, key):
         try:
             key = int(key)
         except ValueError:
-            pass
+            return "ValueError"
 
         # Retrieve item from dictionary
         value = dictionary.get(key)
-
-        # Return debug information
-        return f"Key: {key}, Value: {value}"
+        return value
     return "no value found"
 
 @register.filter(name='log')
