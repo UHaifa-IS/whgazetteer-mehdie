@@ -1,5 +1,4 @@
 from django import template
-from django.contrib.auth.models import Group
 from django.template.defaultfilters import stringfilter
 import json, re, validators, textwrap
 
@@ -97,8 +96,8 @@ def readmore(txt, numchars):
 
 
 @register.filter
-def remove(str, tozap):
-    return str.replace(tozap, '')
+def remove(string, tozap):
+    return string.replace(tozap, '')
 
 
 @register.filter
@@ -149,8 +148,8 @@ def trimbrackets(value):
 
 # truncates at previous word break
 @register.filter
-def trunc_it(str, numchars):
-    return textwrap.shorten(str, width=numchars, placeholder="...")
+def trunc_it(string, numchars):
+    return textwrap.shorten(string, width=numchars, placeholder="...")
 
 
 @register.filter
@@ -174,7 +173,7 @@ def get_item(dictionary, key):
         value = dictionary.get(key)
         return value
     else:
-        return "supplied dictionary is a " + type(dictionary)
+        return "supplied dictionary is a {}".format(type(dictionary))
 
 @register.filter(name='log')
 def log(value):
