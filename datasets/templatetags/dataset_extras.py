@@ -173,7 +173,8 @@ def get_item(dictionary, key):
         # Retrieve item from dictionary
         value = dictionary.get(key)
         return value
-    return "no value found"
+    else:
+        return "supplied dictionary is a " + type(dictionary)
 
 @register.filter(name='log')
 def log(value):
