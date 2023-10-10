@@ -348,7 +348,7 @@ def review(request, pk, tid, passnum):
         hitplaces = Hit.objects.values_list('place_id', flat=True).filter(
             task_id=tid,
             reviewed=False,
-            flag = False,
+            flag=False,
             query_pass=passnum
         )
     elif passnum == 'def':
@@ -427,15 +427,15 @@ def review(request, pk, tid, passnum):
     # TODO create a supplemental dictionary for each hit retrieving the related place's types and parents
     hit_supplemental = {}
     for hit in raw_hits:
-        other_place : Place = Place.objects.get(id=hit.get_other_place().id)
+        other_place: Place = Place.objects.get(id=hit.get_other_place().id)
         if other_place is not None:
             hit_supplemental[hit.id] = {
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
-                'related': []  # TODO placeholder for related places
+                'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
+                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive']
             }
     known_id = 82044  # for debug
     print(hit_supplemental.get(known_id))
-
 
     # ??why? get pass contents for all of a place's hits
     passes = list(set([item for sublist in [[s['pass'] for s in h.json['sources']] for h in raw_hits]
@@ -760,14 +760,14 @@ def ds_recon(request, pk):
                             f" {d1.dataset_id.title}"
                             f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset1']])}."
                             f" If possible, we will proceed with the given fields."
-                            )
+                        )
                     if csv_url['detail']['dataset2']:
                         return HttpResponse(
                             "The dataset matching service expects the dataset to contain several fields."
                             f" {d2.dataset_id.title}"
                             f" is missing the fields {', '.join([field for field in csv_url['detail']['dataset2']])}."
                             f" If possible, we will proceed with the given fields."
-                            )
+                        )
                 # process_er(csv_url)
                 messages.add_message(request, messages.INFO,
                                      "<span class='text-success'>Your ER reconciliation task has been "
@@ -812,7 +812,7 @@ def ds_recon(request, pk):
 
             # try:
             print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom,
-                                                                                       language, user.id, match_config))
+                                                                                    language, user.id, match_config))
             task = run_mehdi_er.delay(dt_1, dt_2, ds.id, aug_geom, language, user.id, match_config)
             request.session['task_id'] = task.id
             request.session['d1'] = m_dataset
@@ -2669,7 +2669,7 @@ class DatasetAddTaskView(LoginRequiredMixin, DetailView):
         # pre-defined UN regions
         predefined = Area.objects.all().filter(type='predefined').values('id', 'title')
 
-        #my_dataset = Dataset.objects.filter(owner=self.request.user).exclude(id=id_)
+        # my_dataset = Dataset.objects.filter(owner=self.request.user).exclude(id=id_)
         # Datasets owned by the user
         owned_datasets = Dataset.objects.filter(owner=self.request.user)
 

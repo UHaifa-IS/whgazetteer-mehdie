@@ -284,6 +284,20 @@
                     {% endif %}
 
                 {% endif %}
+                <p class="mt-2 strong">Parents:
+                {% if form.id.value in hit_supplemental %}
+                    {% with hit_data=hit_supplemental|get_item:form.id.value %}
+                        {% with hit_parents=hit_data.parents %}
+                            {% if hit_parents|length == 0 %}
+                                <i>none specified</i>
+                            {% else %}
+                                    {% for parent_str in hit_data.parents %}
+                                        {{ parent_str }}{% if not forloop.last %}; {% endif %}
+                                    {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
+                {% endif %}
 
                 {%comment%}
                 {% if form.json.value|get:"countries"|length > 0 %} 
