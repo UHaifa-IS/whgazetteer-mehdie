@@ -846,6 +846,7 @@ def align_match_data(pk, *args, **kwargs):
     task_id = align_match_data.request.id if align_match_data.request.id else 'manual upload'
     logger.info(f"Reading {len(csv_data.values)} data values for task_id: {task_id}")
     for data in csv_data.values:
+        logger.info(f"Processing data: {data}")
         # 0: src_id, 1: target src_id. 2: relation, 3: confidence, 4: explanation
         place = places.filter(src_id=data[0])
         place_2 = places_2.filter(src_id=data[1])
