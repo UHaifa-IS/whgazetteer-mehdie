@@ -848,14 +848,14 @@ def align_match_data(pk, *args, **kwargs):
     for data in csv_data.values:
         logger.info(f"Processing data: {data}")
         # 0: src_id, 1: target src_id. 2: relation, 3: confidence, 4: explanation
-        place = places.filter(src_id=data[0])
-        place_2 = places_2.filter(src_id=data[1])
+        place = places.filter(src_id=str(data[0]))
+        place_2 = places_2.filter(src_id=str(data[1]))
 
         if not (place.exists() and place_2.exists()):
             continue
         place = place.first()
         place_2 = place_2.first()
-
+        logger.info(f"Found place: {place} and place_2: {place_2}")
         qobj = {"place_id": place_2.id,
                 "src_id": place_2.src_id,
                 "type": "match_data",
