@@ -843,6 +843,8 @@ def align_match_data(pk, *args, **kwargs):
     places = dataset.places.all()
     places_2 = dataset_2.places.all()
     count_hit = 0
+    task_id = align_match_data.request.id if align_match_data.request.id else 'manual upload'
+    logger.info(f"Reading {len(csv_data.values)} data values for task_id: {task_id}")
     for data in csv_data.values:
         # 0: src_id, 1: target src_id. 2: relation, 3: confidence, 4: explanation
         place = places.filter(src_id=data[0])
@@ -900,7 +902,6 @@ def align_match_data(pk, *args, **kwargs):
             qobj['authids'] = l_list
         else:
             qobj['authids'] = []
-        task_id = align_match_data.request.id if align_match_data.request.id else 'manual upload'
         logger.info(f"creating HITS from task_id: {task_id}")
         hit = Hit.objects.create(
             authority=str(dataset_2.id),
