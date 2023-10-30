@@ -903,7 +903,7 @@ def align_match_data(pk, *args, **kwargs):
         task_id = align_match_data.request.id if align_match_data.request.id else 'manual upload'
         logger.info(f"creating HITS from task_id: {task_id}")
         hit = Hit.objects.create(
-            authority='md',
+            authority=str(dataset_2.id),
             authrecord_id=data[1],
             dataset=dataset,
             place=place,

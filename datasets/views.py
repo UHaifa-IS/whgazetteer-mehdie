@@ -424,18 +424,21 @@ def review(request, pk, tid, passnum):
         # accessioning -> get all regardless of pass
         raw_hits = Hit.objects.filter(place_id=placeid, task_id=tid).order_by('-score')
 
-    # TODO create a supplemental dictionary for each hit retrieving the related place's types and parents
+    # create a supplemental dictionary for each hit retrieving the related place's types and parents
     hit_supplemental = {}
     for hit in raw_hits:
-        other_place: Place = Place.objects.get(id=hit.get_other_place().id)
-        if other_place is not None:
+        other_place_hit = hit.get_other_place()
+        if other_place_hit is not None:
+            other_place: Place = Place.objects.get(id=other_place_hit.id)
             hit_supplemental[hit.id] = {
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
                 'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
                             ptype.jsonb['relationType'] == 'gvp:broaderPartitive']
             }
-    known_id = 82044  # for debug
-    print(hit_supplemental.get(known_id))
+        else:
+            print(f"Could not find place for hit {hit.id}")
+    # known_id = 82044  # for debug
+    # print(hit_supplemental.get(known_id))
 
     # ??why? get pass contents for all of a place's hits
     passes = list(set([item for sublist in [[s['pass'] for s in h.json['sources']] for h in raw_hits]
