@@ -492,6 +492,11 @@ def review(request, pk, tid, passnum):
         print("[DEBUG] entered POST for review page, place_id: " + str(place_post.id) + ", review_status: " + str(
             review_status))
         print(f"Review Status is {review_status}, value of review_status==1 is {review_status == 1} and value of formset.is_valid is {formset.is_valid()}")
+        if not formset.is_valid():
+            print("[DEBUG] formset is not valid")
+            for error in formset.errors:
+                print(error)
+
         # NB. other reviewer(s) *not* notified
         if review_status == 1:
             context["already"] = True
