@@ -322,6 +322,7 @@ def review(request, pk, tid, passnum):
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
     auth = task.task_name[6:].replace('local', '')
+    print(f"auth: {auth}")
     authname = 'Wikidata' if auth == 'wd' else 'Getty TGN' \
         if auth == 'tgn' else 'WHG'
     kwargs = json.loads(task.task_kwargs.replace("'", '"'))
