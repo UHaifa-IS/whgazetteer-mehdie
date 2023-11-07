@@ -322,7 +322,6 @@ def review(request, pk, tid, passnum):
     ds = get_object_or_404(Dataset, id=pk)
     task = get_object_or_404(TaskResult, task_id=tid)
     auth = task.task_name[6:].replace('local', '')
-    print(f"auth: {auth}")
     authname = 'Wikidata' if auth == 'wd' else 'Getty TGN' \
         if auth == 'tgn' else 'WHG'
     kwargs = json.loads(task.task_kwargs.replace("'", '"'))
@@ -492,6 +491,7 @@ def review(request, pk, tid, passnum):
         # proceed with POST only if place is unreviewed or deferred; else return to a GET (and next place)
         print("[DEBUG] entered POST for review page, place_id: " + str(place_post.id) + ", review_status: " + str(
             review_status))
+        print(f"Review Status is {review_status}, value of review_status==1 is {review_status == 1} and value of formset.is_valid is {formset.is_valid()}")
         # NB. other reviewer(s) *not* notified
         if review_status == 1:
             context["already"] = True
