@@ -175,7 +175,7 @@
             {% endif %}
             {% if record.descriptions %}
               {% for d in record.descriptions.all %}
-              <p><strong>Description</strong>: {{d.jsonb.value}}</p>
+                  <p class="mb-0"><strong>Description</strong>: <div class="attest-element abbrev small">{{d.jsonb.value}}</div>></p>
               {%endfor%}
             {% endif %}
           </div>
