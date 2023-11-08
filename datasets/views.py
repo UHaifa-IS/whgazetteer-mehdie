@@ -5,7 +5,6 @@ from pathlib import Path
 from shutil import copyfile
 
 import pandas as pd
-import requests
 from celery import current_app as celapp
 from celery.result import AsyncResult
 from django.contrib import messages
@@ -28,7 +27,7 @@ from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateMo
 from datasets.models import DatasetFile
 from datasets.static.hashes import mimetypes_plus as mthash_plus
 from datasets.static.hashes.parents import ccodes as cchash
-from datasets.tasks import maxID, align_match_data, run_mehdi_er, align_wdlocal, align_tgn, align_idx
+from datasets.tasks import maxID, run_mehdi_er
 from datasets.update import deleteFromIndex
 from datasets.utils import *
 from elastic.es_utils import makeDoc, removePlacesFromIndex, replaceInIndex
@@ -2233,10 +2232,10 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
 
             # write request obj file to user directory
             if ext in ['csv', 'tsv', 'json']:
-                with codecs.open(filepath, 'w', 'utf8') as file_out:
+                with open(filepath, 'wb') as file_out:  # Open the file in binary write mode
                     try:
                         for chunk in file.chunks():
-                            file_out.write(chunk.decode("utf-8"))
+                            file_out.write(chunk)  # Write the binary data directly without decoding
                     except Exception as e:
                         capture_exception(e)
                         raise e
