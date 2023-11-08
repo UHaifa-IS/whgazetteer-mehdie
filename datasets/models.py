@@ -313,7 +313,7 @@ class Hit(models.Model):
     # task_id = models.ForeignKey(TaskResult,
     # related_name='task_id', on_delete=models.CASCADE)
     task_id = models.CharField(max_length=50)
-    authority = models.CharField(max_length=12, choices=AUTHORITIES)
+    authority = models.CharField(max_length=12) #, choices=AUTHORITIES)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     query_pass = models.CharField(max_length=12, choices=PASSES)
     src_id = models.CharField(max_length=2044)

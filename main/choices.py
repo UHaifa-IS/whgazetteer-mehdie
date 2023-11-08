@@ -8,15 +8,15 @@ AREATYPES = {
     ('predefined', 'World Regions'),
 }
 
-AUTHORITIES = [
-    ('md', 'Match data'),
-    ('tgn', 'Getty TGN'),
-    ('dbp', 'DBpedia'),
-    ('gn', 'Geonames'),
-    ('wd', 'Wikidata'),
-    ('core', 'WHG Spine'),
-    ('whg', 'WHG'),
-]
+# AUTHORITIES = [
+#     ('md', 'Match data'),
+#     ('tgn', 'Getty TGN'),
+#     ('dbp', 'DBpedia'),
+#     ('gn', 'Geonames'),
+#     ('wd', 'Wikidata'),
+#     ('core', 'WHG Spine'),
+#     ('whg', 'WHG'),
+# ]
 
 AUTHORITY_BASEURI = {
     'align_match_data': 'md:',
