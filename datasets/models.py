@@ -313,6 +313,7 @@ class Hit(models.Model):
     # task_id = models.ForeignKey(TaskResult,
     # related_name='task_id', on_delete=models.CASCADE)
     task_id = models.CharField(max_length=50)
+    # the choices are removed because we now use this field to hold related datasets in the matching process
     authority = models.CharField(max_length=12) #, choices=AUTHORITIES)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     query_pass = models.CharField(max_length=12, choices=PASSES)

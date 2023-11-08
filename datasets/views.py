@@ -540,14 +540,18 @@ def review(request, pk, tid, passnum):
                         # TODO: this if: condition handled already?
                         if tid not in place_post.links.all().values_list('task_id', flat=True):
                             print("[DEBUG] writing place_link record")
+                            if hits[x]['authority'] == 'whg' or hits[x]['authority'][0].isdigit():
+                                identifier = hits[x]['json']['place_id']
+                            else:
+                                identifier = link_uri(task.task_name, hits[x]['authrecord_id'])
+
                             PlaceLink.objects.create(
                                 place=place_post,
                                 task_id=tid,
                                 src_id=place.src_id,
                                 jsonb={
                                     "type": hits[x]['relation_type'],
-                                    "identifier": link_uri(task.task_name, hits[x]['authrecord_id'] \
-                                        if hits[x]['authority'] not in ['whg', 'md'] else hits[x]['json']['place_id'])
+                                    "identifier": identifier
                                 }
                             )
 
