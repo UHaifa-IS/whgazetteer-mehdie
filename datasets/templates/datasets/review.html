@@ -198,6 +198,7 @@
                   <p class="mb-0"><strong>Description</strong>: <div class="attest-element abbrev small">{{d.jsonb.value}}</div>></p>
               {%endfor%}
             {% endif %}
+
           </div>
           <div id="map">
             {% leaflet_map "map_review" callback="map_init" %}
@@ -353,6 +354,7 @@
                     <p class="mb-0"><strong>Description</strong>:</p>
                     <div class="attest-element abbrev small">{{ form.description.jsonb.value }}</div>
                 {% endif %}
+              <p class="mb-0"><strong>Coordinates</strong>: <div class="attest-element abbrev small">{{ form.json.value|get:"geoms" }}</div>></p>
               </div>
             {% endfor %}
           </div>
