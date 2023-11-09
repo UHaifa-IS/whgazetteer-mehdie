@@ -1336,16 +1336,6 @@ span.edit-row {
   width: 1px;
 }
 
-.record-container {
-  display: flex;
-  justify-content: space-between;
-}
-
-.column {
-  flex: 1;
-  padding: 10px;
-  background-color: #ffdd57;
-}
 
 /* help modal content */
 .ui-widget,
