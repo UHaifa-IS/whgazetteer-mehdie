@@ -159,7 +159,14 @@ def url_it(val):
     return val.replace(reg.group(1), '<a href="' + reg.group(
         1) + '" target="_blank">link <i class="fa fa-external-link"></i> </>') if reg else val
 
-
+@register.filter
+def get_point_coordinates(value):
+    try:
+        geoms = value.get('geoms', [])
+        if geoms and geoms[0]['type'] == 'Point':
+            return geoms[0]['coordinates']
+    except (IndexError, KeyError, TypeError):
+        return None
 @register.filter(name='get_item')
 def get_item(dictionary, key):
     if isinstance(dictionary, dict):

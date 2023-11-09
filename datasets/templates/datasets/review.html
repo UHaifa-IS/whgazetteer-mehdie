@@ -354,7 +354,12 @@
                     <p class="mb-0"><strong>Description</strong>:</p>
                     <div class="attest-element abbrev small">{{ form.description.jsonb.value }}</div>
                 {% endif %}
-              <p class="mb-0"><strong>Coordinates</strong>: <div class="attest-element abbrev small">{{ form.json.value|get:"geoms" }}</div>></p>
+                {% with coordinates=form.json.value|get_point_coordinates %}
+                {% if coordinates %}
+                   <p><strong>Coordinates:</strong> {{ coordinates }}</p>
+                {% endif %}
+            {% endwith %}
+
               </div>
             {% endfor %}
           </div>
