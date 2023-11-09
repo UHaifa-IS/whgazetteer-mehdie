@@ -2,6 +2,8 @@ from django import template
 from django.template.defaultfilters import stringfilter
 import json, re, validators, textwrap
 
+from django.utils.safestring import mark_safe
+
 register = template.Library()
 
 
@@ -162,11 +164,15 @@ def url_it(val):
 @register.filter
 def get_point_coordinates(value):
     try:
-        geoms = value.get('geoms', [])
+        # Assuming value is a stringified JSON
+        value_dict = json.loads(value)
+        geoms = value_dict.get('geoms', [])
         if geoms and geoms[0]['type'] == 'Point':
-            return geoms[0]['coordinates']
-    except (IndexError, KeyError, TypeError):
+            return mark_safe(geoms[0]['coordinates'])
+    except (IndexError, KeyError, TypeError, json.JSONDecodeError):
         return None
+
+
 @register.filter(name='get_item')
 def get_item(dictionary, key):
     if isinstance(dictionary, dict):
