@@ -1344,7 +1344,7 @@ span.edit-row {
 .column {
   flex: 1;
   padding: 10px;
-  /* Adjust padding as necessary */
+  background-color: #ffdd57;
 }
 
 /* help modal content */
