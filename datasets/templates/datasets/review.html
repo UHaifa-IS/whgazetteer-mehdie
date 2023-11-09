@@ -138,12 +138,17 @@
             {% for g in record.geoms.all %}
               {{ g.jsonb|safe|json_script:record.id }}
             {% endfor %}
+          <div class="record-container">
+            <div class="column">
             <p><strong>MEHDIE id</strong>: {{ record.id }} </p>
             <p><strong>Source id</strong>: {{ record.src_id }}</p>
             <p class="scroll100"><strong>Variants</strong>:<i>
               {% for name in record.names.all %}
                {{ name.jsonb.toponym }};
               {% endfor %}</i></p>
+            </div> <!-- column -->
+
+            <div class="column">
             {% if countries %}
             <p><strong>Modern countries</strong>:
               {% for c in countries %}
@@ -173,6 +178,8 @@
               <p><strong>Timeframe:</strong>: {{record.minmax.0}} / {{record.minmax.1}}</p>
               {% endif %}
             {% endif %}
+            </div> <!-- column -->
+            </div> <!-- record-container -->
             {% if record.descriptions %}
               {% for d in record.descriptions.all %}
                   <p class="mb-0"><strong>Description</strong>: <div class="attest-element abbrev small">{{d.jsonb.value}}</div>></p>

@@ -1336,6 +1336,17 @@ span.edit-row {
   width: 1px;
 }
 
+.record-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+.column {
+  flex: 1;
+  padding: 10px;
+  /* Adjust padding as necessary */
+}
+
 /* help modal content */
 .ui-widget,
 .ui-widget-content {
