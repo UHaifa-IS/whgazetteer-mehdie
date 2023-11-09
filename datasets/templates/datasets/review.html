@@ -23,7 +23,6 @@
       flex: 0 0 50%; /* This sets the basis to 50% and doesn't allow the columns to grow or shrink */
       padding: 10px;
       box-sizing: border-box; /* Includes padding and border in the element's total width and height */
-      background-color: #ffdd57; /* Bright yellow background for testing */
     }
   </style>
 {% endblock %}
@@ -255,98 +254,101 @@
                       {{form.explanations.value}}
                   </p>
                 {% endif %}
-
-                {% if authority|startswith:'whg' or authority|startswith:'match_data' %}
-                  <p><strong>MEHDIE id</strong>: {{ form.json.value|get:"place_id" }}</p>
-                  <p><strong>Source id</strong>: {{ form.json.value|get:"dataset" }} ({{ form.json.value|get:"src_id" }})</p>
-                {% else %}
-                  {% if authority|startswith:"wd" %}
-                  <p><strong>Wikidata ID</strong>:
-                  {% else %}
-                  <p><strong>{{ authority|upper }} ID</strong>:
-                  {% endif %}
-                  <a href="" data-auth={{authority}} class="mr-2">{{ form.authrecord_id.value }}</a>{% fontawesome_icon 'external-link' color='#336699' %}
-                  </p>
-                {% endif %}
-
-                {% if form.json.value|get:"variants"|length > 0 %}
-                <p class="scroll65"><strong>Variants</strong>:
-                    {% if authority == 'match_data' %}
-                        {{ form.json.value|get:"tsv_variants" }}
+                <div class="record-container">
+                    <div class="column">
+                    {% if authority|startswith:'whg' or authority|startswith:'match_data' %}
+                      <p><strong>MEHDIE id</strong>: {{ form.json.value|get:"place_id" }}</p>
+                      <p><strong>Source id</strong>: {{ form.json.value|get:"dataset" }} ({{ form.json.value|get:"src_id" }})</p>
                     {% else %}
-                      {% for n in form.json.value|get:"variants" %}
-                        {{ n|add:"; " }}
-                      {% endfor %}
-                    {% endif  %}
-                </p>
-                {% endif %}
+                      {% if authority|startswith:"wd" %}
+                      <p><strong>Wikidata ID</strong>:
+                      {% else %}
+                      <p><strong>{{ authority|upper }} ID</strong>:
+                      {% endif %}
+                      <a href="" data-auth={{authority}} class="mr-2">{{ form.authrecord_id.value }}</a>{% fontawesome_icon 'external-link' color='#336699' %}
+                      </p>
+                    {% endif %}
 
-                <p class="mt-2 strong">Types:
-                {% if authority == 'whg' %}
-                    {% for t in form.json.value|get:"types" %}
-                        {{ t|add:"; " }}
-                    {% endfor %}
-                {% else %}
-{#                    {{ form.id.value|log }}#}
-{#                    {{ hit_supplemental.keys|log }}#}
-{#                    {{ form.id.value|key_exists:hit_supplemental|yesno:"true,false" }}#}
+                    {% if form.json.value|get:"variants"|length > 0 %}
+                    <p class="scroll65"><strong>Variants</strong>:
+                        {% if authority == 'match_data' %}
+                            {{ form.json.value|get:"tsv_variants" }}
+                        {% else %}
+                          {% for n in form.json.value|get:"variants" %}
+                            {{ n|add:"; " }}
+                          {% endfor %}
+                        {% endif  %}
+                    </p>
+                    {% endif %}
+                    </div>  <!-- end column 1-->
+                    <div class="column">
+                    <p class="mt-2 strong">Types:
+                    {% if authority == 'whg' %}
+                        {% for t in form.json.value|get:"types" %}
+                            {{ t|add:"; " }}
+                        {% endfor %}
+                    {% else %}
+    {#                    {{ form.id.value|log }}#}
+    {#                    {{ hit_supplemental.keys|log }}#}
+    {#                    {{ form.id.value|key_exists:hit_supplemental|yesno:"true,false" }}#}
+                        {% if form.id.value in hit_supplemental %}
+                            {% with hit_data=hit_supplemental|get_item:form.id.value %}
+                                {% with hit_types=hit_data.types %}
+                                    {% if hit_types|length == 0 %}
+                                        <i>none specified</i>
+                                    {% else %}
+                                            {% for type_str in hit_data.types %}
+                                                {{ type_str }}{% if not forloop.last %}; {% endif %}
+                                            {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endwith %}
+                        {% endif %}
+
+                    {% endif %}
+                    <p class="mt-2 strong">Parents:
                     {% if form.id.value in hit_supplemental %}
                         {% with hit_data=hit_supplemental|get_item:form.id.value %}
-                            {% with hit_types=hit_data.types %}
-                                {% if hit_types|length == 0 %}
+                            {% with hit_parents=hit_data.parents %}
+                                {% if hit_parents|length == 0 %}
                                     <i>none specified</i>
                                 {% else %}
-                                        {% for type_str in hit_data.types %}
-                                            {{ type_str }}{% if not forloop.last %}; {% endif %}
+                                        {% for parent_str in hit_data.parents %}
+                                            {{ parent_str }}{% if not forloop.last %}; {% endif %}
                                         {% endfor %}
                                 {% endif %}
                             {% endwith %}
                         {% endwith %}
                     {% endif %}
 
-                {% endif %}
-                <p class="mt-2 strong">Parents:
-                {% if form.id.value in hit_supplemental %}
-                    {% with hit_data=hit_supplemental|get_item:form.id.value %}
-                        {% with hit_parents=hit_data.parents %}
-                            {% if hit_parents|length == 0 %}
-                                <i>none specified</i>
-                            {% else %}
-                                    {% for parent_str in hit_data.parents %}
-                                        {{ parent_str }}{% if not forloop.last %}; {% endif %}
-                                    {% endfor %}
-                            {% endif %}
-                        {% endwith %}
-                    {% endwith %}
-                {% endif %}
+                    {%comment%}
+                    {% if form.json.value|get:"countries"|length > 0 %}
+                    <p><strong>Countries</strong>: {{ form.json.value|get:"countries" }}</p>
+                    {% endif %}
+                    {%endcomment%}
 
-                {%comment%}
-                {% if form.json.value|get:"countries"|length > 0 %} 
-                <p><strong>Countries</strong>: {{ form.json.value|get:"countries" }}</p>
-                {% endif %}
-                {%endcomment%}
+                    {% if form.json.value|get:"links"|length > 0 %}
+                      <p><strong>Links</strong>:
+                      {% for link in form.json.value|get:"links" %}
+                        <a href="" class="mr-2 ext" data-toggle="modal" data-target="#ext_site">{{ link }} {% fontawesome_icon 'external-link' color='#336699' %}</a>
+                      {% endfor %}
+                    </p>{% endif %}
 
-                {% if form.json.value|get:"links"|length > 0 %}
-                  <p><strong>Links</strong>:
-                  {% for link in form.json.value|get:"links" %}
-                    <a href="" class="mr-2 ext" data-toggle="modal" data-target="#ext_site">{{ link }} {% fontawesome_icon 'external-link' color='#336699' %}</a>
-                  {% endfor %}
-                </p>{% endif %}
+                    {% if form.json.value|get:"parents" %}
+                      <p><strong>Parents</strong>:
+                      {{ form.json.value|get:"parents" }}
 
-                {% if form.json.value|get:"parents" %}
-                  <p><strong>Parents</strong>:
-                  {{ form.json.value|get:"parents" }}
+                    {% elif form.json.value|get:"ccodes" %}
+                      <p><strong>Modern country</strong>:
+                        {{ form.json.value|get:"ccodes" }}
+                    {% endif %}
 
-                {% elif form.json.value|get:"ccodes" %}
-                  <p><strong>Modern country</strong>:
-                    {{ form.json.value|get:"ccodes" }}
-                {% endif %}
-
-                {% if form.json.value|get:"minmax"|length > 0 %}
-                  <p><strong>Temporal attestations</strong>:
-                  {{ form.json.value|get:"minmax" }}</p>
-                {% endif %}
-
+                    {% if form.json.value|get:"minmax"|length > 0 %}
+                      <p><strong>Temporal attestations</strong>:
+                      {{ form.json.value|get:"minmax" }}</p>
+                    {% endif %}
+                    </div> <!-- end column 2-->
+                </div>
                 {% if form.description %}
                     <p class="mb-0"><strong>Description</strong>:</p>
                     <div class="attest-element abbrev small">{{ form.description.jsonb.value }}</div>
