@@ -198,7 +198,9 @@
                   <p class="mb-0"><strong>Description</strong>: <div class="attest-element abbrev small">{{d.jsonb.value}}</div>></p>
               {%endfor%}
             {% endif %}
-
+            {% if record.repr_point %}
+                <p><strong>Coordinates:</strong> {{ record.repr_point }}</p>
+            {% endif %}
           </div>
           <div id="map">
             {% leaflet_map "map_review" callback="map_init" %}
