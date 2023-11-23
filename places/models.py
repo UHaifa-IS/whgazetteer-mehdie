@@ -61,7 +61,9 @@ class Place(models.Model):
 
     @property
     def geomtype(self):
-        return self.geoms.all()[0].geom.geom_type
+        if len(self.geoms.all()) > 0:
+            return self.geoms.all()[0].geom.geom_type
+        return None
 
     @property
     def hashits_wd(self):
@@ -81,16 +83,20 @@ class Place(models.Model):
 
     @property
     def repr_geom(self):
-        return self.geoms.all()[0].geom
+        if len(self.geoms.all()) > 0:
+            return self.geoms.all()[0].geom
+        return None
 
     @property
     def repr_point(self):
-        g = self.geoms.all()[0].geom
-        gtype = str(type(g))
-        if 'MultiPolygon' in gtype:
-            return g.coords[0][0][0]
-        elif 'Point' in gtype:
-            return g.coords
+        if len(self.geoms.all()) > 0:
+            g = self.geoms.all()[0].geom
+            gtype = str(type(g))
+            if 'MultiPolygon' in gtype:
+                return g.coords[0][0][0]
+            elif 'Point' in gtype:
+                return g.coords
+        return None
 
     @property
     def traces(self):
