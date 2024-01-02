@@ -87,11 +87,16 @@ def mehdi_er(dataset_1, dataset_2, dataset_id, aug_geom, language, userid,
         }
         logger.info(
             "posting to mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/ with files: {} and {}".format(m_csv, p_csv))
-        response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files,
-                                 params = match_config)
+        try:
+            response = requests.post(url='https://mehdi-er-snlwejaxvq-ez.a.run.app/uploadfile/', files=files,
+                                     params=match_config, timeout=3600)
 
-        if response.status_code == 400:
-            return response.json(), response.status_code
+            if response.status_code != 200:
+                return response.json(), response.status_code
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request failed: {e}")
+            return None, 500  # Indicative error code
 
         tsv_url = response.json()["csv download url"]
 
@@ -213,7 +218,8 @@ def make_download(request, *args, **kwargs):
 
                 # LINKS (matches)
                 # get all distinct matches in db as string
-                links = (';').join(list(set([l.jsonb['identifier'] for l in p.links.exclude(jsonb__type__exact='different')])))
+                links = (';').join(
+                    list(set([l.jsonb['identifier'] for l in p.links.exclude(jsonb__type__exact='different')])))
                 # replace whatever was in file
                 newrow['matches'] = links
 
@@ -288,7 +294,7 @@ def make_download(request, *args, **kwargs):
     return completed_message
 
 
-@shared_task
+@shared_task(time_limit=3660)
 def run_mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid, match_config):
     print("running mehdi_er")
     csv_url, status_code = mehdi_er(dt_1, dt_2, ds_id, aug_geom, language, userid, match_config)
