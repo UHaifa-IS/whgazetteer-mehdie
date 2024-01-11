@@ -219,7 +219,7 @@ def make_download(request, *args, **kwargs):
                 # LINKS (matches)
                 # get all distinct matches in db as string
                 links = (';').join(
-                    list(set([l.jsonb['identifier'] for l in p.links.exclude(jsonb__type__exact='different')])))
+                    list(set([str(pl.jsonb['identifier']) for pl in p.links.exclude(jsonb__type__exact='different')])))
                 # replace whatever was in file
                 newrow['matches'] = links
 
