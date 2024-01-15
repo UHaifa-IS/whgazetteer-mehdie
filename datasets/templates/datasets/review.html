@@ -207,7 +207,7 @@
                                     {% for d in record.descriptions.all %}
                                         <p class="mb-0">
                                             <strong>Description</strong>:
-                                        <div class="attest-element abbrev small">{{ d.jsonb.value }}
+                                        <div class="attest-element abbrev small" style="max-height: 8em; overflow: hidden; overflow-y: auto;">{{ d.jsonb.value }}
                                         </div>>
                                         </p>
                                     {% endfor %}
@@ -376,7 +376,8 @@
                                     </div>
                                     {% if form.description %}
                                         <p class="mb-0"><strong>Description</strong>:</p>
-                                        <div class="attest-element abbrev small">{{ form.description.jsonb.value }}</div>
+                                        <div class="attest-element abbrev small"
+                                             style="max-height: 8em; overflow: hidden; overflow-y: auto;">{{ form.description.jsonb.value }}</div>
                                     {% endif %}
                                     {% with coordinates=form.json.value|get_point_coordinates %}
                                         {% if coordinates %}
