@@ -51,3 +51,6 @@ local_settings.py
 __pycache__/
 whg/__pycache__/
 db.sqlite3
+.env
+db.yaml
+db.yml

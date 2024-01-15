@@ -3,197 +3,245 @@
 {% extends "main/base.html" %}
 {% block title %}<title>MEHDIE::My collections</title>{% endblock %}
 {% block extra_head %}
-{% block mycss %}
-  <style>
-    .fa-sort {cursor:pointer;}
-    #table_ds th, #table_areas th {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #fdf5e6;}
-    #dataset_list, #area_list {position:relative !important; height:75vh !important }
-    .list-box {overflow-y:auto  !important; max-height:100%;}
-    #coll_types p {font-size: 0.9rem;}
-    #coll_types h5 {padding:2px; font-size:1rem;}
-    #dscoll_blurb h5 {background-color: #e6eefd !important;}
-    #placecoll_blurb h5 {background-color: #e6fdf5 !important;}
-    #regioncoll_blurb h5 {background-color: #f5e6fd !important;}
-    .dataset {background-color: #e6eefd}
-    .place {background-color: #e6fdf5}
-    .region {background-color: #f5e6fd}
-  </style>
-{% endblock mycss %}
-{% endblock%}
+    {% block mycss %}
+        <style>
+            .fa-sort {
+                cursor: pointer;
+            }
+
+            #table_ds th, #table_areas th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #fdf5e6;
+            }
+
+            #dataset_list, #area_list {
+                position: relative !important;
+                height: 75vh !important
+            }
+
+            .list-box {
+                overflow-y: auto !important;
+                max-height: 100%;
+            }
+
+            #coll_types p {
+                font-size: 0.9rem;
+            }
+
+            #coll_types h5 {
+                padding: 2px;
+                font-size: 1rem;
+            }
+
+            #dscoll_blurb h5 {
+                background-color: #e6eefd !important;
+            }
+
+            #placecoll_blurb h5 {
+                background-color: #e6fdf5 !important;
+            }
+
+            #regioncoll_blurb h5 {
+                background-color: #f5e6fd !important;
+            }
+
+            .dataset {
+                background-color: #e6eefd
+            }
+
+            .place {
+                background-color: #e6fdf5
+            }
+
+            .region {
+                background-color: #f5e6fd
+            }
+        </style>
+    {% endblock mycss %}
+{% endblock %}
 
 
 {% block content %}
-  {% load static %}
-  {% load fontawesome %}
-  {% load mathfilters %}
-  {% load dataset_extras %}
+    {% load static %}
+    {% load fontawesome %}
+    {% load mathfilters %}
+    {% load dataset_extras %}
 
-  <div class="container pt-3">
-    <ul id="dashboard_tabs" class="nav nav-tabs" role="tablist">
-      <li class="nav-item">
-        <a class="nav-link" id="mydslist-tab" href="{% url 'data-datasets' %}"
-           role="tab" aria-controls="dslist" aria-selected="true">Datasets</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link active" id="collectionlist-tab" data-link="collectionlist" data-toggle="tab"
-           role="tab" aria-controls="collectionlist" aria-selected="false">Collections</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="arealist-tab" href="{% url 'data-areas' %}"
-           role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
-      </li>
-      {% if beta_or_better %}
-      <li class="nav-item">
-        <a class="nav-link" id="resourcelist-tab" href="{% url 'data-resources' %}"
-           role="tab" aria-controls="resourcelist" aria-selected="false">Teaching resources</a>
-      </li>
-      {% endif %}
-    </ul>
-    <div class="tab-content">
-      <div id="collectionlist" class="tab-pane fade show active" role="tabpanel" aria-labelledby="collectionlist-tab">
-        <div id="coll_types" class="row mt-2">
-	        <div id="dscoll_blurb" class="col-sm-4">
-		        <h5><b>Dataset</b> collections
-			        <span class="smaller float-right pr-2 pt-1">
+    <div class="container pt-3">
+        <ul id="dashboard_tabs" class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="mydslist-tab" href="{% url 'data-datasets' %}"
+                   role="tab" aria-controls="dslist" aria-selected="true">Datasets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" id="collectionlist-tab" data-link="collectionlist" data-toggle="tab"
+                   role="tab" aria-controls="collectionlist" aria-selected="false">Collections</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="arealist-tab" href="{% url 'data-areas' %}"
+                   role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
+            </li>
+            {% if beta_or_better %}
+                <li class="nav-item">
+                    <a class="nav-link" id="resourcelist-tab" href="{% url 'data-resources' %}"
+                       role="tab" aria-controls="resourcelist" aria-selected="false">Teaching resources</a>
+                </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content">
+            <div id="collectionlist" class="tab-pane fade show active" role="tabpanel"
+                 aria-labelledby="collectionlist-tab">
+                <div id="coll_types" class="row mt-2">
+                    <div id="dscoll_blurb" class="col-sm-4">
+                        <h5><b>Dataset</b> collections
+                            <span class="smaller float-right pr-2 pt-1">
 				        <a href="{% url 'collection:ds-collection-create' %}">{% fontawesome_icon 'plus-square' color='#336699' %} new</a>
 			        </span>
-		        </h5>
-		        <p>A <b>Dataset Collection</b> is a set of public datasets, typically from multiple contributors and linked to define a "focus domain" within MEHDIE. As with all collections, searches, downloads and API calls can be constrained to include only places in the collection's member datasets.</p>
-	        </div>
-	        <div id="placecoll_blurb" class="col-sm-4">
-		        <h5><b>Place</b> collections <span class="badge badge-warning px-2">beta</span>
-			        <span class="smaller float-right pr-2 pt-1">
+                        </h5>
+                        <p>A <b>Dataset Collection</b> is a set of public datasets, typically from multiple contributors
+                            and linked to define a "focus domain" within MEHDIE. As with all collections, searches,
+                            downloads and API calls can be constrained to include only places in the collection's member
+                            datasets.</p>
+                    </div>
+                    <div id="placecoll_blurb" class="col-sm-4">
+                        <h5><b>Place</b> collections <span class="badge badge-warning px-2">beta</span>
+                            <span class="smaller float-right pr-2 pt-1">
 				        <a href="{% url 'collection:place-collection-create' %}">{% fontawesome_icon 'plus-square' color='#336699' %} new</a>
 			        </span>
-		        </h5>
-		        <p>A <b>Place Collection</b> is an authored data publication. It can include all places from one or more public dataset, as well as individual places discovered in WHG search results and browse screens. Any of its place records can be annotated with information pertaining to its membership in the collection. <a href="{% url 'main:tute-place_collections' %}">Guide {% fontawesome_icon 'question-circle' color='#336699' %}</a>
-			        {% comment %}<a href="">more...</a> <p>Metadata for collection itself will include an abstract, and can include any number of links to relevant web resources.</p>{% endcomment %}
-	        </div>
-	        <div id="regioncoll_blurb" class="col-sm-4">
-		        <h5 class="text-center"><span class="text-muted font-italic"><b>Region</b> collections (coming soon)</span>
-			        {% comment %}<span class="smaller float-right pr-2 pt-1">
+                        </h5>
+                        <p>A <b>Place Collection</b> is an authored data publication. It can include all places from one
+                            or more public dataset, as well as individual places discovered in WHG search results and
+                            browse screens. Any of its place records can be annotated with information pertaining to its
+                            membership in the collection. <a
+                                    href="{% url 'main:tute-place_collections' %}">Guide {% fontawesome_icon 'question-circle' color='#336699' %}</a>
+                            {% comment %}<a href="">more...</a> <p>Metadata for collection itself will include an abstract, and can include any number of links to relevant web resources.</p>{% endcomment %}
+                    </div>
+                    <div id="regioncoll_blurb" class="col-sm-4">
+                        <h5 class="text-center"><span class="text-muted font-italic"><b>Region</b> collections (coming soon)</span>
+                            {% comment %}<span class="smaller float-right pr-2 pt-1">
 				        <a href="">{% fontawesome_icon 'plus-square' color='#336699' %} new</a>
 			        </span>{% endcomment %}
-		        </h5>
-		        <p><b>Region collections</b> are composed of all public WHG place records that lie within any area defined in the WHG system. This includes "standard" regions, e.g. from the United Nations, or modern countries, region features within  contributed datasets, or users' own study areas
-			        {% comment %}<a href="#" data-html="true" onClick='return false;' title="Can be created on the Study Areas tab of this page or in the course of starting a reconciliation task." rel="tooltip" class="ttip">study areas</a> {% endcomment %}
-			        created on the fly.</p>
-	        </div>
+                        </h5>
+                        <p><b>Region collections</b> are composed of all public WHG place records that lie within any
+                            area defined in the WHG system. This includes "standard" regions, e.g. from the United
+                            Nations, or modern countries, region features within contributed datasets, or users' own
+                            study areas
+                            {% comment %}<a href="#" data-html="true" onClick='return false;' title="Can be created on the Study Areas tab of this page or in the course of starting a reconciliation task." rel="tooltip" class="ttip">study areas</a> {% endcomment %}
+                            created on the fly.</p>
+                    </div>
+                </div>
+                <div id="collection_list" class="mt-1 ml-0">
+                    <div class="list-box">
+                        <table id="table_collections" class="table table-striped">
+                            <thead class="small">
+                            <th>id</th>
+                            <th>type</th>
+                            <th>title</th>
+                            <th></th>
+                            <th>count</th>
+                            <th>created</th>
+                            <th>owner</th>
+                            <th>public?</th>
+                            </thead>
+                            <tbody>
+                            {% for c in collection_list %}
+                                <tr class="place-row">
+                                    <td>{{ c.id }}</td>
+                                    <td><span class="{{ c.collection_class }} p-1">{{ c.collection_class }}</span></td>
+                                    <td>{{ c.title }}</td>
+                                    <td>
+                                        {# TODO: you can do better #}
+                                        {% if c.collection_class == 'dataset' %}
+                                            <a href="{% url 'collection:ds-collection-summary' c.id %}">view</a>&nbsp;
+                                        {% elif c.collection_class == 'place' %}
+                                            <a href="{% url 'collection:place-collection-browse' c.id %}">view</a>&nbsp;
+                                        {% endif %}
+                                        {% if c.collection_class == 'dataset' %}
+                                            <a href="{% url 'collection:ds-collection-update' c.id %}">edit</a>&nbsp;
+                                        {% elif c.collection_class == 'place' %}
+                                            <a href="{% url 'collection:place-collection-update' c.id %}">edit</a>&nbsp;
+                                        {% endif %}
+                                        {# TODO: add regions #}
+                                    </td>
+                                    <td>{{ c.rowcount }}</td>
+                                    <td class="small">{{ c.created|date:"Y-m-d, H:i" }}</td>
+                                    {#<td>{{ c.created }}</td>#}
+                                    <td>{{ c.owner }}</td>
+                                    <td>{% if c.public %}yes{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="collection_list" class="mt-1 ml-0">
-          <div class="list-box">
-            <table id="table_collections"class="table table-striped">
-              <thead class="small">
-                  <th>id</th>
-                  <th>type</th>
-                  <th>title</th>
-                  <th></th>
-                  <th>count</th>
-                  <th>created</th>
-                  <th>owner</th>
-                  <th>public?</th>
-              </thead>
-              <tbody>
-                {% for c in collection_list %}
-                  <tr class="place-row">
-                    <td>{{ c.id }}</td>
-	                  <td><span class="{{ c.collection_class }} p-1">{{ c.collection_class }}</span></td>
-                    <td>{{ c.title }}</td>
-                    <td>
-                      {# TODO: you can do better #}
-	                    {% if c.collection_class == 'dataset' %}
-	                      <a href="{% url 'collection:ds-collection-summary' c.id %}">view</a>&nbsp;
-	                    {% elif c.collection_class == 'place' %}
-	                      <a href="{% url 'collection:place-collection-browse' c.id %}">view</a>&nbsp;
-	                    {% endif %}
-	                    {% if c.collection_class == 'dataset' %}
-	                      <a href="{% url 'collection:ds-collection-update' c.id %}">edit</a>&nbsp;
-	                    {% elif c.collection_class == 'place' %}
-	                      <a href="{% url 'collection:place-collection-update' c.id %}">edit</a>&nbsp;
-	                    {% endif %}
-                      {# TODO: add regions #}
-                    </td>
-                    <td>{{ c.rowcount }}</td>
-										<td class="small">{{ c.created|date:"Y-m-d, H:i" }}</td>
-	                  {#<td>{{ c.created }}</td>#}
-                    <td>{{ c.owner }}</td>
-                    <td>{% if c.public %}yes{% endif %}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <script>
-    $(function(){
-      $("[rel='tooltip']").tooltip();
+    <script>
+        $(function () {
+            $("[rel='tooltip']").tooltip();
 
-      // manage url
-      var url = document.location.toString();
-      if (url.match('#')) {
-        tab = url.split('#')[1]
-        $('.nav-tabs a[href="#' + tab+ '"]').tab('show');
-        history.pushState("", document.title, window.location.pathname);
-      }
-
-    })
-
-    $(".fa-sort").on('click',function(){
-      table_id =$(this).closest('table').prop('id') // parent table id
-      console.log('table_id',table_id)
-      sortTable($(this).data('id'), $(this).attr('ref'), table_id)
-    })
-
-    sortTable = function(col_idx, order, table_id) {
-      var table, rows, switching, i, x, y, shouldSwitch;
-      <!--table = document.getElementById("table_ds");-->
-      table = document.getElementById(table_id);
-      switching = true;
-      /* Make a loop that will continue until
-      no switching has been done: */
-      while (switching) {
-        // Start by saying: no switching is done:
-        switching = false;
-        rows = table.rows;
-        /* Loop through all table rows (except the
-        first, which contains table headers): */
-        for (i = 1; i < (rows.length - 1); i++) {
-          // Start by saying there should be no switching:
-          shouldSwitch = false;
-          /* Get the two elements you want to compare,
-          one from current row and one from the next: */
-          x = rows[i].getElementsByTagName("TD")[col_idx];
-          y = rows[i + 1].getElementsByTagName("TD")[col_idx];
-          // Check if the two rows should switch place:
-          if (order == 'asc'){
-            if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
-              // If so, mark as a switch and break the loop:
-              shouldSwitch = true;
-              break;
+            // manage url
+            var url = document.location.toString();
+            if (url.match('#')) {
+                tab = url.split('#')[1]
+                $('.nav-tabs a[href="#' + tab + '"]').tab('show');
+                history.pushState("", document.title, window.location.pathname);
             }
-          } else {
-            if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          }
-        }
-        if (shouldSwitch) {
-          /* If a switch has been marked, make the switch
-          and mark that a switch has been done: */
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-        }
-      }
-    }
 
-  </script>
+        })
+
+        $(".fa-sort").on('click', function () {
+            table_id = $(this).closest('table').prop('id') // parent table id
+            console.log('table_id', table_id)
+            sortTable($(this).data('id'), $(this).attr('ref'), table_id)
+        })
+
+        sortTable = function (col_idx, order, table_id) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            <!--table = document.getElementById("table_ds");-->
+            table = document.getElementById(table_id);
+            switching = true;
+            /* Make a loop that will continue until
+            no switching has been done: */
+            while (switching) {
+                // Start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /* Loop through all table rows (except the
+                first, which contains table headers): */
+                for (i = 1; i < (rows.length - 1); i++) {
+                    // Start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /* Get the two elements you want to compare,
+                    one from current row and one from the next: */
+                    x = rows[i].getElementsByTagName("TD")[col_idx];
+                    y = rows[i + 1].getElementsByTagName("TD")[col_idx];
+                    // Check if the two rows should switch place:
+                    if (order == 'asc') {
+                        if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+                            // If so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else {
+                        if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /* If a switch has been marked, make the switch
+                    and mark that a switch has been done: */
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
+            }
+        }
+
+    </script>
 {% endblock %}
