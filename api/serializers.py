@@ -114,9 +114,9 @@ class PlaceRelatedSerializer(serializers.ModelSerializer):
 
 class PlaceLinkSerializer(serializers.ModelSerializer):
     # json: type, identifier
-    aug = serializers.SerializerMethodField('augmented')
+    aug = serializers.SerializerMethodField()
 
-    def augmented(self, obj):
+    def get_aug(self, obj):
         return True if obj.task_id is not None else False
 
     type = serializers.ReadOnlyField(source='jsonb.type')

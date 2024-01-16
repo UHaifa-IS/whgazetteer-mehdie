@@ -20,6 +20,7 @@ admin.site.register(Source, SourceAdmin)
 
 
 class PlaceLinkAdmin(admin.ModelAdmin):
+    raw_id_fields = ("place",)
     list_display = ('place_id', 'jsonb')
 
 
