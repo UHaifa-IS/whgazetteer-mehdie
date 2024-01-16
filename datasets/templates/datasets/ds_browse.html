@@ -365,7 +365,7 @@
   // called by table row click
   function highlightFeatureGL(pid, geom, coords){
     {#console.log('pid, coords',pid, coords);#}
-    // TODO: 
+    // TODO:
     if(geom.type.includes('Point')){
       // restore full opacity in case it was dimmed
       mappy.setPaintProperty('gl_active_point', 'circle-opacity', 1.0);
