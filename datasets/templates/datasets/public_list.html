@@ -2,168 +2,221 @@
 {% extends "main/base.html" %}
 {% block title %}<title>MEHDIE::Datasets</title>{% endblock %}
 {% block extra_head %}
-{% block morecss %}
-  <style>
-    .th-mini {width:10% !important;}
-    .fa-sort {cursor:pointer;}
-    #public_list {position:relative !important; height:62vh !important;}
-    <!--#public_dstable { table-layout:fixed;}-->
-    .list-box {overflow-y:auto  !important; max-height:100%;}
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #fdf5e6;}
-    .dataset {background-color: #e6eefd}
-    .place {background-color: #e6fdf5}
-    .region {background-color: #f5e6fd}
-  </style>
-{% endblock%}
+    {% block morecss %}
+        <style>
+            .th-mini {
+                width: 10% !important;
+            }
+
+            .fa-sort {
+                cursor: pointer;
+            }
+
+            #public_list {
+                position: relative !important;
+                height: 62vh !important;
+            }
+
+            <!--
+            #public_dstable {
+                table-layout: fixed;
+            }
+
+            -->
+            .list-box {
+                overflow-y: auto !important;
+                max-height: 100%;
+            }
+
+            th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #fdf5e6;
+            }
+
+            .dataset {
+                background-color: #e6eefd
+            }
+
+            .place {
+                background-color: #e6fdf5
+            }
+
+            .region {
+                background-color: #f5e6fd
+            }
+        </style>
+    {% endblock %}
 {% endblock %}
 {% block content %}
-  {% load static %}
-  {% load fontawesome %}
-  {% load mathfilters %}
-  {% load dataset_extras %}
+    {% load static %}
+    {% load fontawesome %}
+    {% load mathfilters %}
+    {% load dataset_extras %}
 
-  <div class="container pt-3">
-    <ul id="public_list_tabs" class="nav nav-tabs" role="tablist">
-      <li class="nav-item">
-        <a class="nav-link active" id="dslist-tab" data-toggle="tab" href="#ds_list" role="tab" aria-controls="ds_list" aria-selected="false">Public Datasets</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="colllist-tab" data-toggle="tab" href="#coll_list" role="tab" aria-controls="coll_list" aria-selected="true">Public Collections</a>
-      </li>
-    </ul>
-    <div class="tab-content">
-      <div id="ds_list" class="tab-pane fade show active" role="tabpanel" aria-labelledby="dslist-tab">
-        <p class="mb-1">These datasets flagged as <sr>public</sr> in WHG include <sr>a growing set of historical contributions</sr>, as well as several in a non-historical "core." They can be browsed on their linked pages, explored in context of the entire repository on the <a href="{% url 'search-page' %}">Search page</a>, and accessed programmatically with our <a href="{% url 'usingapi' %}">Index and Database APIs</a>.</p> 
-        <p>All such public data are made available under a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons Attribution 4.0 International (CC BY 4.0) License</a>, requirements of which appear alongside download links on all Dataset and Collection pages <span class="float-right px-2" style="background:aliceblue;"><b>H</b> = Historical; <b>C</b> = Core (non-historical)</span></p> 
-        <div id="public_list" class="mt-1 ml-0">
-          <div class="list-box">
-            <table id="public_dstable" class="table table-striped small">
-`              <colgroup>
-                <col>
-                <col style="width:60px !important">
-                <col style="width:45% !important">
-                <col style="width:100px !important">
-                <col style="width:100px !important">
-                <col style="width:60px !important">
-              </colgroup>
-`              <thead>
-                  <th>title <i class="fa fa-sort ml-1" data-id=0 ref=asc></i></th>
-                  <th>rows</th>
-                  <th>description</th>
-                  <th>modified <i class="fa fa-sort ml-1" data-id=3 /></th>
-                  <th>contributor <i class="fa fa-sort ml-1" data-id=4 ref=asc></i></th>
-                  <th class="th-mini">type <i class="fa fa-sort ml-1" data-id=5></i></th>
-              </thead>
-              <tbody>
-                {% for ds in dataset_list %}
-                  <tr class="place-row">
-                    <td style="font-size:.8rem !important;">
-                        <a href="{% url 'datasets:ds_meta' ds.id %}">{{ ds.title }}</a>
-                    </td>
-                    <td>{{ ds.numrows|floatformat:"0" }}</td>
-                    <td class="w-50">{{ ds.description|readmore:200|safe }}</td>
-                    <td>{{ ds.last_modified_iso }}</td>
-                    <td>{{ ds.owner }}</td>
-                    <td><b>{% if ds.core %}C{%else%}H{%endif%}</b></td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+    <div class="container pt-3">
+        <ul id="public_list_tabs" class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="dslist-tab" data-toggle="tab" href="#ds_list" role="tab"
+                   aria-controls="ds_list" aria-selected="false">Public Datasets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="colllist-tab" data-toggle="tab" href="#coll_list" role="tab"
+                   aria-controls="coll_list" aria-selected="true">Public Collections</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div id="ds_list" class="tab-pane fade show active" role="tabpanel" aria-labelledby="dslist-tab">
+                <p class="mb-1">These datasets flagged as
+                    <sr>public</sr>
+                    in WHG include
+                    <sr>a growing set of historical contributions</sr>
+                    , as well as several in a non-historical "core." They can be browsed on their linked pages, explored
+                    in context of the entire repository on the <a href="{% url 'search-page' %}">Search page</a>, and
+                    accessed programmatically with our <a href="{% url 'usingapi' %}">Index and Database APIs</a>.
+                </p>
+                <p>All such public data are made available under a <a
+                        href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons Attribution
+                    4.0 International (CC BY 4.0) License</a>, requirements of which appear alongside download links on
+                    all Dataset and Collection pages <span class="float-right px-2"
+                                                           style="background:aliceblue;"><b>H</b> = Historical; <b>C</b> = Core (non-historical)</span>
+                </p>
+                <div id="public_list" class="mt-1 ml-0">
+                    <div class="list-box">
+                        <table id="public_dstable" class="table table-striped small">
+                            `
+                            <colgroup>
+                                <col>
+                                <col style="width:60px !important">
+                                <col style="width:45% !important">
+                                <col style="width:100px !important">
+                                <col style="width:100px !important">
+                                <col style="width:60px !important">
+                            </colgroup>
+                            `
+                            <thead>
+                            <th>title <i class="fa fa-sort ml-1" data-id=0 ref=asc></i></th>
+                            <th>rows</th>
+                            <th>description</th>
+                            <th>modified <i class="fa fa-sort ml-1" data-id=3/></th>
+                            <th>contributor <i class="fa fa-sort ml-1" data-id=4 ref=asc></i></th>
+                            <th class="th-mini">type <i class="fa fa-sort ml-1" data-id=5></i></th>
+                            </thead>
+                            <tbody>
+                            {% for ds in dataset_list %}
+                                <tr class="place-row">
+                                    <td style="font-size:.8rem !important;">
+                                        <a href="{% url 'datasets:ds_meta' ds.id %}">{{ ds.title }}</a>
+                                    </td>
+                                    <td>{{ ds.numrows|floatformat:"0" }}</td>
+                                    <td class="w-50">{{ ds.description|readmore:200|safe }}</td>
+                                    <td>{{ ds.last_modified_iso }}</td>
+                                    <td>{{ ds.owner }}</td>
+                                    <td><b>{% if ds.core %}C{% else %}H{% endif %}</b></td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div id="coll_list" class="tab-pane fade " role="tabpanel" aria-labelledby="colllist-tab">
+                <p class="mb-1 ml-1">These dataset and place collections have been flagged "public" in WHG. Most are
+                    downloadable from their linked page. Public data contained therein are made available under a <a
+                            href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons
+                        Attribution 4.0 International (CC BY 4.0) License</a>.</p>
+                <div id="collection_list" class="mt-1 ml-0">
+                    <div class="list-box">
+                        <table id="public_collectionlist" class="table table-striped">
+                            <thead class="small">
+                            <th>id</th>
+                            <th>type</th>
+                            <th>title</th>
+                            <th>count</th>
+                            <th>created</th>
+                            <th>creator</th>
+                            </thead>
+                            <tbody>
+                            {% for c in coll_list %}
+                                <tr class="place-row">
+                                    <td>{{ c.id }}</td>
+                                    <td><span class="{{ c.collection_class }} p-1">{{ c.collection_class }}</span></td>
+                                    {% if c.collection_class == 'dataset' %}
+                                        <td>
+                                            <a href="{% url 'collection:ds-collection-summary' c.id %}">{{ c.title }}</a>
+                                        </td>
+                                    {% else %}
+                                        <td>
+                                            <a href="{% url 'collection:place-collection-browse' c.id %}">{{ c.title }}</a>
+                                        </td>
+                                    {% endif %}
+                                    <td>{{ c.rowcount }}</td>
+                                    {#                    <td>{{ c.created }}</td>#}
+                                    <td>{{ c.last_modified_iso }}</td>
+                                    <td>{{ c.owner }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div id="coll_list" class="tab-pane fade " role="tabpanel" aria-labelledby="colllist-tab">
-        <p class="mb-1 ml-1">These dataset and place collections have been flagged "public" in WHG. Most are downloadable from their linked page. Public data contained therein are made available under a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons Attribution 4.0 International (CC BY 4.0) License</a>.</p>
-        <div id="collection_list" class="mt-1 ml-0">
-          <div class="list-box">
-            <table id="public_collectionlist"class="table table-striped">
-              <thead class="small">
-                  <th>id</th>
-                  <th>type</th>
-                  <th>title</th>
-                  <th>count</th>
-                  <th>created</th>
-                  <th>creator</th>
-              </thead>
-              <tbody>
-                {% for c in coll_list %}
-                  <tr class="place-row">
-                    <td>{{ c.id }}</td>
-                    <td><span class="{{ c.collection_class }} p-1">{{ c.collection_class }}</span></td>
-	                  {% if c.collection_class == 'dataset' %}
-                    <td><a href="{% url 'collection:ds-collection-summary' c.id %}">{{ c.title }}</a></td>
-	                  {% else %}
-		                  <td><a href="{% url 'collection:place-collection-browse' c.id %}">{{ c.title }}</a></td>
-	                  {% endif %}
-                    <td>{{ c.rowcount }}</td>
-{#                    <td>{{ c.created }}</td>#}
-                    <td>{{ c.last_modified_iso  }}</td>
-                    <td>{{ c.owner }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>    
-  </div>
-  <script>
-    $("[rel='tooltip']").tooltip();
-    $(function(){
-        <!--alert('{{ msg }}')-->
-    })
-    $(".fa-sort").on('click',function(){
-      table_id =$(this).closest('table').prop('id') // parent table id
-      console.log('table_id',table_id)
-      sortTable($(this).data('id'), $(this).attr('ref'), table_id)
-    })
-    
-    sortTable = function(col_idx, order, table_id) {
-      var table, rows, switching, i, x, y, shouldSwitch;
-      <!--table = document.getElementById("table_ds");-->
-      table = document.getElementById(table_id);
-      switching = true;
-      /* Make a loop that will continue until
-      no switching has been done: */
-      while (switching) {
-        // Start by saying: no switching is done:
-        switching = false;
-        rows = table.rows;
-        /* Loop through all table rows (except the
-        first, which contains table headers): */
-        for (i = 1; i < (rows.length - 1); i++) {
-          // Start by saying there should be no switching:
-          shouldSwitch = false;
-          /* Get the two elements you want to compare,
-          one from current row and one from the next: */
-          x = rows[i].getElementsByTagName("TD")[col_idx];
-          y = rows[i + 1].getElementsByTagName("TD")[col_idx];
-          // Check if the two rows should switch place:
-          if (order == 'asc'){
-            if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
-              // If so, mark as a switch and break the loop:
-              shouldSwitch = true;
-              break;
+    </div>
+    <script>
+        $("[rel='tooltip']").tooltip();
+        $(function () {
+            <!--alert('
+            {{ msg }}')-->
+        })
+        $(".fa-sort").on('click', function () {
+            table_id = $(this).closest('table').prop('id') // parent table id
+            console.log('table_id', table_id)
+            sortTable($(this).data('id'), $(this).attr('ref'), table_id)
+        })
+
+        sortTable = function (col_idx, order, table_id) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            <!--table = document.getElementById("table_ds");-->
+            table = document.getElementById(table_id);
+            switching = true;
+            /* Make a loop that will continue until
+            no switching has been done: */
+            while (switching) {
+                // Start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /* Loop through all table rows (except the
+                first, which contains table headers): */
+                for (i = 1; i < (rows.length - 1); i++) {
+                    // Start by saying there should be no switching:
+                    shouldSwitch = false;
+                    /* Get the two elements you want to compare,
+                    one from current row and one from the next: */
+                    x = rows[i].getElementsByTagName("TD")[col_idx];
+                    y = rows[i + 1].getElementsByTagName("TD")[col_idx];
+                    // Check if the two rows should switch place:
+                    if (order == 'asc') {
+                        if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+                            // If so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else {
+                        if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /* If a switch has been marked, make the switch
+                    and mark that a switch has been done: */
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
             }
-          } else {
-            if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }       
-          }
         }
-        if (shouldSwitch) {
-          /* If a switch has been marked, make the switch
-          and mark that a switch has been done: */
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-        }
-      }
-    }
-  </script>
+    </script>
 {% endblock %}
