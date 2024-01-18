@@ -709,7 +709,8 @@
         // builds link for external place record
         function url_extplace(identifier) {
             // abbreviate links not in aliases.base_urls
-            if (identifier.startsWith('http')) {
+            let identifierStr = identifier.toString();
+            if (identifierStr.startsWith('http')) {
                 let tag = identifier.replace(/.+\/\/|www.|\..+/g, '')
                 link = '<a href="' + identifier + '" target="_blank">' + tag + '{% fontawesome_icon 'external-link' color='#336699' %},  </a>'
             } else {
@@ -800,6 +801,7 @@
             //
             // LINKS
             //
+            console.log(data)
             descrip += '<p class="mb-0"><b>Links</b>: <i>original: </i>'
             close_count = added_count = related_count = 0
             html_close = html_added = html_related = ''
