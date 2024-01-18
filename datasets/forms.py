@@ -14,10 +14,11 @@ class HitModelForm(forms.ModelForm):
 
     class Meta:
         model = Hit
-        fields = ['id', 'authority', 'authrecord_id',
-                  'query_pass', 'score', 'json', 'relation_type']
-        hidden_fields = ['id', 'authority',
-                         'authrecord_id', 'query_pass', 'score', 'json', 'relation_type']
+        fields = [
+            'id', 'authority', 'authrecord_id', 'query_pass', 'score', 'json', 'relation_type'
+        ]
+        hidden_fields = [
+            'id', 'authority', 'authrecord_id', 'query_pass', 'score', 'json', 'relation_type']
         widgets = {
             'id': forms.HiddenInput(),
             'authority': forms.HiddenInput(),

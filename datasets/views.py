@@ -540,7 +540,7 @@ def review(request, pk, tid, passnum):
                         if tid not in place_post.links.all().values_list('task_id', flat=True):
                             print("[DEBUG] writing place_link record")
                             if hits[x]['authority'] == 'whg' or hits[x]['authority'][0].isdigit():
-                                identifier = hits[x]['json']['place_id']
+                                identifier = link_uri(task.task_name, hits[x]['json']['place_id'])
                             else:
                                 identifier = link_uri(task.task_name, hits[x]['authrecord_id'])
 
