@@ -2,24 +2,24 @@
 
 {% block content %}
 
-<div class="container">
-  {% if user.id != object.owner.id and not user.is_superuser %}
-    <p>Access to this page is limited to the collection owner(s)</p>
-  {% else %}
-  <div class="row justify-content-center">
-    <div class="col-md-6 mt-5">
-      <form action='' method='POST'>{% csrf_token %}
-          <h3 class="text-danger">CAREFUL!!</h3>
-          <p>This will delete the <b>{{ object.title }}</b> collection <b>definition</b>.</p>
-          <p>It will <b>NOT</b> affect the datasets or places it includes!</p>
-          <p class="mt-4">
-            <input type='submit' value='Delete collection definition' />
-            <a href="javascript:history.back()">Cancel</a>
-          </p>
-      </form>
+    <div class="container">
+        {% if user.id != object.owner.id and not user.is_superuser %}
+            <p>Access to this page is limited to the collection owner(s)</p>
+        {% else %}
+            <div class="row justify-content-center">
+                <div class="col-md-6 mt-5">
+                    <form action='' method='POST'>{% csrf_token %}
+                        <h3 class="text-danger">CAREFUL!!</h3>
+                        <p>This will delete the <b>{{ object.title }}</b> collection <b>definition</b>.</p>
+                        <p>It will <b>NOT</b> affect the datasets or places it includes!</p>
+                        <p class="mt-4">
+                            <input type='submit' value='Delete collection definition'/>
+                            <a href="javascript:history.back()">Cancel</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
     </div>
-  </div>
-  {% endif %}
-</div>
 
 {% endblock %}
