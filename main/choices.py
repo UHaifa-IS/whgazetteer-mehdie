@@ -90,9 +90,9 @@ FEATURE_CLASSES = [
 
 HitRelationType = [
     ("same_as", "Same as"),
-    ("part_of", "Part of"),
+    #("part_of", "Part of"),
     ("located_in ", "Located in"),
-    ("reverse_part_of", "Reverse part of"),
+    #("reverse_part_of", "Reverse part of"),
     ("reverse_located_in", "Reverse located in"),
     ("borders_with", "Borders with"),
     ("different", "Different"),
