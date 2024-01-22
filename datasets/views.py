@@ -79,9 +79,7 @@ def link_uri(auth, id):
     # if auth = 'align_match_data' look up the dataset_id in the Place record using the id which is actually a place_id
     if auth == 'align_match_data':
         place = Place.objects.get(id=id)
-        ds_id = place.dataset.label
-        src_id = place.src_id
-        uri = ds_id + ":" + src_id
+        uri = place.dataset.id + ":" + place.id
     else:
         baseuri = AUTHORITY_BASEURI[auth]
         uri = baseuri + str(id)
