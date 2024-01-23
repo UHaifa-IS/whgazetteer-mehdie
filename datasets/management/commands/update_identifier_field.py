@@ -1,9 +1,6 @@
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import F, Value
-from django.db.models.functions import Concat
+from django.core.management.base import BaseCommand
 
-from datasets.models import Dataset
-from places.models import Place, PlaceLink
+from places.models import PlaceLink
 
 
 class Command(BaseCommand):
