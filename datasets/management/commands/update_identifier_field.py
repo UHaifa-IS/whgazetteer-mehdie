@@ -13,4 +13,4 @@ class Command(BaseCommand):
                 'type': 'same_as',
                 'identifier': f"{link.place.dataset.id}:{link.place.id}"
             }
-            link.save()
+        PlaceLink.objects.bulk_update(links, ['jsonb'])
