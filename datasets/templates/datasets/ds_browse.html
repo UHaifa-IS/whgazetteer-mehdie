@@ -715,11 +715,14 @@
         function url_extplace(identifier) {
             // abbreviate links not in aliases.base_urls
             let identifierStr = identifier.toString();
+            let identifierParts = identifier.split(":");
+            let dataset = identifierParts[0];
+            let place_id = identifierParts[1];
             if (identifierStr.startsWith('http')) {
                 let tag = identifier.replace(/.+\/\/|www.|\..+/g, '')
                 link = '<a href="' + identifier + '" target="_blank">' + tag + '{% fontawesome_icon 'external-link' color='#336699' %},  </a>'
             } else {
-                link = '<a href="" class="ext" data-target="#ext_site">' + identifier + '{% fontawesome_icon 'external-link' color='#336699' %}</a>, '
+                link = `<a href="/datasets/${dataset}/browse?pid=${place_id}" target="_blank">${identifier}{% fontawesome_icon 'external-link' color='#336699' %}</a>`;
             }
             return link
         }
@@ -954,21 +957,21 @@
             $("#map").append(spinner_map.el);
         }
 
-        $(document).ready(function() {
-        // Function to get query parameter by name
-        function getQueryParam(name) {
-            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
-            var results = regex.exec(location.search);
-            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
-        }
+        $(document).ready(function () {
+            // Function to get query parameter by name
+            function getQueryParam(name) {
+                name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+                var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+                var results = regex.exec(location.search);
+                return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+            }
 
-        // Check if the 'pid' query parameter is present
-        var placeId = getQueryParam('pid');
-        if (placeId) {
-            initialPageLoad = true;
-            getPlace(placeId);
-        }
+            // Check if the 'pid' query parameter is present
+            var placeId = getQueryParam('pid');
+            if (placeId) {
+                initialPageLoad = true;
+                getPlace(placeId);
+            }
         });
 
         //*
