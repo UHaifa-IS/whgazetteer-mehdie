@@ -163,6 +163,7 @@
           console.log('toggle', $(this).data('g'))
         })
         */
+        var initialPageLoad = false;
 
         $(function () {
             localStorage.setItem('filter', '99')
@@ -663,7 +664,6 @@
                 $(this).addClass("highlight-row");
 
                 // fetch its detail
-                console.log('Row clicked, pid:', pid);
                 getPlace(pid)
 
             })
@@ -673,7 +673,11 @@
             // highlight first row, fetch detail, but don't zoomTo() it
             $("#placetable tbody").find('tr').eq(0).addClass('highlight-row')
 
-            getPlace(pid)
+            if (initialPageLoad) {
+                initialPageLoad = false;
+            } else {
+                getPlace(pid)
+            }
         }
 
         // build select
@@ -962,6 +966,7 @@
         // Check if the 'pid' query parameter is present
         var placeId = getQueryParam('pid');
         if (placeId) {
+            initialPageLoad = true;
             getPlace(placeId);
         }
         });
