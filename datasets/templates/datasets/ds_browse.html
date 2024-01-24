@@ -949,6 +949,22 @@
             $("#map").append(spinner_map.el);
         }
 
+        $(document).ready(function() {
+        // Function to get query parameter by name
+        function getQueryParam(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Check if the 'pid' query parameter is present
+        var placeId = getQueryParam('pid');
+        if (placeId) {
+            getPlace(placeId);
+        }
+        });
+
         //*
 
     </script>
