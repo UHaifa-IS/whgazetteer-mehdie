@@ -747,10 +747,14 @@ def ds_recon(request, pk):
                                      "<span class='text-success'>Your ER reconciliation task has failed due to an "
                                      "error.</span><br/> {}".format(str(task.result)))
             else:
-                print("[DEBUG] task has succeeded with result {}".format(str(task.result)))
+                print("[DEBUG] task has completed with result {}".format(str(task.result)))
                 csv_url, status_code = task.result
                 if status_code > 200 and status_code != 400:
-                    return HttpResponse('Error with Datasets, check again')
+                    print("[ERROR] task has completed with error code {}".format(status_code))
+                    del request.session['task_id']
+                    return HttpResponse('Task failed, Error code {} <br>. '
+                                        'You may retry after the error has been resolved. '
+                                        'Report the error code to the system administrator. '.format(status_code))
                 if status_code == 400:
                     m_dataset = request.session['d1']
                     p_dataset = request.session['d2']
