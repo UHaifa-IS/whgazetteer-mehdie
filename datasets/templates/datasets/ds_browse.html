@@ -713,19 +713,27 @@
 
         // builds link for external place record
         function url_extplace(identifier) {
-            // abbreviate links not in aliases.base_urls
+            let link = "";  // Default to empty string
             let identifierStr = identifier.toString();
-            let identifierParts = identifier.split(":");
-            let dataset = identifierParts[0];
-            let place_id = identifierParts[1];
-            if (identifierStr.startsWith('http')) {
-                let tag = identifier.replace(/.+\/\/|www.|\..+/g, '')
-                link = '<a href="' + identifier + '" target="_blank">' + tag + '{% fontawesome_icon 'external-link' color='#336699' %},  </a>'
-            } else {
+
+            // Check if identifier contains a colon and has two parts
+            if (identifierStr.includes(":") && identifierStr.split(":").length === 2) {
+                let identifierParts = identifierStr.split(":");
+                let dataset = identifierParts[0];
+                let place_id = identifierParts[1];
+
+                // Build link for identifiers with two parts
                 link = `<a href="/datasets/${dataset}/browse?pid=${place_id}" target="_blank">${identifier}{% fontawesome_icon 'external-link' color='#336699' %}</a>`;
+            } else if (identifierStr.startsWith('http')) {
+                // Handle case where identifier is a URL
+                let tag = identifierStr.replace(/.+\/\/|www.|\..+/g, '');
+                link = `<a href="${identifierStr}" target="_blank">${tag}{% fontawesome_icon 'external-link' color='#336699' %}</a>`;
             }
-            return link
+            // If identifier doesn't contain a colon and is not a URL, return empty string
+
+            return link;
         }
+
 
         // builds link for external placetype record
         function url_exttype(type) {
