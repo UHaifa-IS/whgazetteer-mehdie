@@ -21,7 +21,7 @@ from datasets.models import Dataset, DatasetUser, Hit
 from datasets.static.hashes import parents, aat_q
 from datasets.static.hashes import aliases as al
 from main.models import Log
-from places.models import PlaceGeom, Type
+from places.models import PlaceGeom, Type, PlaceLink
 
 
 # ***
@@ -1112,8 +1112,9 @@ class UpdateCountsView(View):
             remaining = remaining_counts['p0'] + remaining_counts['p1'] + remaining_counts['p2'] + remaining_counts[
                 'p3']
 
-            # TODO reviewed count
-            revcount = 0
+            # TODO reviewed count: filter placeLinks for task_id and count
+            placelinks = PlaceLink.objects.filter(task_id=t.task_id)
+            revcount = placelinks.count()
 
             updates[t.task_id] = {
                 "task": t.task_name,
