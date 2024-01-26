@@ -1112,7 +1112,7 @@ class UpdateCountsView(View):
             remaining = remaining_counts['p0'] + remaining_counts['p1'] + remaining_counts['p2'] + remaining_counts[
                 'p3']
 
-            # TODO reviewed count: filter placeLinks for task_id and count
+            # reviewed count: filter placeLinks for task_id and count
             placelinks = PlaceLink.objects.filter(task_id=t.task_id)
             revcount = placelinks.count()
 
