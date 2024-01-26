@@ -180,6 +180,11 @@
                         &nbsp;<a href="{% url 'datasets:review' pk=ds.id tid=t.task_id passnum='def' %}">review</a>
                         </span>
                                                 </li>
+                                                <li class="li-left">Reviewed:
+                                                    <span class="strong mx-2 hidden" id='{{ t.task_id }}_rev'>
+                                                    &nbsp;<a href="{% url 'datasets:review' pk=ds.id tid=t.task_id passnum='rev' %}">review</a>
+                                                    </span>
+                                                </li>
                                             </ul>
 
                                         </div>

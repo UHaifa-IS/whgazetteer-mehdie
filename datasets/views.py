@@ -355,6 +355,13 @@ def review(request, pk, tid, passnum):
             reviewed=True,
             flag=True
         )
+    elif passnum == 'rev':
+        # all unreviewed
+        hitplaces = Hit.objects.values_list('place_id', flat=True).filter(
+            task_id=tid,
+            reviewed=True,
+            flag=False
+        )
     else:
         # all unreviewed
         hitplaces = Hit.objects.values_list('place_id', flat=True).filter(task_id=tid, reviewed=False)
