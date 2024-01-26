@@ -379,6 +379,16 @@
                             $("#" + tid + '_def').html('none')
                             $("#" + tid + '_def').removeClass('hidden')
                         }
+
+                        if (counts['reviewed']>0) {
+                            $("#" + tid + '_rev').html(counts['reviewed'] + $("#" + tid + '_rev').html())
+                            $("#" + tid + '_rev').removeClass('hidden')
+                        } else {
+                            $("#" + tid + '_rev').html('none')
+                            $("#" + tid + '_rev').removeClass('hidden')
+                        }
+
+
                     }
                 }
             ).done(function () {
