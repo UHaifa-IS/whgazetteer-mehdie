@@ -827,7 +827,7 @@
                 console.log('distinct data.links', links_arr)
                 for (l in links_arr) {
                     //console.log('link',links_arr[l])
-                    if (links_arr[l].aug == true) {
+                    if (links_arr[l].aug === true && links_arr[l].type !== 'different') {
                         added_count += 1
                         html_added += url_extplace(links_arr[l].identifier, links_arr[l].type)
                     } else {
