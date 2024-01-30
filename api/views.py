@@ -762,7 +762,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             edges.append({
                 "from": place_title,
                 "relation": link_type,
-                "to": link_identifier
+                "to": node_label
             })
 
         # Create graph data
