@@ -96,6 +96,7 @@
                                 <div id="row_detail">
                                     <div id="detail" class="small"></div>
                                 </div>
+
                                 <!--min: {{ds.minmax.0}} max:{{ds.minmax.1}}-->
                             </div> <!-- drftable_detail -->
                             <div id="drftable_list" class="col-sm-7">
@@ -899,6 +900,12 @@
                     descrip += '<p><b>Location certainty</b>: ' + cert + '</p>'
                 }
             }
+
+            // Adding the knowledge graph
+            descrip += '<div id="knowledge-graph-placeholder" style="margin-top: 20px; padding: 10px; border: 1px solid #ddd; text-align: center;">';
+            descrip += '<p>Knowledge Graph Placeholder</p>';
+            descrip += '</div>';
+
             descrip += '</div>'
             return descrip
         }
