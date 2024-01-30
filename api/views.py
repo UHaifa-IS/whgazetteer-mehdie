@@ -725,6 +725,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)  # Get the original response
         place_title = response.data['title']
+        this_place_id = response.data['id']
 
         # Initialize nodes with the title of the current place
         nodes = [place_title]
@@ -777,8 +778,9 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     for place_link in linked_place_links:
                         second_order_link_data = place_link.jsonb
                         second_order_type = second_order_link_data.get('type')
-                        second_order_identifier = second_order_link_data.get('identifier')
-                        process_link(node_label, second_order_type, second_order_identifier)
+                        second_order_identifier:str = second_order_link_data.get('identifier')
+                        if not second_order_identifier.endswith(str(this_place_id)):
+                            process_link(node_label, second_order_type, second_order_identifier)
                 except Place.DoesNotExist:
                     # Handle cases where the place does not exist
                     pass
