@@ -1,4 +1,5 @@
 # api.views
+import re
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -794,7 +795,10 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     pass
 
         # Iterate over reverse links and populate nodes and edges
-        reverse_links = PlaceLink.objects.filter(identifier__endswith=str(this_place_id))
+        # Assume this_place_id is already defined somewhere in your code
+        pattern = re.escape(str(this_place_id)) + '$'  # '$' denotes the end of a string in regex
+
+        reverse_links = PlaceLink.objects.filter(jsonb__identifier__regex=pattern)
         for reverse_link in reverse_links:
             reverse_link_data = reverse_link.jsonb
             reverse_link_type = reverse_link_data.get('type')
