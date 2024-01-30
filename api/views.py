@@ -721,6 +721,19 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     authentication_classes = [SessionAuthentication]
 
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)  # Get the original response
+
+        # Add your graph data here
+        graph_data = {
+            "nodes": ["placeC", "placeD"],
+            "edges": [{"from": "placeC", "relation": "sameAs", "to": "placeD"}]
+        }
+
+        # Append the graph data to the response
+        response.data['graph'] = graph_data
+        return response
+
 
 """
     place/<str:dslabel>/<str:src_id>/
