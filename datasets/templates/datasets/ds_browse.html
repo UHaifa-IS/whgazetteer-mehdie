@@ -909,18 +909,32 @@
             return descrip
         }
 
-        function initGraph() {
+        function initGraph(graphData) {
+        var elements = [];
+        // assumes graphData is a JSON object with two arrays: nodes and edges
+        // for example:  {"nodes": ["placeA","placeB"], "edges":[{"from":"placeA", "relation": "sameAs", "to": "placeB"}]}
+        // Process nodes
+        graphData.nodes.forEach(function(node) {
+            elements.push({
+                data: { id: node }
+            });
+        });
+
+        // Process edges
+        graphData.edges.forEach(function(edge) {
+            elements.push({
+                data: {
+                    id: edge.from + edge.to,
+                    source: edge.from,
+                    target: edge.to,
+                    label: edge.relation
+                }
+            });
+        });
+
         var cy = cytoscape({
             container: document.getElementById('cy'),
-
-            elements: [
-                { data: { id: 'a' } },
-                { data: { id: 'b' } },
-                { data: { id: 'c' } },
-                { data: { id: 'ab', source: 'a', target: 'b' } },
-                { data: { id: 'bc', source: 'b', target: 'c' } }
-            ],
-
+            elements: elements,
             style: [
                 {
                     selector: 'node',
@@ -935,17 +949,18 @@
                         'width': 3,
                         'line-color': '#ccc',
                         'target-arrow-color': '#ccc',
-                        'target-arrow-shape': 'triangle'
+                        'target-arrow-shape': 'triangle',
+                        'label': 'data(label)'
                     }
                 }
             ],
-
             layout: {
                 name: 'grid',
                 rows: 1
             }
         });
-}
+    }
+
 
         // fetch complete-ish place record
         function getPlace(pid) {
@@ -955,7 +970,17 @@
             }).done(function (data) {
                 console.log('place data', data)
                 $("#detail").html(parsePlace(data))
-                initGraph();
+                // Define a default graph structure
+                var defaultGraph = {
+                    "nodes": ["placeA", "placeB"],
+                    "edges": [{"from": "placeA", "relation": "sameAs", "to": "placeB"}]
+                };
+
+                // Check if 'graph' element exists in the data, otherwise use default graph
+                var graphToUse = data.graph ? data.graph : defaultGraph;
+
+                // Initialize the graph with the determined data
+                initGraph(graphToUse);
                 spinner_detail.stop()
                 // events on detail items
                 $('.ext').on('click', function (e) {
