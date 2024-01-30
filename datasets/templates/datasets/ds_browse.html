@@ -722,7 +722,7 @@
                 // Handle case where identifier is a URL
                 let tag = identifierStr.replace(/.+\/\/|www.|\..+/g, '');
                 link = `<a href="${identifierStr}" target="_blank">${tag}{% fontawesome_icon 'external-link' color='#336699' %}</a>`;
-            } else if (identifierStr.includes(":") && identifierStr.split(":").length === 2 && type === "same_as") {
+            } else if (identifierStr.includes(":") && identifierStr.split(":").length === 2 && type !== "closeMatch") {
                 let identifierParts = identifierStr.split(":");
                 let dataset = identifierParts[0];
                 let place_id = identifierParts[1];
