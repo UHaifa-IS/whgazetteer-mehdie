@@ -7,6 +7,7 @@ from django.contrib.gis.geos import Polygon, Point
 # from django.contrib.postgres import search
 from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse  # , FileResponse
 from django.shortcuts import get_object_or_404
@@ -739,9 +740,23 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
 
             link_identifier = link.get('identifier')
 
-            # Add the identifier as a node if it's not already in the list
-            if link_identifier not in nodes:
-                nodes.append(link_identifier)
+            # Check if link type is not 'closeMatch' and identifier has the correct format
+            if link_type != "closeMatch" and ':' in link_identifier:
+                try:
+                    dataset_id, place_id = link_identifier.split(':')
+                    # Fetching labels from Dataset and Place models
+                    dataset_label = Dataset.objects.get(id=dataset_id).label
+                    place_label = Place.objects.get(id=place_id).title
+                    node_label = f"{dataset_label}:{place_label}"
+                except (ValueError, ObjectDoesNotExist):
+                    # If parsing fails or objects don't exist, use the original identifier
+                    node_label = link_identifier
+            else:
+                node_label = link_identifier
+
+            # Ensure the node is unique
+            if node_label not in nodes:
+                nodes.append(node_label)
 
             # Add an edge from the current place to the linked place
             edges.append({
