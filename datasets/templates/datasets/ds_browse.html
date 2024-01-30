@@ -916,7 +916,8 @@
         // Process nodes
         graphData.nodes.forEach(function(node) {
             elements.push({
-                data: { id: node }
+                data: { id: node },
+                classes: (index === 0 ? 'highlighted-node' : '')
             });
         });
 
@@ -943,6 +944,15 @@
                         'label': 'data(id)'
                     }
                 },
+                {
+                selector: '.highlighted-node',  // Style for the current place
+                style: {
+                    'background-color': 'lightyellow',
+                    'font-weight': 'bold',
+                    'label': 'data(id)'
+                }
+                }
+                ,
                 {
                     selector: 'edge',
                     style: {

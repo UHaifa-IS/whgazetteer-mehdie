@@ -724,10 +724,12 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)  # Get the original response
 
+        place_title = response.data['title']
+
         # Add your graph data here
         graph_data = {
-            "nodes": ["placeC", "placeD"],
-            "edges": [{"from": "placeC", "relation": "sameAs", "to": "placeD"}]
+            "nodes": [place_title, "placeD"],
+            "edges": [{"from": place_title, "relation": "sameAs", "to": "placeD"}]
         }
 
         # Append the graph data to the response
