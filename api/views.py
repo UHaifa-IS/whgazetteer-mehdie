@@ -734,6 +734,9 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         # Iterate over the links and populate nodes and edges
         for link in response.data.get('links', []):
             link_type = link.get('type')
+            if link_type == 'different':
+                continue
+
             link_identifier = link.get('identifier')
 
             # Add the identifier as a node if it's not already in the list
