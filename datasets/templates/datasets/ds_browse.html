@@ -9,6 +9,7 @@
     {% leaflet_js %}
     {% leaflet_css %}
     <script src="{% static 'nouislider/nouislider.js' %}"></script>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
     <link rel="stylesheet" href="{% static 'nouislider/nouislider.min.css' %}"/>
 
     <script src="{% static 'js/aliases.js' %}"></script>
@@ -902,13 +903,49 @@
             }
 
             // Adding the knowledge graph
-            descrip += '<div id="knowledge-graph-placeholder" style="margin-top: 20px; padding: 10px; border: 1px solid #ddd; text-align: center;">';
-            descrip += '<p>Knowledge Graph Placeholder</p>';
-            descrip += '</div>';
+            descrip += '<div id="cy" style="width: 600px; height: 400px; margin-top: 20px;"></div>';
 
             descrip += '</div>'
             return descrip
         }
+
+        function initGraph() {
+        var cy = cytoscape({
+            container: document.getElementById('cy'),
+
+            elements: [
+                { data: { id: 'a' } },
+                { data: { id: 'b' } },
+                { data: { id: 'c' } },
+                { data: { id: 'ab', source: 'a', target: 'b' } },
+                { data: { id: 'bc', source: 'b', target: 'c' } }
+            ],
+
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'background-color': '#666',
+                        'label': 'data(id)'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 3,
+                        'line-color': '#ccc',
+                        'target-arrow-color': '#ccc',
+                        'target-arrow-shape': 'triangle'
+                    }
+                }
+            ],
+
+            layout: {
+                name: 'grid',
+                rows: 1
+            }
+        });
+}
 
         // fetch complete-ish place record
         function getPlace(pid) {
@@ -918,6 +955,7 @@
             }).done(function (data) {
                 console.log('place data', data)
                 $("#detail").html(parsePlace(data))
+                initGraph();
                 spinner_detail.stop()
                 // events on detail items
                 $('.ext').on('click', function (e) {
