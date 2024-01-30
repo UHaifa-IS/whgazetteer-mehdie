@@ -36,7 +36,7 @@ from areas.models import Area
 from collection.models import Collection
 from datasets.models import Dataset
 from datasets.tasks import get_bounds_filter
-from places.models import Place, PlaceGeom
+from places.models import Place, PlaceGeom, PlaceLink
 from search.views import getGeomCollection
 
 
@@ -752,7 +752,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                 nodes.append(node_label)
                 # Add an edge from the current place to the linked place
                 edges.append({
-                    "from": place_title,
+                    "from": from_node,
                     "relation": link_type,
                     "to": node_label
                 })
@@ -773,10 +773,11 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             if link_type != "closeMatch" and ':' in link_identifier:  # Assuming this indicates a place
                 dataset_id, place_id = link_identifier.split(':')
                 try:
-                    linked_place = Place.objects.get(id=place_id)
-                    for second_order_link in linked_place.jsonb.get('links', []):
-                        second_order_type = second_order_link.get('type')
-                        second_order_identifier = second_order_link.get('identifier')
+                    linked_place_links = PlaceLink.objects.filter(place_id=place_id)
+                    for place_link in linked_place_links:
+                        second_order_link_data = place_link.jsonb
+                        second_order_type = second_order_link_data.get('type')
+                        second_order_identifier = second_order_link_data.get('identifier')
                         process_link(node_label, second_order_type, second_order_identifier)
                 except Place.DoesNotExist:
                     # Handle cases where the place does not exist
