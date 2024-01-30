@@ -723,13 +723,34 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)  # Get the original response
-
         place_title = response.data['title']
 
-        # Add your graph data here
+        # Initialize nodes with the title of the current place
+        nodes = [place_title]
+
+        # Initialize an empty list for edges
+        edges = []
+
+        # Iterate over the links and populate nodes and edges
+        for link in response.data.get('links', []):
+            link_type = link.get('type')
+            link_identifier = link.get('identifier')
+
+            # Add the identifier as a node if it's not already in the list
+            if link_identifier not in nodes:
+                nodes.append(link_identifier)
+
+            # Add an edge from the current place to the linked place
+            edges.append({
+                "from": place_title,
+                "relation": link_type,
+                "to": link_identifier
+            })
+
+        # Create graph data
         graph_data = {
-            "nodes": [place_title, "placeD"],
-            "edges": [{"from": place_title, "relation": "sameAs", "to": "placeD"}]
+            "nodes": nodes,
+            "edges": edges
         }
 
         # Append the graph data to the response
