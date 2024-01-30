@@ -733,7 +733,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         # Initialize an empty list for edges
         edges = []
 
-        def process_link(from_node, link_type, link_identifier):
+        def process_link(from_node, link_type, link_identifier, reverse=False):
             # Check if link type is not 'closeMatch' and identifier has the correct format
             if link_type != "closeMatch" and ':' in link_identifier:
                 try:
@@ -748,15 +748,23 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             else:
                 node_label = link_identifier
 
+
             # Ensure the node is unique
             if node_label not in nodes:
                 nodes.append(node_label)
                 # Add an edge from the current place to the linked place
-                edges.append({
-                    "from": from_node,
-                    "relation": link_type,
-                    "to": node_label
-                })
+                if not reverse:
+                    edges.append({
+                        "from": from_node,
+                        "relation": link_type,
+                        "to": node_label
+                    })
+                else:
+                    edges.append({
+                        "from": node_label,
+                        "relation": link_type,
+                        "to": from_node
+                    })
 
             return node_label
 
@@ -785,6 +793,14 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     # Handle cases where the place does not exist
                     pass
 
+        # Iterate over reverse links and populate nodes and edges
+        reverse_links = PlaceLink.objects.filter(identifier__endswith=str(this_place_id))
+        for reverse_link in reverse_links:
+            reverse_link_data = reverse_link.jsonb
+            reverse_link_type = reverse_link_data.get('type')
+            reverse_place = reverse_link.place
+            reverse_link_identifier = f"{reverse_place.dataset_id}:{reverse_place.id}"
+            process_link(place_title, reverse_link_type, reverse_link_identifier, reverse=True)
 
         # Create graph data
         graph_data = {
