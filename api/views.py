@@ -732,14 +732,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         # Initialize an empty list for edges
         edges = []
 
-        # Iterate over the links and populate nodes and edges
-        for link in response.data.get('links', []):
-            link_type = link.get('type')
-            if link_type == 'different':
-                continue
-
-            link_identifier = link.get('identifier')
-
+        def process_link(from_node, link_type, link_identifier):
             # Check if link type is not 'closeMatch' and identifier has the correct format
             if link_type != "closeMatch" and ':' in link_identifier:
                 try:
@@ -757,13 +750,38 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             # Ensure the node is unique
             if node_label not in nodes:
                 nodes.append(node_label)
+                # Add an edge from the current place to the linked place
+                edges.append({
+                    "from": place_title,
+                    "relation": link_type,
+                    "to": node_label
+                })
 
-            # Add an edge from the current place to the linked place
-            edges.append({
-                "from": place_title,
-                "relation": link_type,
-                "to": node_label
-            })
+            return node_label
+
+
+        # Iterate over the links and populate nodes and edges
+        for link in response.data.get('links', []):
+            link_type = link.get('type')
+            if link_type == 'different':
+                continue
+
+            link_identifier = link.get('identifier')
+            node_label = process_link(place_title, link_type, link_identifier)
+
+            # If this link leads to a place, retrieve and process its links (second-order)
+            if link_type != "closeMatch" and ':' in link_identifier:  # Assuming this indicates a place
+                dataset_id, place_id = link_identifier.split(':')
+                try:
+                    linked_place = Place.objects.get(id=place_id)
+                    for second_order_link in linked_place.jsonb.get('links', []):
+                        second_order_type = second_order_link.get('type')
+                        second_order_identifier = second_order_link.get('identifier')
+                        process_link(node_label, second_order_type, second_order_identifier)
+                except Place.DoesNotExist:
+                    # Handle cases where the place does not exist
+                    pass
+
 
         # Create graph data
         graph_data = {
