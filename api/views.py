@@ -847,7 +847,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             reverse_link_data = reverse_link.jsonb
             reverse_link_type = reverse_link_data.get('type')
             reverse_place = reverse_link.place
-            reverse_link_identifier = f"{reverse_place.dataset_id}:{reverse_place.id}"
+            reverse_link_identifier = f"{reverse_place.dataset.id}:{reverse_place.id}"
             process_link(place_title, reverse_link_type, reverse_link_identifier, reverse=True)
 
         # Add parent links
