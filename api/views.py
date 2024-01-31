@@ -37,7 +37,7 @@ from areas.models import Area
 from collection.models import Collection
 from datasets.models import Dataset
 from datasets.tasks import get_bounds_filter
-from places.models import Place, PlaceGeom, PlaceLink
+from places.models import Place, PlaceGeom, PlaceLink, PlaceRelated
 from search.views import getGeomCollection
 
 
@@ -734,6 +734,40 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         # Initialize an empty list for edges
         edges = []
 
+        def get_related_places(source_place_id):
+            related_info = []
+            try:
+                # Find the Place object by ID
+                place = Place.objects.get(id=source_place_id)
+
+                # Retrieve related PlaceRelated objects
+                related_objects = PlaceRelated.objects.filter(place=place)
+
+                # Extract label and relationType from each related object's jsonb field
+                for related in related_objects:
+                    jsonb_data = related.jsonb
+                    label = jsonb_data.get('label') if jsonb_data else None
+                    relation_type = jsonb_data.get('relationType') if jsonb_data else None
+
+                    # Look up Place by title using the label
+                    try:
+                        related_place = Place.objects.get(title=label)
+                        # Only add to related_info if related Place is found
+                        related_info.append({
+                            'title': related_place.title,
+                            'id': related_place.id,
+                            'relationType': relation_type
+                        })
+                    except Place.DoesNotExist:
+                        # If no matching Place is found, do not add to related_info
+                        pass
+
+            except Place.DoesNotExist:
+                # If no matching Place is found, do not add to related_info
+                pass
+
+            return related_info
+
         def process_link(from_node, link_type, link_identifier, reverse=False):
             # Check if link type is not 'closeMatch' and identifier has the correct format
             if link_type != "closeMatch" and ':' in link_identifier:
@@ -748,7 +782,6 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     node_label = link_identifier
             else:
                 node_label = link_identifier
-
 
             # Ensure the node is unique
             if node_label not in nodes:
@@ -769,7 +802,6 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
 
             return node_label
 
-
         # Iterate over the links and populate nodes and edges
         for link in response.data.get('links', []):
             link_type = link.get('type')
@@ -787,7 +819,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     for place_link in linked_place_links:
                         second_order_link_data = place_link.jsonb
                         second_order_type = second_order_link_data.get('type')
-                        second_order_identifier:str = second_order_link_data.get('identifier')
+                        second_order_identifier: str = second_order_link_data.get('identifier')
                         if not second_order_identifier.endswith(str(this_place_id)):
                             process_link(node_label, second_order_type, second_order_identifier)
                 except Place.DoesNotExist:
@@ -805,6 +837,14 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             reverse_place = reverse_link.place
             reverse_link_identifier = f"{reverse_place.dataset_id}:{reverse_place.id}"
             process_link(place_title, reverse_link_type, reverse_link_identifier, reverse=True)
+
+        # Add parent links
+        related = get_related_places(this_place_id)
+        if len(related) > 0:
+            place = Place.objects.get(id=this_place_id)
+            dataset_id = place.dataset.id
+            for r in related:
+                process_link(place_title, r['relationType'], f"{dataset_id}:{r['id']}")
 
         # Create graph data
         graph_data = {
