@@ -921,17 +921,23 @@
             });
         });
 
-        // Process edges
+        const firstNodeId = graphData.nodes[0];
+
+            // Process edges
         graphData.edges.forEach(function(edge) {
+        // Check if the first node is the target of the edge
+            const isReverseEdge = (edge.to === firstNodeId);
+
             elements.push({
-                data: {
-                    id: edge.from + edge.to,
-                    source: edge.from,
-                    target: edge.to,
-                    label: edge.relation
-                }
-            });
+            data: {
+                id: edge.from + edge.to,
+                source: edge.from,
+                target: edge.to,
+                label: edge.relation
+            },
+            classes: isReverseEdge ? 'reverse-edge' : ''
         });
+    });
 
         var cy = cytoscape({
             container: document.getElementById('cy'),
@@ -957,9 +963,22 @@
                 {
                     selector: 'edge',
                     style: {
-                        'width': 3,
-                        'line-color': '#ccc',
-                        'target-arrow-color': '#ccc',
+                        'width': 4,
+                        'line-color': '#ff5733',
+                        'target-arrow-color': '#ff5733',
+                        'target-arrow-shape': 'triangle',
+                        'label': 'data(label)',
+                        'curve-style': 'bezier', // This makes edges curved
+                        'control-point-step-size': 20,
+                    }
+                }
+                ,
+                {
+                    selector: 'reverse-edge',
+                    style: {
+                        'width': 4,
+                        'line-color': '#00008b',
+                        'target-arrow-color': '#00008b',
                         'target-arrow-shape': 'triangle',
                         'label': 'data(label)',
                         'curve-style': 'bezier', // This makes edges curved
