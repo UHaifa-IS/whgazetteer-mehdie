@@ -846,6 +846,9 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         for reverse_link in reverse_links:
             reverse_link_data = reverse_link.jsonb
             reverse_link_type = reverse_link_data.get('type')
+            if reverse_link_type == 'different':
+                continue
+
             reverse_place = reverse_link.place
             reverse_link_identifier = f"{reverse_place.dataset.id}:{reverse_place.id}"
             process_link(place_title, reverse_link_type, reverse_link_identifier, reverse=True)
