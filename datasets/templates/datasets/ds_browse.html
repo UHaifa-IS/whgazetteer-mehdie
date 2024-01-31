@@ -910,11 +910,26 @@
         }
 
         function buildUrlFromNodeData(identifier) {
-            // Split the identifier into dataset ID and place ID
-            const [datasetId, placeId] = identifier.split(':');
+            // URL identifiers can be 'http*' or an authority prefix or dataset_id
+            var url;
+            if (identifier.substring(0, 4).toLowerCase() === 'http') {
+                url = identifier
+            } else {
+                // If str begins with a number, assume it's a dataset ID
+                if (identifier.match(/^\d/)) {
+                    // Split the identifier into dataset ID and place ID
+                    const [datasetId, placeId] = identifier.split(':');
 
-            // Construct and return the URL
-            return `/datasets/${datasetId}/browse?pid=${placeId}`;
+                    // Construct and return the URL
+                    return `/datasets/${datasetId}/browse?pid=${placeId}`;
+                }
+                // Otherwise the identifier is an authority prefix
+                const re = /(http|bnf|cerl|dbp|gn|gnd|gov|loc|pl|tgn|viaf|wd|wdlocal|whg|wp):(.*?)$/;
+                url = base_urls[identifier.match(re)[1]] + identifier.match(re)[2]
+                console.log('getPlace() url', url, encodeURI(url))
+            }
+            return url;
+
         }
 
         function initGraph(graphData) {
