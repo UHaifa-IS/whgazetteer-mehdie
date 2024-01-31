@@ -739,7 +739,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             try:
                 # Find the Place object by ID
                 this_place = Place.objects.get(id=source_place_id)
-                this_dataset_id = place.dataset.id
+                this_dataset_id = this_place.dataset.id
 
                 # Retrieve related PlaceRelated objects
                 related_objects = PlaceRelated.objects.filter(place=this_place)
