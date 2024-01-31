@@ -738,10 +738,11 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             related_info = []
             try:
                 # Find the Place object by ID
-                place = Place.objects.get(id=source_place_id)
+                this_place = Place.objects.get(id=source_place_id)
+                this_dataset_id = place.dataset.id
 
                 # Retrieve related PlaceRelated objects
-                related_objects = PlaceRelated.objects.filter(place=place)
+                related_objects = PlaceRelated.objects.filter(place=this_place)
 
                 # Extract label and relationType from each related object's jsonb field
                 for related in related_objects:
@@ -751,7 +752,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
 
                     # Look up Place by title using the label
                     try:
-                        related_place = Place.objects.get(title=label)
+                        related_place = Place.objects.filter(title=label, dataset_id=this_dataset_id).first()
                         # Only add to related_info if related Place is found
                         related_info.append({
                             'title': related_place.title,
