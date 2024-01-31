@@ -937,7 +937,7 @@
             },
             classes: isReverseEdge ? 'reverse-edge' : ''
         });
-    });
+        });
 
         var cy = cytoscape({
             container: document.getElementById('cy'),
@@ -974,7 +974,7 @@
                 }
                 ,
                 {
-                    selector: 'reverse-edge',
+                    selector: 'edge.reverse-edge',
                     style: {
                         'width': 4,
                         'line-color': '#00008b',
