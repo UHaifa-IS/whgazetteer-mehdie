@@ -923,13 +923,13 @@
                     // Construct and return the URL
                     return `/datasets/${datasetId}/browse?pid=${placeId}`;
                 }
-                //if identifier does not contain a colon, return an empty URL and log an error
-                if (!identifier.includes(':')) {
-                    console.warn(`Identifier ${identifier} does not contain a colon`);
+                //if identifier does not contain a colon or doesn't match the regular expression, return an empty URL and log an error
+                const re = /(http|bnf|cerl|dbp|gn|gnd|gov|loc|pl|tgn|viaf|wd|wdlocal|whg|wp):(.*?)$/;
+                if (!identifier.includes(':') || !identifier.match(re)) {
+                    console.warn(`Identifier ${identifier} does not contain a colon or does not match the regular expression.`);
                     return '';
                 }
                 // Otherwise the identifier is an authority prefix
-                const re = /(http|bnf|cerl|dbp|gn|gnd|gov|loc|pl|tgn|viaf|wd|wdlocal|whg|wp):(.*?)$/;
                 url = base_urls[identifier.match(re)[1]] + identifier.match(re)[2]
                 console.log('getPlace() url', url, encodeURI(url))
             }
