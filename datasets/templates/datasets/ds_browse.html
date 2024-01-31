@@ -909,14 +909,31 @@
             return descrip
         }
 
+        function buildUrlFromNodeData(identifier) {
+            // Split the identifier into dataset ID and place ID
+            const [datasetId, placeId] = identifier.split(':');
+
+            // Construct and return the URL
+            return `/datasets/${datasetId}/browse?pid=${placeId}`;
+        }
+
         function initGraph(graphData) {
         var elements = [];
         // assumes graphData is a JSON object with two arrays: nodes and edges
         // for example:  {"nodes": ["placeA","placeB"], "edges":[{"from":"placeA", "relation": "sameAs", "to": "placeB"}]}
         // Process nodes
         graphData.nodes.forEach(function(node, index) {
+            // Access the corresponding URL information for the current node
+            const urlInfo = graphData.urls[index];
+
+            // Use the buildUrlFromNodeData function to construct the URL
+            const nodeUrl = buildUrlFromNodeData(urlInfo);
+
             elements.push({
-                data: { id: node },
+                data: {
+                    id: node,
+                    url: nodeUrl, // Include the constructed URL in the node's data
+                },
                 classes: (index === 0 ? 'highlighted-node' : '')
             });
         });
@@ -936,7 +953,7 @@
                 label: edge.relation
             },
             classes: isReverseEdge ? 'reverse-edge' : ''
-        });
+            });
         });
 
         var cy = cytoscape({
@@ -948,6 +965,7 @@
                     style: {
                         'background-color': '#666',
                         'label': 'data(id)',
+                        'color': 'blue',
                         'text-valign': 'bottom'
                     }
                 },
@@ -1004,6 +1022,13 @@
             coolingFactor: 0.95,
             minTemp: 1.0
         }
+        });
+        cy.on('tap', 'node', function(evt){
+            var node = evt.target;
+            var url = node.data('url'); // Retrieve the URL from the node's data
+            if (url) {
+                window.open(url, '_blank'); // Open the URL in a new tab
+            }
         });
     }
 

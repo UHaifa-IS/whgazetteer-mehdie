@@ -728,9 +728,14 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         response = super().get(request, *args, **kwargs)  # Get the original response
         place_title = response.data['title']
         this_place_id = response.data['id']
+        this_place = Place.objects.get(id=this_place_id)
+        this_dataset_id = this_place.dataset.id
 
         # Initialize nodes with the title of the current place
         nodes = [place_title]
+
+        # Initialize urls with dataset:place_id of the current place
+        urls = [f"{this_dataset_id}:{this_place_id}"]
 
         # Initialize an empty list for edges
         edges = []
@@ -738,8 +743,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         def get_related_places(source_place_id):
             related_info = []
             try:
-                # Find the Place object by ID
-                this_place = Place.objects.get(id=source_place_id)
+                # Find the dataset label of the current place
                 this_dataset_label = this_place.dataset.label
 
                 # Retrieve related PlaceRelated objects
@@ -783,31 +787,32 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     # Fetching labels from Dataset and Place models
                     dataset_label = Dataset.objects.get(id=dataset_id).label
                     place_label = Place.objects.get(id=place_id).title
-                    node_label = f"{dataset_label}:{place_label}"
+                    node_lbl = f"{dataset_label}:{place_label}"
                 except (ValueError, ObjectDoesNotExist):
                     # If parsing fails or objects don't exist, use the original identifier
-                    node_label = link_identifier
+                    node_lbl = link_identifier
             else:
-                node_label = link_identifier
+                node_lbl = link_identifier
 
             # Ensure the node is unique
-            if node_label not in nodes:
-                nodes.append(node_label)
+            if node_lbl not in nodes:
+                nodes.append(node_lbl)
+                urls.append(link_identifier)
                 # Add an edge from the current place to the linked place
                 if not reverse:
                     edges.append({
                         "from": from_node,
                         "relation": link_type,
-                        "to": node_label
+                        "to": node_lbl
                     })
                 else:
                     edges.append({
-                        "from": node_label,
+                        "from": node_lbl,
                         "relation": link_type,
                         "to": from_node
                     })
 
-            return node_label
+            return node_lbl
 
         # Iterate over the links and populate nodes and edges
         for link in response.data.get('links', []):
@@ -856,7 +861,8 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         # Create graph data
         graph_data = {
             "nodes": nodes,
-            "edges": edges
+            "edges": edges,
+            "urls": urls
         }
 
         # Append the graph data to the response
