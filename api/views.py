@@ -1,4 +1,5 @@
 # api.views
+import logging
 import re
 
 from django.conf import settings
@@ -753,6 +754,11 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     # Look up Place by title using the label
                     try:
                         related_place = Place.objects.filter(title=label, dataset_id=this_dataset_id).first()
+                        if related_place is None:
+                            logging.warning(f"Could not find related place with title {label} "
+                                            f"in dataset {this_dataset_id}")
+                            continue
+
                         # Only add to related_info if related Place is found
                         related_info.append({
                             'title': related_place.title,
