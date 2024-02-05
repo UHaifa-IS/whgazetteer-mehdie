@@ -159,49 +159,8 @@
                                 {% for g in record.geoms.all %}
                                     {{ g.jsonb|safe|json_script:record.id }}
                                 {% endfor %}
-                                <div class="record-container">
-                                    <div class="column">
-                                        <p><strong>MEHDIE id</strong>: {{ record.id }} </p>
-                                        <p><strong>Source id</strong>: {{ record.src_id }}</p>
-                                        <p class="scroll100"><strong>Variants</strong>:<i>
-                                            {% for name in record.names.all %}
-                                                {{ name.jsonb.toponym }};
-                                            {% endfor %}</i></p>
-                                    </div> <!-- column -->
+                                <div class="record" id="place_detail">
 
-                                    <div class="column">
-                                        {% if countries %}
-                                            <p><strong>Modern countries</strong>:
-                                                {% for c in countries %}
-                                                    {{ c }};
-                                                {% endfor %}</p>
-                                        {% endif %}
-                                        {% if record.related|length > 0 %}
-                                            <p><strong>Relations</strong>:
-                                                {% for rel in record.related.all %}
-                                                    {{ rel.jsonb.label }}; <!--({ rel.jsonb.relationType }); -->
-                                                {% endfor %}</p>
-                                        {% endif %}
-                                        <p><strong>Type(s)</strong>:
-                                            {% for type in record.types.all %}
-                                                {{ type.jsonb.sourceLabel }} ({{ type.jsonb.label.label }});
-                                            {% endfor %}</p>
-                                        {% if record.links.all|length > 0 %}
-                                            <p><strong>Links</strong>:
-                                                {% for link in record.links.all %}
-                                                    <a href="" class="mr-2 ext" data-toggle="modal"
-                                                       data-target="#ext_site">{{ link.jsonb.identifier }} {% fontawesome_icon 'external-link' color='#336699' %}</a>
-                                                {% endfor %}</p>
-                                        {% endif %}
-                                        {% if record.minmax %}
-                                            {% if record.minmax.0 == record.minmax.1 %}
-                                                <p><strong>Attested year</strong>: {{ record.minmax.0 }}</p>
-                                            {% else %}
-                                                <p><strong>Timeframe:</strong>: {{ record.minmax.0 }}
-                                                    / {{ record.minmax.1 }}</p>
-                                            {% endif %}
-                                        {% endif %}
-                                    </div> <!-- column -->
                                 </div> <!-- record-container -->`
                                 {% if record.descriptions %}
                                     {% for d in record.descriptions.all %}
@@ -648,7 +607,13 @@
                 console.log('no geometries, no feature')
             }
         } // end map_init
+        current_place = $('input[name=place_id]').val()
+
+        $.ajax({url: "/api/place/" + current_place}).done(function (data) {
+            let desc = parsePlace(data)
+            $("#place_detail").html(desc);
+            })
     </script>
+    <script src="{% static 'js/parse_place_data.js' %}"></script>
     <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
 {% endblock %}
-

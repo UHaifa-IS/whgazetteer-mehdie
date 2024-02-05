@@ -1,0 +1,147 @@
+function parsePlace(data) {
+    window.featdata = data
+
+    function onlyUnique(array) {
+        const map = new Map();
+        const result = [];
+        for (const item of array) {
+            if (!map.has(item.identifier)) {
+                map.set(item.identifier, true);
+                result.push({
+                    identifier: item.identifier,
+                    type: item.type,
+                    aug: item.aug
+                });
+            }
+        }
+        return (result)
+    }
+
+    //timespan_arr = []
+    //
+    // TITLE
+    descrip = '<p><b>Title</b>: <span id="row_title" class="larger text-danger">' + data.title + '</span>'
+    //
+    // NAME VARIANTS
+    descrip += '<p class="scroll65"><b>Variants</b>: '
+    for (n in data.names) {
+        let name = data.names[n]
+        descrip += '<p>' + name.toponym != '' ? name.toponym + '; ' : ''
+    }
+    //
+    // TYPES
+    // may include sourceLabel:"" **OR** sourceLabels[{"label":"","lang":""},...]
+    // console.log('data.types',data.types)
+    //{"label":"","identifier":"aat:___","sourceLabels":[{"label":" ","lang":"en"}]}
+    descrip += '</p><p><b>Types</b>: '
+    typeids = ''
+    for (t in data.types) {
+        str = ''
+        var type = data.types[t]
+        if ('sourceLabels' in type) {
+            srclabels = type.sourceLabels
+            for (l in srclabels) {
+                label = srclabels[l]['label']
+                str = label != '' ? label + '; ' : ''
+            }
+        } else if ('sourceLabel' in type) {
+            str = type.sourceLabel != '' ? type.sourceLabel + '; ' : ''
+        }
+        if (type.label != '') {
+            str += url_exttype(type) + ' '
+        }
+        typeids += str
+    }
+    descrip += typeids.replace(/(; $)/g, "") + '</p>'
+
+    //
+    // LINKS
+    //
+    console.log(data)
+    descrip += '<p class="mb-0"><b>Links</b>: <i>original: </i>'
+    close_count = added_count = related_count = 0
+    html_close = html_added = html_related = ''
+    if (data.links.length > 0) {
+        links = data.links
+        links_arr = onlyUnique(data.links)
+        console.log('distinct data.links', links_arr)
+        for (l in links_arr) {
+            //console.log('link',links_arr[l])
+            if (links_arr[l].aug === true && links_arr[l].type !== 'different') {
+                added_count += 1
+                html_added += url_extplace(links_arr[l].identifier, links_arr[l].type)
+            } else {
+                close_count += 1
+                html_close += url_extplace(links_arr[l].identifier, links_arr[l].type)
+            }
+        }
+        descrip += close_count > 0 ? html_close : 'none; '
+        descrip += added_count > 0 ? '<i>added</i>: ' + html_added : '<i>added</i>: none'
+    } else {
+        descrip += "<i class='small'>no links established yet</i>"
+    }
+    descrip += '</p>'
+
+    //
+    // RELATED
+    //right=''
+    if (data.related.length > 0) {
+        parent = '<p class="mb-0"><b>Parent(s)</b>: ';
+        related = '<p class="mb-0"><b>Related</b>: ';
+        for (r in data.related) {
+            rel = data.related[r]
+            //console.log('rel',rel)
+            if (rel.relation_type == 'gvp:broaderPartitive') {
+                parent += '<span class="h1em">' + rel.label
+                parent += 'when' in rel && !('timespans' in rel.when) ?
+                    ', ' + rel.when.start.in + '-' + rel.when.end.in :
+                    'when' in rel && ('timespans' in rel.when) ? ', ' +
+                        minmaxer(rel.when.timespans) : ''
+                //rel.when.timespans : ''
+                parent += '</span>; '
+            } else {
+                related += '<p class="small h1em">' + rel.label + ', ' + rel.when.start.in + '-' + rel.when.end.in + '</p>'
+            }
+        }
+        descrip += parent.length > 39 ? parent : ''
+        descrip += related.length > 37 ? related : ''
+    }
+    //
+    // DESCRIPTIONS
+    // TODO: link description to identifier URI if present
+    if (data.descriptions.length > 0) {
+        val = data.descriptions[0]['value'].substring(0, 300)
+        descrip += '<p><b>Description</b>: ' + (val.startsWith('http') ? '<a href="' + val + '" target="_blank">Link</a>' : val)
+            + ' ... </p>'
+        //'<br/><span class="small red-bold">('+data.descriptions[0]['identifier']+')</span>
+    }
+    //
+    // CCODES
+    //
+    //if (data.ccodes.length > 0) {
+    if (!!data.countries) {
+        //console.log('data.countries',data.countries)
+        descrip += '<p><b>Modern country bounds</b>: ' + data.countries.join(', ') + '</p>'
+    }
+    //
+    // MINMAX
+    //
+    //console.log('data.minmax',data.minmax)
+    mm = data.minmax
+    if (data.minmax && !(mm[0] == null && mm[1] == null)) {
+        descrip += '<p><b>When</b>: earliest: ' + data.minmax[0] + '; latest: ' + data.minmax[1]
+    }
+
+    // if geom(s) and 'certainty', add it
+    if (data.geoms.length > 0) {
+        cert = data.geoms[0].certainty
+        if (cert != undefined) {
+            descrip += '<p><b>Location certainty</b>: ' + cert + '</p>'
+        }
+    }
+
+    // Adding the knowledge graph
+
+    descrip += '</div>'
+    return descrip
+}
