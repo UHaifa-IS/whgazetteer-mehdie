@@ -522,8 +522,15 @@ def review(request, pk, tid, passnum):
                         print("[DEBUG] writing place_geom and place_link records")
                         hasGeom = 'geoms' in hits[x]['json'] and len(hits[x]['json']['geoms']) > 0
                         # create place_geom records if 'accept geometries' was checked
+                        create = False
                         if kwargs['aug_geom'] == 'on' and hasGeom \
                                 and tid not in place_post.geoms.all().values_list('task_id', flat=True):
+                            create = True
+                        # but if it's a match_data task, we need to check if the relation_type is 'same_as'
+                        if task.task_name[6:] == 'match_data' and hits[x]['relation_type'] != 'same_as':
+                            create = False
+
+                        if create:
                             gtype = hits[x]['json']['geoms'][0]['type']
                             coords = hits[x]['json']['geoms'][0]['coordinates']
                             # TODO: build real postgis geom values
