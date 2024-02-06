@@ -832,7 +832,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                         second_order_link_data = place_link.jsonb
                         second_order_type = second_order_link_data.get('type')
                         second_order_identifier: str = second_order_link_data.get('identifier')
-                        if not second_order_identifier.endswith(str(this_place_id)):
+                        if not second_order_identifier.endswith(str(this_place_id)) and second_order_type != 'different':
                             process_link(node_label, second_order_type, second_order_identifier)
                 except Place.DoesNotExist:
                     # Handle cases where the place does not exist
