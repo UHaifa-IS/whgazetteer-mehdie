@@ -1,22 +1,24 @@
 function url_extplace(identifier, type) {
-    let link = "";  // Default to empty string
+    let link = "";  // По умолчанию пустая строка
     let identifierStr = identifier.toString();
     if (identifierStr.startsWith('http')) {
-        // Handle case where identifier is a URL
+        // Обработка случая, когда идентификатор является URL
         let tag = identifierStr.replace(/.+\/\/|www.|\..+/g, '');
-        link = `<a href="${identifierStr}" target="_blank">${tag}{% fontawesome_icon 'external-link' color='#336699' %}</a>`;
+        link = `<a href="${identifierStr}" target="_blank">${tag}<i class="fas fa-external-link-alt" style="color: #336699;"></i></a>, `;
     } else if (identifierStr.includes(":") && identifierStr.split(":").length === 2 && type !== "closeMatch") {
         let identifierParts = identifierStr.split(":");
         let dataset = identifierParts[0];
         let place_id = identifierParts[1];
-        // Build link for identifiers with two parts
-        link = `<a href="/datasets/${dataset}/browse?pid=${place_id}" target="_blank">${identifier}{% fontawesome_icon 'external-link' color='#336699' %}</a>`;
+        // Строим ссылку для идентификаторов с двумя частями
+        link = `<a href="/datasets/${dataset}/browse?pid=${place_id}" target="_blank">${identifier}<i class="fas fa-external-link-alt" style="color: #336699;"></i></a>, `;
     } else {
-        link = `<a href="" class="ext" data-target="#ext_site">' + identifier + '{% fontawesome_icon 'external-link' color='#336699' %}</a>, `
+        // Используем шаблонные строки правильно
+        link = `<a href="" class="ext" data-target="#ext_site">${identifier}<i class="fas fa-external-link-alt" style="color: #336699;"></i></a>, `;
     }
 
     return link;
 }
+
 
 function minmaxer(timespans) {
     //console.log('got to minmax()',JSON.stringify(timespans))
@@ -61,7 +63,9 @@ function parsePlace(data) {
     //timespan_arr = []
     //
     // TITLE
-    descrip = '<p><b>Title</b>: <span id="row_title" class="larger text-danger">' + data.title + '</span>'
+    console.log(data)
+    descrip = '<p><b>MEHDIE ID</b>: <span id="row_title" class="larger text-danger">' + data.id + '</span>' + '</p>'
+    descrip += '<p><b>Title</b>: <span id="row_title" class="larger text-danger">' + data.title + '</span>'
     //
     // NAME VARIANTS
     descrip += '<p class="scroll65"><b>Variants</b>: '
