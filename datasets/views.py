@@ -449,6 +449,7 @@ def review(request, pk, tid, passnum):
                 'geom': ''
             }
             if other_place.geoms.first():
+                print("for hit with id {} found place with id {} and geom: {}",hit.id, other_place.id,other_place.geoms.first())
                 hit_supplemental[hit.id]['geom'] = json.dumps(other_place.geoms.first().jsonb)
         else:
             print(f"Could not find place for hit {hit.id}")
