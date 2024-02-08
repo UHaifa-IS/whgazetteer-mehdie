@@ -439,6 +439,7 @@ def review(request, pk, tid, passnum):
     # create a supplemental dictionary for each hit retrieving the related place's types and parents
     hit_supplemental = {}
     for hit in raw_hits:
+        print("processing hit with id {}".format(hit.id))
         other_place_hit = hit.get_other_place()
         if other_place_hit is not None:
             other_place: Place = Place.objects.get(id=other_place_hit.id)
@@ -449,7 +450,7 @@ def review(request, pk, tid, passnum):
                 'geom': ''
             }
             if other_place.geoms.first():
-                print("for hit with id {} found place with id {} and geom: {}",hit.id, other_place.id,other_place.geoms.first())
+                print("for hit with id {} found place with id {} and geom: {}".format(hit.id, other_place.id,other_place.geoms.first()))
                 hit_supplemental[hit.id]['geom'] = json.dumps(other_place.geoms.first().jsonb)
         else:
             print(f"Could not find place for hit {hit.id}")
