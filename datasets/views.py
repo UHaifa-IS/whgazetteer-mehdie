@@ -448,7 +448,7 @@ def review(request, pk, tid, passnum):
                             ptype.jsonb['relationType'] == 'gvp:broaderPartitive']
             }
             if other_place.geoms.first():
-                geoms_for_map['geoms'].append(place.geoms.first().jsonb)
+                geoms_for_map['geoms'].append(other_place.geoms.first().jsonb)
         else:
             print(f"Could not find place for hit {hit.id}")
     # known_id = 82044  # for debug
