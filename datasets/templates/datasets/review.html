@@ -227,7 +227,7 @@
                                     <!-- push geometries to js -->
                                     {% if form.json.value|get:"geoms"|length > 0 %}
                                         {% for g in form.json.value|get:"geoms" %}
-                                            {{# g|safe|json_script:g.id #}}
+{#                                            {{ g|safe|json_script:g.id }}#}
                                         {% endfor %}
                                     {% endif %}
                                     <!-- {{ form.json.value }} -->
