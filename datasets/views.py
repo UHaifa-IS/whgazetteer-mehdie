@@ -1,3 +1,4 @@
+import json
 import math
 import shutil
 import tempfile
@@ -457,11 +458,17 @@ def review(request, pk, tid, passnum):
         except Exception as e:
             raise ValueError(e)
 
+    # add this place's geom to the geom_json
+    geoms_for_map = {"geoms": []}
+    if place.geoms.first():
+        geoms_for_map['geoms'].append(place.geoms.first().jsonb)
+
     # prep some context
     context = {
         'ds_id': pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list': raw_hits,
         'hit_supplemental': hit_supplemental,
+        'geoms_as_JSON': json.dumps(geoms_for_map),
         'passes': passes,
         'authority': task.task_name[6:8] if auth == 'wdlocal' else task.task_name[6:],
         'records': records,

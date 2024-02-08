@@ -12,6 +12,11 @@
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet'/>
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js'></script>
     <script src="{% static 'js/leaflet-mapbox-gl.js' %}"></script>
+    <script type="text/javascript">
+        // Initialize window.hit_supplemental with the data from Django
+        window.geoms_as_json = {{ geoms_as_JSON|safe }};
+        console.log('geoms_as_json:', geoms_as_json)
+    </script>
     <style>
         .record-container {
             display: flex;
@@ -542,6 +547,7 @@
 
         // initialize, render map
         // authority geom "geoms": [{"type": "point", "coordinates": [-72.8667, -13.6167]}]
+
         function map_init(map, options) {
             window.geom = {"type": "FeatureCollecton", "features": []}
 
