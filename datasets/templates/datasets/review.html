@@ -14,8 +14,8 @@
     <script src="{% static 'js/leaflet-mapbox-gl.js' %}"></script>
     <script type="text/javascript">
         // Initialize window.hit_supplemental with the data from Django
-        window.geoms_as_json = {{ geoms_as_JSON|safe }};
-        console.log('geoms_as_json:', geoms_as_json)
+        window.geom_as_json = {{ place_geom_as_JSON|safe }};
+        console.log('geom_as_json:', place_geom_as_JSON)
     </script>
     <style>
         .record-container {

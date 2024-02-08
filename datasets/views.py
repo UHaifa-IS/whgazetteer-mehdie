@@ -424,9 +424,9 @@ def review(request, pk, tid, passnum):
     place = get_object_or_404(Place, id=placeid)
 
     # add this place's geom to the geom_json
-    geoms_for_map = {"geoms": []}
+    geom_for_map = {"geom": ''}
     if place.geoms.first():
-        geoms_for_map['geoms'].append(place.geoms.first().jsonb)
+        geom_for_map['geom'] = json.dumps(place.geoms.first().jsonb)
 
     # get hits for this record
     if passnum.startswith('pass') and auth not in ['whg', 'idx']:
@@ -445,10 +445,11 @@ def review(request, pk, tid, passnum):
             hit_supplemental[hit.id] = {
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
                 'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
-                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive']
+                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive'],
+                'geom' : ''
             }
             if other_place.geoms.first():
-                geoms_for_map['geoms'].append(other_place.geoms.first().jsonb)
+                hit_supplemental[hit.id]['geom'] = json.dumps(other_place.geoms.first().jsonb)
         else:
             print(f"Could not find place for hit {hit.id}")
     # known_id = 82044  # for debug
@@ -473,7 +474,7 @@ def review(request, pk, tid, passnum):
         'ds_id': pk, 'ds_label': ds.label, 'task_id': tid,
         'hit_list': raw_hits,
         'hit_supplemental': hit_supplemental,
-        'geoms_as_JSON': json.dumps(geoms_for_map),
+        'place_geom_as_JSON': geom_for_map,
         'passes': passes,
         'authority': task.task_name[6:8] if auth == 'wdlocal' else task.task_name[6:],
         'records': records,
