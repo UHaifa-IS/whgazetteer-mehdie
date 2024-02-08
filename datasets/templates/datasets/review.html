@@ -586,7 +586,7 @@
                     pointToLayer: function (feature, latlng) {
                         {#console.log('feature.properties',feature.properties)#}
                         {#console.log('feature',feature)#}
-                        matchid = feature.properties.id
+                        matchid = String(feature.properties.id);
                         marker = L.circleMarker(latlng,
                             {
                                 radius: 8, fillOpacity: 0.4, opacity: 1, weight: 1,
