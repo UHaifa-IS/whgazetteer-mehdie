@@ -419,9 +419,16 @@ def review(request, pk, tid, passnum):
             request.GET.get('page')
     records = paginator.get_page(page)
 
-    # get hits for this record
+    # get place for this record
     placeid = records[0].id
     place = get_object_or_404(Place, id=placeid)
+
+    # add this place's geom to the geom_json
+    geoms_for_map = {"geoms": []}
+    if place.geoms.first():
+        geoms_for_map['geoms'].append(place.geoms.first().jsonb)
+
+    # get hits for this record
     if passnum.startswith('pass') and auth not in ['whg', 'idx']:
         # this is wikidata review, list only for this pass
         raw_hits = Hit.objects.filter(place_id=placeid, task_id=tid, query_pass=passnum).order_by('-score')
@@ -438,9 +445,10 @@ def review(request, pk, tid, passnum):
             hit_supplemental[hit.id] = {
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
                 'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
-                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive'],
-                'geom': other_place.geoms.first().geom if other_place.geoms.first() else None
+                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive']
             }
+            if other_place.geoms.first():
+                geoms_for_map['geoms'].append(place.geoms.first().jsonb)
         else:
             print(f"Could not find place for hit {hit.id}")
     # known_id = 82044  # for debug
@@ -458,10 +466,7 @@ def review(request, pk, tid, passnum):
         except Exception as e:
             raise ValueError(e)
 
-    # add this place's geom to the geom_json
-    geoms_for_map = {"geoms": []}
-    if place.geoms.first():
-        geoms_for_map['geoms'].append(place.geoms.first().jsonb)
+
 
     # prep some context
     context = {
