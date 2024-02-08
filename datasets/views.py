@@ -437,7 +437,8 @@ def review(request, pk, tid, passnum):
             hit_supplemental[hit.id] = {
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
                 'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
-                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive']
+                            ptype.jsonb['relationType'] == 'gvp:broaderPartitive'],
+                'geom': other_place.geoms.first().geom.jsonb if other_place.geoms.first() else None
             }
         else:
             print(f"Could not find place for hit {hit.id}")
@@ -530,22 +531,32 @@ def review(request, pk, tid, passnum):
                         if task.task_name[6:] == 'match_data' and hits[x]['relation_type'] != 'same_as':
                             create = False
 
+
+
+
+
+
                         if create:
                             gtype = hits[x]['json']['geoms'][0]['type']
                             coords = hits[x]['json']['geoms'][0]['coordinates']
                             # TODO: build real postgis geom values
                             gobj = GEOSGeometry(json.dumps({"type": gtype, "coordinates": coords}))
-                            PlaceGeom.objects.create(
-                                place=place_post,
-                                task_id=tid,
-                                src_id=place.src_id,
-                                geom=gobj,
-                                jsonb={
-                                    "type": gtype,
-                                    "citation": {"id": auth + ':' + hits[x]['authrecord_id'], "label": authname},
-                                    "coordinates": coords
-                                }
-                            )
+
+                            # if a place_geom record with the same coordinates already exists for this place_id create = False
+                            alreadyHasGeom = PlaceGeom.objects.filter(place=place_post,
+                                                                      geom__equals=gobj).exists()
+                            if not alreadyHasGeom:
+                                PlaceGeom.objects.create(
+                                    place=place_post,
+                                    task_id=tid,
+                                    src_id=place.src_id,
+                                    geom=gobj,
+                                    jsonb={
+                                        "type": gtype,
+                                        "citation": {"id": auth + ':' + hits[x]['authrecord_id'], "label": authname},
+                                        "coordinates": coords
+                                    }
+                                )
 
                         # create single PlaceLink for matched authority record
                         # TODO: this if: condition handled already?
