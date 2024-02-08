@@ -543,7 +543,7 @@
             try {
                 let z = text.replace(/'/g, '\\"');
                 let y = z.replace(/point/, 'Point');
-                return JSON.parse(JSON.parse(y));
+                return JSON.parse(y)
             } catch (error) {
                 console.error("Error parsing JSON:", error, "Original text:", text);
                 // You can return a fallback value or null if desired
