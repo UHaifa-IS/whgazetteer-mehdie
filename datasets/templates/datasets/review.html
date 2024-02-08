@@ -162,7 +162,7 @@
                                     </div>
                                 </div>
                                 {% for g in record.geoms.all %}
-                                    {{ g.jsonb|safe|json_script:record.id }}
+{#                                    {{ g.jsonb|safe|json_script:record.id }}#}
                                 {% endfor %}
                                 <div class="record" id="place_detail">
 
