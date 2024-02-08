@@ -424,7 +424,7 @@ def review(request, pk, tid, passnum):
     place = get_object_or_404(Place, id=placeid)
 
     # add this place's geom to the geom_json
-    geom_for_map = {"geom": ''}
+    geom_for_map = {"id": placeid, "geom": ''}
     if place.geoms.first():
         geom_for_map['geom'] = json.dumps(place.geoms.first().jsonb)
 
@@ -446,7 +446,7 @@ def review(request, pk, tid, passnum):
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
                 'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
                             ptype.jsonb['relationType'] == 'gvp:broaderPartitive'],
-                'geom' : ''
+                'geom': ''
             }
             if other_place.geoms.first():
                 hit_supplemental[hit.id]['geom'] = json.dumps(other_place.geoms.first().jsonb)

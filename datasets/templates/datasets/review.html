@@ -562,8 +562,8 @@
                 geom['features'].push(t_geom)
             }
             console.log('processing geom for target place:', window.geom_as_json)
-            let t_geom = cleanJson(window.geom_as_json)
-            console.log('after cleanJson: ', t_geom)
+            console.log('geom elmement: ', window.geom_as_json['geom'])
+            console.log('id elmement: ', window.geom_as_json['id'])
 
             function fill(ds) {
                 if (['tgn', 'wd', 'whg', 'md'].indexOf(ds) >= 0) {
