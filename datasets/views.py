@@ -438,7 +438,7 @@ def review(request, pk, tid, passnum):
                 'types': [f"{ptype.jsonb['label']}:{ptype.jsonb['sourceLabel']}" for ptype in other_place.types.all()],
                 'parents': [f"{ptype.jsonb['label']}" for ptype in other_place.related.all() if
                             ptype.jsonb['relationType'] == 'gvp:broaderPartitive'],
-                'geom': other_place.geoms.first().geom.jsonb if other_place.geoms.first() else None
+                'geom': other_place.geoms.first().geom if other_place.geoms.first() else None
             }
         else:
             print(f"Could not find place for hit {hit.id}")
