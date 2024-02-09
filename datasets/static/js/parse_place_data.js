@@ -155,12 +155,10 @@ function parsePlace(data) {
     }
     //
     // DESCRIPTIONS
-    // TODO: link description to identifier URI if present
     if (data.descriptions.length > 0) {
-        val = data.descriptions[0]['value'].substring(0, 300)
-        descrip += '<p><b>Description</b>: ' + (val.startsWith('http') ? '<a href="' + val + '" target="_blank">Link</a>' : val)
-            + ' ... </p>'
-        //'<br/><span class="small red-bold">('+data.descriptions[0]['identifier']+')</span>
+        val = data.descriptions[0]['value']
+        let desc = '<div className="attest-element abbrev small" style="max-height: 8em; overflow: hidden; overflow-y: auto;">' + val + '</div>'
+        descrip += '<p><b>Description</b>: ' + (val.startsWith('http') ? '<a href="' + val + '" target="_blank">Link</a>' : desc) + ' ... </p>'
     }
     //
     // CCODES
