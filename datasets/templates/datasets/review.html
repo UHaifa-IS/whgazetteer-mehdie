@@ -197,18 +197,22 @@
                                 <div class="pl-2 pr-2 mb-1 matchbar">
                                     <div class="match_radio custom-control custom-radio"
                                          data-id="{{ form.authrecord_id.value }}">
-                                        {% if form.json.value|get:"geoms"|length > 0 %}
-                                            <span class="mr-2 globeflash">
-                    <!--{ if form.json.value|get:"geoms" != Null }-->
-                      <a class="geolink" rel="tooltip"
-                              {% if ds_label == 'tgn_filtered_01' or authority == 'match_data' or authority == 'whg' or authority == 'idx' %}
-                         id="{{ form.authrecord_id.value }}"
-                              {% else %}
-                         id="{{ form.authrecord_id.value }}"
-                              {% endif %}
-                         href='javascript:{ zoomTo("{{ form.authrecord_id.value }}") }' title="Flash map marker">
-                        {% fontawesome_icon 'globe' color='#000' %}</a>
-                    </span>
+                                        {% if form.id.value in hit_supplemental %}
+                                            {% with hit_data=hit_supplemental|get_item:form.id.value %}
+                                                {% if hit_data.geom %}
+                                                    <span class="mr-2 globeflash">
+                                                    <!--{ if form.json.value|get:"geoms" != Null }-->
+                                                      <a class="geolink" rel="tooltip"
+                                                              {% if ds_label == 'tgn_filtered_01' or authority == 'match_data' or authority == 'whg' or authority == 'idx' %}
+                                                         id="{{ form.authrecord_id.value }}"
+                                                              {% else %}
+                                                         id="{{ form.authrecord_id.value }}"
+                                                              {% endif %}
+                                                         href='javascript:{ zoomTo("{{ form.authrecord_id.value }}") }' title="Flash map marker">
+                                                        {% fontawesome_icon 'globe' color='#000' %}</a>
+                                                    </span>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% endif %}
                                         {{ form.relation_type }}
 
