@@ -593,14 +593,14 @@
                         {#console.log('feature.properties',feature.properties)#}
                         {#console.log('feature',feature)#}
                         matchid = String(feature.properties.id);
-                        marker = L.circleMarker(latlng,
+                        map_marker = L.circleMarker(latlng,
                             {
                                 radius: 8, fillOpacity: 0.4, opacity: 1, weight: 1,
                                 color: "#333", fillColor: fill(feature.properties.ds)
                             }
                         ).bindPopup(matchid);
                         {#console.log('olreccdcdcdc')#}
-                        marker.on('click', function () {
+                        map_marker.on('click', function () {
                             console.log('clicked marker w/id', feature.properties.id)
                             // .matchbar background change, scroll to it
                             // first, background to #fff for all
@@ -611,8 +611,8 @@
                             $("#review_list").scrollTop(divy.position().top - 80)
                             // $('[data-id=' + 'Q1630019' + ']')
                         })
-                        idToFeature[matchid] = marker
-                        return marker
+                        idToFeature[matchid] = map_marker
+                        return map_marker
                     }
                 }).addTo(map);
 
