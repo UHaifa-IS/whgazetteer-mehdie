@@ -111,13 +111,15 @@ function parsePlace(data) {
         links_arr = onlyUnique(data.links)
         console.log('distinct data.links', links_arr)
         for (l in links_arr) {
-            //console.log('link',links_arr[l])
+            console.log('link is not different:',(links_arr[l].type !== 'different'))
             if (links_arr[l].aug === true && links_arr[l].type !== 'different') {
                 added_count += 1
                 html_added += url_extplace(links_arr[l].identifier, links_arr[l].type)
             } else {
-                close_count += 1
-                html_close += url_extplace(links_arr[l].identifier, links_arr[l].type)
+                if (links_arr[l].type === 'closeMatch') {
+                    close_count += 1
+                    html_close += url_extplace(links_arr[l].identifier, links_arr[l].type)
+                }
             }
         }
         descrip += close_count > 0 ? html_close : 'none; '
