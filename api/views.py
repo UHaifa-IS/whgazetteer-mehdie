@@ -839,10 +839,12 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
                     pass
 
         # Iterate over reverse links and populate nodes and edges
-        # Assume this_place_id is already defined somewhere in your code
-        pattern = re.escape(str(this_place_id)) + '$'  # '$' denotes the end of a string in regex
+        # Concatenate this_dataset_id and this_place_id with a colon separator
+        exact_pattern = f"{this_dataset_id}:{this_place_id}"
 
-        reverse_links = PlaceLink.objects.filter(jsonb__identifier__regex=pattern)
+        # Perform an exact match search
+        reverse_links = PlaceLink.objects.filter(jsonb__identifier__exact=exact_pattern)
+
         for reverse_link in reverse_links:
             reverse_link_data = reverse_link.jsonb
             reverse_link_type = reverse_link_data.get('type')
