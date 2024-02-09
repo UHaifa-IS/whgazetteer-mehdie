@@ -166,9 +166,12 @@ def get_point_coordinates(value):
     try:
         # Assuming value is a stringified JSON
         value_dict = json.loads(value)
-        geoms = value_dict.get('geoms', [])
-        if geoms and geoms[0]['type'] == 'Point':
-            return mark_safe(geoms[0]['coordinates'])
+        if 'geoms' in value_dict:
+            geoms = value_dict.get('geoms', [])
+            if geoms and geoms[0]['type'] == 'Point':
+                return mark_safe(geoms[0]['coordinates'])
+        elif "coordinates" in value_dict:
+            return mark_safe(value_dict.get("coordinates"))
     except (IndexError, KeyError, TypeError, json.JSONDecodeError):
         return None
 

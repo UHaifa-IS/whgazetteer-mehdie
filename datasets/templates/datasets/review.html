@@ -349,12 +349,15 @@
                                         <div class="attest-element abbrev small"
                                              style="max-height: 8em; overflow: hidden; overflow-y: auto;">{{ form.description.jsonb.value }}</div>
                                     {% endif %}
-                                    {% with coordinates=form.json.value|get_point_coordinates %}
-                                        {% if coordinates %}
-                                            <p><strong>Coordinates:</strong> {{ coordinates }}</p>
+                                    {% with hit_data=hit_supplemental|get_item:form.id.value %}
+                                        {% if hit_data.geom %}
+                                            {% with coordinates=hit_data.geom|get_point_coordinates %}
+                                                {% if coordinates %}
+                                                    <p><strong>Coordinates:</strong> {{ coordinates }}</p>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% endif %}
                                     {% endwith %}
-
                                 </div>
                             {% endfor %}
                         </div>
