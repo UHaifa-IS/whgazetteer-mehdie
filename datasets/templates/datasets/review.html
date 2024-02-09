@@ -576,11 +576,11 @@
             // console.log('geom pushed: ', t_geom)
             geom['features'].push(t_geom)
 
-            function fill(ds) {
-                if (['tgn', 'wd', 'whg', 'md'].indexOf(ds) >= 0) {
-                    return "orange"
-                } else {
+            function fill(point_ds) {
+                if (point_ds === ds) {
                     return "green"
+                } else {
+                    return "orange"
                 }
             }
 
