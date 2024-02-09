@@ -111,15 +111,13 @@ function parsePlace(data) {
         links_arr = onlyUnique(data.links)
         console.log('distinct data.links', links_arr)
         for (l in links_arr) {
-            console.log('link is not different:',(links_arr[l].type !== 'different'))
+            //console.log('link',links_arr[l])
             if (links_arr[l].aug === true && links_arr[l].type !== 'different') {
                 added_count += 1
                 html_added += url_extplace(links_arr[l].identifier, links_arr[l].type)
             } else {
-                if (links_arr[l].type === 'closeMatch') {
-                    close_count += 1
-                    html_close += url_extplace(links_arr[l].identifier, links_arr[l].type)
-                }
+                close_count += 1
+                html_close += url_extplace(links_arr[l].identifier, links_arr[l].type)
             }
         }
         descrip += close_count > 0 ? html_close : 'none; '
@@ -155,12 +153,10 @@ function parsePlace(data) {
     }
     //
     // DESCRIPTIONS
-    // TODO: link description to identifier URI if present
     if (data.descriptions.length > 0) {
-        val = data.descriptions[0]['value'].substring(0, 300)
-        descrip += '<p><b>Description</b>: ' + (val.startsWith('http') ? '<a href="' + val + '" target="_blank">Link</a>' : val)
-            + ' ... </p>'
-        //'<br/><span class="small red-bold">('+data.descriptions[0]['identifier']+')</span>
+        val = data.descriptions[0]['value']
+        let desc = '<div className="attest-element abbrev small" style="max-height: 8em; overflow: hidden; overflow-y: auto;">' + val + '</div>'
+        descrip += '<p><b>Description</b>: ' + (val.startsWith('http') ? '<a href="' + val + '" target="_blank">Link</a>' : desc) + ' ... </p>'
     }
     //
     // CCODES
