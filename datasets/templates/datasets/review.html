@@ -281,7 +281,7 @@
                                                         {% with hit_data=hit_supplemental|get_item:form.id.value %}
                                                             {% if hit_data.geom %}
                                                                     <!-- Only output the script tag if hit_data.geom is not an empty string -->
-                                                                    <script id="{{ form.id.value }}" type="application/json">
+                                                                    <script id="{{ form.json.value|get:"src_id" }}" type="application/json">
                                                                         {{ hit_data.geom|safe }}
                                                                     </script>
                                                                 {% endif %}
