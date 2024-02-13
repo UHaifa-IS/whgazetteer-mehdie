@@ -167,15 +167,6 @@
                                 <div class="record" id="place_detail">
 
                                 </div> <!-- record-container -->`
-                                {% if record.descriptions %}
-                                    {% for d in record.descriptions.all %}
-                                        <p class="mb-0">
-                                            <strong>Description</strong>:
-                                        <div class="attest-element abbrev small" style="max-height: 8em; overflow: hidden; overflow-y: auto;">{{ d.jsonb.value }}
-                                        </div>>
-                                        </p>
-                                    {% endfor %}
-                                {% endif %}
                                 {% if record.repr_point %}
                                     <p><strong>Coordinates:</strong> {{ record.repr_point }}</p>
                                 {% endif %}
