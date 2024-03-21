@@ -867,6 +867,13 @@
                 let detail_description = parsePlace(data)
                 detail_description += '<div id="cy" style="width: 600px; height: 400px; margin-top: 20px;"></div>';
                 $("#detail").html(detail_description)
+                // refocus map and highlight place if geom exists
+                if (data.geometry) {
+                    console.log('getPlace() data.geometry', data.geometry)
+                    highlightFeatureGL(pid, data.geometry, data.geometry.coordinates)
+                    zoomTo(pid)
+                }
+
                 // Define a default graph structure
                 var defaultGraph = {
                     "nodes": ["placeA", "placeB"],
