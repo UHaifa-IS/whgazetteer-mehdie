@@ -566,9 +566,9 @@
                 console.log('geom pushed: ', t_geom)
                 geom['features'].push(t_geom)
             }
-            // console.log('processing geom for target place:', window.geom_as_json)
-            // console.log('geom elmement: ', window.geom_as_json['geom'])
-            // console.log('id elmement: ', window.geom_as_json['id'])
+            console.log('processing geom for target place:', window.geom_as_json)
+            console.log('geom elmement: ', window.geom_as_json['geom'])
+            console.log('id elmement: ', window.geom_as_json['id'])
             let t_geom = JSON.parse(window.geom_as_json['geom'])
             t_geom['properties'] = {"id": window.geom_as_json['id'], "ds": ds}
             // console.log('geom pushed: ', t_geom)
