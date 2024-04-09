@@ -226,7 +226,8 @@
 
             table.on('draw', function () {
                 $("#status_filter").html(buildSelect());
-                $("#status_select").val(localStorage.getItem('filter'))
+                const initialFilterValue = localStorage.getItem('filter') || '99';
+                $("#status_select").val(initialFilterValue);
                 spinner_table.stop()
                 setRowEvents();
             })
@@ -685,34 +686,13 @@
 
         // build select
         function buildSelect() {
-            select = '<label>Review filters: <select name="status" aria-controls="placetable" id="status_select" class="datatables_length">' +
-                '<option value="99" selected="selected">All</option>'
-
-            if (wdtask) {
-                select +=
-                    '<option disabled>-----wikidata-----</option>' +
-                    '<option value="50">Needs review (wd)</option>' +
-                    '<option value="51">Reviewed (wd)</option>' +
-                    '<option value="52">Deferred (wd)</option>'
-            }
-            if (tgntask) {
-                select +=
-                    '<option disabled>-------tgn-------</option>' +
-                    '<option value="60">Needs review (tgn)</option>' +
-                    '<option value="61">Reviewed (tgn)</option>' +
-                    '<option value="62">Deferred (tgn)</option>'
-            }
-            if (whgtask) {
-                select +=
-                    '<option disabled>-------whg-------</option>' +
-                    '<option value="70">Needs review </option>' +
-                    '<option value="71">Reviewed </option>' +
-                    '<option value="72">Deferred </option>'
-            }
-
-            select += '</select></label>'
-            return select
+            return '<label>Review filters: <select name="status" aria-controls="placetable" id="status_select" class="datatables_length">' +
+                '<option value="99" selected="selected">All</option>' +
+                '<option value="1">Matched</option>' +
+                '<option value="0">Unmatched</option>' +
+                '</select></label>';
         }
+
 
         function buildUrlFromNodeData(identifier) {
             // URL identifiers can be 'http*' or an authority prefix or dataset_id

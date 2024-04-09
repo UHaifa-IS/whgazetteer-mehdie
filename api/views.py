@@ -3,6 +3,7 @@ import logging
 import re
 
 from django.conf import settings
+from django.db.models import Exists, OuterRef
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User, Group
 from django.contrib.gis.geos import Polygon, Point
@@ -973,6 +974,18 @@ class PlaceTableViewSet(viewsets.ModelViewSet):
         query = self.request.GET.get('q')
         if query is not None:
             qs = qs.filter(title__istartswith=query)
+
+        # Apply 'Matched' or 'Unmatched' filter based on 'filter' parameter
+        filter_val = self.request.GET.get('filter')
+        if filter_val == '1':  # 'Matched' places
+            # Filter for places with at least one corresponding record in PlaceLink
+            qs = qs.annotate(has_link=Exists(PlaceLink.objects.filter(place_id=OuterRef('id')))).filter(
+                has_link=True)
+        elif filter_val == '0':  # 'Unmatched' places
+            # Filter for places with no corresponding records in PlaceLink
+            qs = qs.annotate(has_link=Exists(PlaceLink.objects.filter(place_id=OuterRef('id')))).filter(
+                has_link=False)
+
         return qs
 
     def get_permissions(self):
