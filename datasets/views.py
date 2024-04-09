@@ -427,6 +427,8 @@ def review(request, pk, tid, passnum):
     geom_for_map = {"id": placeid, "geom": ''}
     if place.geoms.first():
         geom_for_map['geom'] = json.dumps(place.geoms.first().jsonb)
+    else:
+        geom_for_map['geom'] = '{}'
 
     # get hits for this record
     if passnum.startswith('pass') and auth not in ['whg', 'idx']:
