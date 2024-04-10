@@ -1809,6 +1809,9 @@ def ds_insert_tsv(request, pk):
             countlinked = 0
             total_links = 0
             for r in reader:
+                if len(r) < len(header):
+                    print("[DEBUG] mismatch in row length: ", r)
+                    continue
                 # build attributes for new Place instance
                 src_id = r[header.index('id')]
                 title = r[header.index('title')].replace("' ", "'")  # why?
