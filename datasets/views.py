@@ -1860,6 +1860,8 @@ def ds_insert_tsv(request, pk):
                 try:
                     datesobj = parsedates_tsv(start, end)
                 except Exception as e:
+                    datesobj = {"timespans": [],
+                        "minmax": []}
                     print('[WARN] ValueError in date parsing:', e, start, end)
 
                 # returns {timespans:[{}],minmax[]}
