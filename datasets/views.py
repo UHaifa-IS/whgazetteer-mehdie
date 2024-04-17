@@ -427,6 +427,8 @@ def review(request, pk, tid, passnum):
     geom_for_map = {"id": placeid, "geom": ''}
     if place.geoms.first():
         geom_for_map['geom'] = json.dumps(place.geoms.first().jsonb)
+    else:
+        geom_for_map['geom'] = '{}'
 
     # get hits for this record
     if passnum.startswith('pass') and auth not in ['whg', 'idx']:
@@ -470,8 +472,6 @@ def review(request, pk, tid, passnum):
             countries.append(cchash[0][r.upper()]['gnlabel'] + ' (' + cchash[0][r.upper()]['tgnlabel'] + ')')
         except Exception as e:
             raise ValueError(e)
-
-
 
     # prep some context
     context = {
@@ -547,11 +547,6 @@ def review(request, pk, tid, passnum):
                         # but if it's a match_data task, we need to check if the relation_type is 'same_as'
                         if task.task_name[6:] == 'match_data' and hits[x]['relation_type'] != 'same_as':
                             create = False
-
-
-
-
-
 
                         if create:
                             gtype = hits[x]['json']['geoms'][0]['type']
@@ -1814,6 +1809,9 @@ def ds_insert_tsv(request, pk):
             countlinked = 0
             total_links = 0
             for r in reader:
+                if len(r) < len(header):
+                    print("[DEBUG] mismatch in row length: ", r)
+                    continue
                 # build attributes for new Place instance
                 src_id = r[header.index('id')]
                 title = r[header.index('title')].replace("' ", "'")  # why?
@@ -1855,15 +1853,20 @@ def ds_insert_tsv(request, pk):
                 matches = [aliasIt(x.strip()) for x in r[header.index('matches')].split(';')] \
                     if 'matches' in header and r[header.index('matches')] != '' else []
 
-                start = r[header.index('start')] if 'start' in header else None
+                start = r[header.index('start')] if 'start' in header and len(r) > header.index('start') - 1 else None
                 # validate_tsv() ensures there is always a start
-                has_end = 'end' in header and r[header.index('end')] != ''
+                has_end = 'end' in header and len(r) > header.index('start')-1 and r[header.index('end')] != ''
                 end = r[header.index('end')] if has_end else start
+                try:
+                    datesobj = parsedates_tsv(start, end)
+                except Exception as e:
+                    datesobj = {"timespans": [],
+                        "minmax": []}
+                    print('[WARN] ValueError in date parsing:', e, start, end)
 
-                datesobj = parsedates_tsv(start, end)
                 # returns {timespans:[{}],minmax[]}
 
-                if 'description' in header:
+                if 'description' in header and len(r) > header.index('description')-1:
                     description = r[header.index('description')]
                     print("[DEBUG] description: " + description)
                 else:
