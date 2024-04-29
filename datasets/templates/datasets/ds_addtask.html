@@ -215,7 +215,9 @@
                                             <hr/>
                                             <div class="mb-2">
                                                 <p class="font-weight-bold">match with one of my
-                                                    datasets{% fontawesome_icon 'question-circle' color='#993333' %}
+                                                    {% current_datatype %}
+                                                    datasets
+                                                    {% fontawesome_icon 'question-circle' color='#993333' %}
                                                 </p>
                                                 <p>
                                                     <select id="select_m_dataset" required name="m_dataset"
@@ -237,7 +239,9 @@
                                             <hr/>
                                             <div class="mb-2">
                                                 <p class="font-weight-bold">match with a public
-                                                    dataset{% fontawesome_icon 'question-circle' color='#993333' %}
+                                                    {% current_datatype %}
+                                                    dataset
+                                                    {% fontawesome_icon 'question-circle' color='#993333' %}
                                                 </p>
                                                 <p>
                                                     <select id="select_p_dataset" required name="p_dataset"

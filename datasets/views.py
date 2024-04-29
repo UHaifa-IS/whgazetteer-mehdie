@@ -2727,12 +2727,17 @@ class DatasetAddTaskView(LoginRequiredMixin, DetailView):
         # pre-defined UN regions
         predefined = Area.objects.all().filter(type='predefined').values('id', 'title')
 
+        # Assuming `id_` is the ID of the current dataset being viewed
+        current_dataset = Dataset.objects.get(id=id_)
+        current_datatype = current_dataset.datatype
+        context['current_datatype'] = current_datatype
+
         # my_dataset = Dataset.objects.filter(owner=self.request.user).exclude(id=id_)
         # Datasets owned by the user
-        owned_datasets = Dataset.objects.filter(owner=self.request.user)
+        owned_datasets = Dataset.objects.filter(owner=self.request.user, datatype=current_datatype)
 
         # Datasets shared with the user
-        shared_datasets = Dataset.objects.filter(collabs__user_id=self.request.user)
+        shared_datasets = Dataset.objects.filter(collabs__user_id=self.request.user, datatype=current_datatype)
 
         # Combining both querysets
         all_datasets = owned_datasets | shared_datasets
