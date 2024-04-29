@@ -22,9 +22,9 @@
 
 {% block title %}
 <title>
-    {% if form.datatype == "place" %}
+    {% if form.datatype.value == "place" %}
     Place Dataset::{{ ds.label }}
-    {% elif form.datatype == "people" %}
+    {% elif form.datatype.value == "people" %}
     People Dataset::{{ ds.label }}
     {% else %}
     Dataset::{{ ds.label }}
@@ -79,9 +79,9 @@
                                             <a href="#" class="edit-title">{% fontawesome_icon 'edit' color='#336699' %}</a>
                                         </td>
                                         <td>
-                                            {% if form.datatype == "place" %}
+                                            {% if form.datatype.value == "place" %}
                                             <span class="form-title h6 strong"><i class="fa-solid fa-map-location-dot"></i> Place Dataset::{{ form.title.value }}</span>
-                                            {% elif form.datatype == "people" %}
+                                            {% elif form.datatype.value == "people" %}
                                             <span class="form-title h6 strong"><i class="fas fa-users"></i> People Dataset::{{ form.title.value }}</span>
                                             {% else %}
                                             <span class="form-title h6 strong">{{ form.title.value }}</span>
