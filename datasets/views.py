@@ -2744,7 +2744,7 @@ class DatasetAddTaskView(LoginRequiredMixin, DetailView):
 
         # Excluding the datasets with the given id
         my_dataset = all_datasets.exclude(id=id_).distinct()
-        public_dataset = Dataset.objects.filter(public=True).exclude(owner=self.request.user)
+        public_dataset = Dataset.objects.filter(public=True).exclude(owner=self.request.user, datatype=current_datatype)
 
         gothits = {}
         for t in ds.tasks.filter(status='SUCCESS'):
