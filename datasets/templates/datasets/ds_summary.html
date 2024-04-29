@@ -241,15 +241,11 @@
                                                 <td>{{ current_file.upload_date|date:"d-M-Y, H:i (e)" }}</td>
                                             </tr>
                                             <tr>
-                                                <td><b>Data type</b></td>
-                                                <td>{{ current_file.datatype }}</td>
-                                            </tr>
-                                            <tr>
                                                 <td><b>Format</b></td>
                                                 <td>
-                  <span class="display-field">
-                    {{ current_file.format }}
-                  </span>
+                                                      <span class="display-field">
+                                                        {{ current_file.format }}
+                                                      </span>
                                                     <span class="update-field hidden">{{ form.format }}</span>
                                                 </td>
                                             </tr>
@@ -268,9 +264,6 @@
                                         <input class="btn btn-primary btn-sm hidden btn-file" type="submit"
                                                value="Upload"/>
                                     </div> <!-- div_file -->
-                                    <input type="hidden" name="datatype" value=
-                                            {% if current_file %}"{{ current_file.datatype }}"{% else %}"place"
-                                            {% endif %}>
                                     <input type="hidden" name="rev" value="{{ current_file.rev }}">
                                     <input type="hidden" name="format" value="{{ current_file.format }}">
                                     <input type="hidden" name="delimiter" value="{{ current_file.delimiter }}">
