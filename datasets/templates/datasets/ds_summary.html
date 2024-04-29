@@ -16,11 +16,22 @@
 
     <link rel="stylesheet" href="{% static 'css/spin.css' %}"/>
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.23/css/dataTables.bootstrap4.min.css">
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="{% static 'celery_progress/celery_progress.js' %}"></script>
 {% endblock %}
 
-{% block title %}<title>Dataset::{{ ds.label }}</title>{% endblock %}
+{% block title %}
+<title>
+    {% if current_file.datatype == "place" %}
+    Place Dataset::{{ ds.label }}
+    {% elif current_file.datatype == "people" %}
+    People Dataset::{{ ds.label }}
+    {% else %}
+    Dataset::{{ ds.label }}
+    {% endif %}
+</title>
+{% endblock %}
+
 
 {% block content %}
     <div id="dataset_content" class="container mt-1 px-1">
@@ -65,11 +76,16 @@
                                 <table class="ds-table">
                                     <tr>
                                         <td><b>Title</b>
-                                            <a href="#"
-                                               class="edit-title">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                            <a href="#" class="edit-title">{% fontawesome_icon 'edit' color='#336699' %}</a>
                                         </td>
                                         <td>
+                                            {% if current_file.datatype == "place" %}
+                                            <span class="form-title h6 strong"><i class="fas fa-map-marker-alt"></i> Place Dataset::{{ form.title.value }}</span>
+                                            {% elif current_file.datatype == "people" %}
+                                            <span class="form-title h6 strong"><i class="fas fa-users"></i> People Dataset::{{ form.title.value }}</span>
+                                            {% else %}
                                             <span class="form-title h6 strong">{{ form.title.value }}</span>
+                                            {% endif %}
                                             <span class="hidden editing-title">{{ form.title }}</span>
                                         </td>
                                     </tr>
