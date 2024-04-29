@@ -10,7 +10,7 @@ class DatasetAdmin(GuardedModelAdmin):
 
 # class DatasetFileAdmin(admin.ModelAdmin):
 class DatasetFileAdmin(GuardedModelAdmin):
-    list_display = ('dataset_id_id', 'file', 'upload_date', 'df_status', 'format', 'datatype')
+    list_display = ('dataset_id_id', 'file', 'upload_date', 'df_status', 'format')
 
 
 @admin.register(Hit)

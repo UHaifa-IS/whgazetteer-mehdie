@@ -27,8 +27,6 @@ class HitModelForm(forms.ModelForm):
             # 'relation_type': forms.TextInput(),
         }
 
-
-
     def __init__(self, *args, **kwargs):
         super(HitModelForm, self).__init__(*args, **kwargs)
 
@@ -46,13 +44,11 @@ class HitModelForm(forms.ModelForm):
                 pass
 
 
-
-
 class DatasetFileModelForm(forms.ModelForm):
     class Meta:
         model = DatasetFile
         fields = ('dataset_id', 'file', 'rev', 'format', 'delimiter',
-                  'df_status', 'datatype', 'header', 'numrows')
+                  'df_status', 'header', 'numrows')
 
     def __init__(self, *args, **kwargs):
         super(DatasetFileModelForm, self).__init__(*args, **kwargs)

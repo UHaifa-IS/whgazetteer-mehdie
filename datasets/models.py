@@ -275,8 +275,8 @@ class DatasetFile(models.Model):
     file = models.FileField(upload_to=user_directory_path)
     format = models.CharField(max_length=12, null=False,
                               choices=FORMATS, default='lpf')
-    datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
-                                default='place')
+    # datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
+    #                            default='place')
     delimiter = models.CharField(max_length=5, null=True, blank=True)
     df_status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS_FILE)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
@@ -314,7 +314,7 @@ class Hit(models.Model):
     # related_name='task_id', on_delete=models.CASCADE)
     task_id = models.CharField(max_length=50)
     # the choices are removed because we now use this field to hold related datasets in the matching process
-    authority = models.CharField(max_length=12) #, choices=AUTHORITIES)
+    authority = models.CharField(max_length=12)  # , choices=AUTHORITIES)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     query_pass = models.CharField(max_length=12, choices=PASSES)
     src_id = models.CharField(max_length=2044)
