@@ -45,6 +45,9 @@ def dump_table(table_name, fields: list):
                     processed_row.append(str(item))
             writer.writerow(processed_row)
 
-# Dump the tables
-dump_table('datasets', ['id', 'label', 'title', 'description', 'webpage', 'uri_base', 'datatype'])
-logging.info('Dumped datasets table')
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    # Dump the tables
+    dump_table('datasets', ['id', 'label', 'title', 'description', 'webpage', 'uri_base', 'datatype'])
+    logging.info('Dumped datasets table')
