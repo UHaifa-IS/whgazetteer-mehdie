@@ -2563,8 +2563,8 @@ class DatasetBrowseView(LoginRequiredMixin, DetailView):
         context['updates'] = {}
         context['ds'] = ds
         context['tgntask'] = 'tgn' in ds_tasks
-        context['whgtask'] = len(set(['whg', 'idx']) & set(ds_tasks)) > 0
-        context['wdtask'] = len(set(['wd', 'wdlocal']) & set(ds_tasks)) > 0
+        context['whgtask'] = len({'whg', 'idx'} & set(ds_tasks)) > 0
+        context['wdtask'] = len({'wd', 'wdlocal'} & set(ds_tasks)) > 0
         context['beta_or_better'] = True if self.request.user.groups.filter(
             name__in=['beta', 'admins']).exists() else False
 
@@ -2806,33 +2806,38 @@ class DatasetAddTaskView(LoginRequiredMixin, DetailView):
 """
   returns dataset owner "Log & Comments" tab
 """
-
-
 class DatasetLogView(LoginRequiredMixin, DetailView):
-    login_url = '/accounts/login/'
-    redirect_field_name = 'redirect_to'
+  login_url = '/accounts/login/'
+  redirect_field_name = 'redirect_to'
 
-    model = Dataset
-    template_name = 'datasets/ds_log.html'
+  model = Dataset
+  template_name = 'datasets/ds_log.html'
 
-    def get_success_url(self):
-        id_ = self.kwargs.get("id")
-        return '/datasets/' + str(id_) + '/log'
+  def get_success_url(self):
+    id_ = self.kwargs.get("id")
+    user = self.request.user
+    print('messages:', messages.get_messages(self.kwargs))
+    return '/datasets/'+str(id_)+'/log'
 
-    def get_object(self):
-        id_ = self.kwargs.get("id")
-        return get_object_or_404(Dataset, id=id_)
+  def get_object(self):
+    id_ = self.kwargs.get("id")
+    return get_object_or_404(Dataset, id=id_)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super(DatasetLogView, self).get_context_data(*args, **kwargs)
+  def get_context_data(self, *args, **kwargs):
+    context = super(DatasetLogView, self).get_context_data(*args, **kwargs)
 
-        id_ = self.kwargs.get("id")
-        ds = get_object_or_404(Dataset, id=id_)
+    print('DatasetLogView get_context_data() kwargs:',self.kwargs)
+    print('DatasetLogView get_context_data() request.user:',self.request.user)
+    id_ = self.kwargs.get("id")
+    ds = get_object_or_404(Dataset, id=id_)
 
-        context['ds'] = ds
-        context['log'] = ds.log.filter(category='dataset').order_by('-timestamp')
-        context['comments'] = Comment.objects.filter(place_id__dataset=ds).order_by('-created')
-        context['beta_or_better'] = True if self.request.user.groups.filter(
-            name__in=['beta', 'admins']).exists() else False
+    # commented_places=
+    me = self.request.user
+    # context['notes']=[{"pid": p.id, "title": p.title, "note": c.note, "tag": c.tag, "date": c.created} for c in p.comment_set.all()]
+    context['ds'] = ds
+    context['log'] = ds.log.filter(category='dataset').order_by('-timestamp')
+    # context['comments'] =
+    context['comments'] = Comment.objects.filter(place_id__dataset=ds).order_by('-created')
+    context['beta_or_better'] = True if self.request.user.groups.filter(name__in=['beta', 'admins']).exists() else False
 
-        return context
+    return context
