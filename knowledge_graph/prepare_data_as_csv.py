@@ -4,6 +4,7 @@ Connect to the posdgresql database at localhost:5432 and export the tables to cs
 
 import psycopg2
 import csv
+import logging
 
 # Connect to the database
 conn = psycopg2.connect(
@@ -46,3 +47,4 @@ def dump_table(table_name, fields: list):
 
 # Dump the tables
 dump_table('datasets', ['id', 'label', 'title', 'description', 'webpage', 'uri_base', 'datatype'])
+logging.info('Dumped datasets table')
