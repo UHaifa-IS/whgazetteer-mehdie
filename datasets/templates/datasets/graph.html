@@ -23,6 +23,13 @@
                 overflow-y: auto !important;
                 max-height: 100%;
             }
+
+            /* Additional styles for RDF 3D graph */
+            canvas {
+                display: block;
+                width: 100%;
+                height: 80vh; /* Adjust as needed */
+            }
         </style>
     {% endblock mycss %}
 {% endblock %}
@@ -62,7 +69,22 @@
             {% endif %}
         </ul>
         <div class="tab-content">
-            {% include "datasets/rdf_3d_graph.html" %}
+            <main is="x-app">
+                <canvas is="x-visualizer"></canvas>
+            </main>
+            <script src="{% static 'rdf-3d/index.js' %}" type="module"></script>
+            <script async src="https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js"></script>
+            <script src="{% static 'rdf-3d/packages/unpkg.com/three@0.150.0/build/three.js' %}"></script>
+            <script src="{% static 'rdf-3d/packages/unpkg.com/three-forcegraph@1.41.5/dist/three-forcegraph.min.js' %}"></script>
+            <script type="importmap">
+                {
+                    "imports": {
+                        "three": "{% static 'rdf-3d/packages/unpkg.com/three@0.150.0/build/three.module.js' %}",
+                        "three/addons/": "{% static 'rdf-3d/packages/unpkg.com/three@0.150.0/examples/jsm/' %}"
+                    }
+                }
+            </script>
+            <script type="module" src="{% static 'rdf-3d/reactiveAuthenticationServiceWorker.js' %}"></script>
         </div>
     </div>
 
