@@ -12,7 +12,7 @@ export function convertLabel(term) {
 
 async function createWriter() {
     // Load prefix.cc dump
-    const response = await fetch("./packages/prefix.cc/popular/all.file.json")
+    const response = await fetch('/static/rdf-3d/packages/prefix.cc/popular/all.file.json');
     const original = await response.json()
 
     // Discard duplicate
