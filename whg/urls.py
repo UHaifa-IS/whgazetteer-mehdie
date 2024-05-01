@@ -28,6 +28,8 @@ urlpatterns = [
     path('tutorials/', include('main.urls')),
     path('resources/', include('resources.urls')),
     path('teaching/', TeachingPortalView.as_view(), name="teaching-page"),
+    path('graph/', views.GraphView.as_view(), name='graph'),
+
 
     # DEPRECATED
     # path('dashboard/', DashboardView.as_view(), name='dashboard'),

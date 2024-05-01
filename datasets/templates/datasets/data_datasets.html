@@ -50,6 +50,10 @@
                 <a class="nav-link" id="arealist-tab" href="{% url 'data-areas' %}"
                    role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="graph-tab" href="{% url 'graph' %}"
+                   role="tab" aria-controls="graph" aria-selected="false">Graph</a>
+            </li>
             {% if beta_or_better %}
                 <li class="nav-item">
                     <a class="nav-link" id="resourcelist-tab" href="{% url 'data-resources' %}"

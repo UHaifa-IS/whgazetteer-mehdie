@@ -166,3 +166,6 @@ class CommentCreateView(BSModalCreateView):
                 kwargs['initial'] = {'next': redirect_}
         return kwargs
     # ** END
+
+class GraphView(TemplateView):
+    template_name = "datasets/graph.html"
