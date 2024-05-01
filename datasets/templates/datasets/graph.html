@@ -1,8 +1,69 @@
 {% extends "main/base.html" %}
 {% block title %}<title>MEHDIE::Graph</title>{% endblock %}
+{% block extra_head %}
+    {% block mycss %}
+        <style>
+            .fa-sort {
+                cursor: pointer;
+            }
+
+            #table_ds th, #table_areas th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #fdf5e6;
+            }
+
+            #dataset_list, #area_list {
+                position: relative !important;
+                height: 75vh !important
+            }
+
+            .list-box {
+                overflow-y: auto !important;
+                max-height: 100%;
+            }
+        </style>
+    {% endblock mycss %}
+{% endblock %}
 
 {% block content %}
-<div style="width: 100%; height: 500px; background-color: white; display: flex; align-items: center; justify-content: center;">
-    <h1>Knowledge Graph Under Construction</h1>
-</div>
+    {% load static %}
+    {% load fontawesome %}
+    {% load mathfilters %}
+    {% load dataset_extras %}
+
+    <div class="container pt-3">
+        <ul id="dashboard_tabs" class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="mydslist-tab"
+                   href="{% url 'data-datasets' %}"
+                   role="tab" aria-controls="dslist" aria-selected="true">Datasets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="collectionlist-tab"
+                   href="{% url 'data-collections' %}"
+                   role="tab" aria-controls="collectionlist" aria-selected="false">Collections</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="arealist-tab"
+                   href="{% url 'data-areas' %}"
+                   role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="graph-tab" href="{% url 'graph' %}"
+                   role="tab" aria-controls="graph" aria-selected="false">Graph</a>
+            </li>
+            {% if beta_or_better %}
+                <li class="nav-item">
+                    <a class="nav-link active" id="resourcelist-tab" data-link="resourcelist" data-toggle="tab"
+                       role="tab" aria-controls="resourcelist" aria-selected="false">Teaching resources</a>
+                </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content">
+            <h1>Knowledge Graph Under Construction</h1>
+        </div>
+    </div>
+
 {% endblock %}
