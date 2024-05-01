@@ -16,8 +16,8 @@ if __name__ == '__main__':
     rdf_graph = rml_converter.convert(rml_file_path)
     logging.info('Converted datasets table to RDF graph.')
     # Print the triples contained into the RDF graph.
-    for s, p, o in rdf_graph:
-        print(s, p, o)
+    # for s, p, o in rdf_graph:
+    #     print(s, p, o)
 
     rdf_graph.serialize(destination='output.ttl', format='turtle')
     logging.info('Serialized RDF graph to output.ttl.')
