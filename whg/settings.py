@@ -254,6 +254,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'datasets/static/'),
     os.path.join(BASE_DIR, 'main/static/'),
     os.path.join(BASE_DIR, 'whg/static/'),
+    os.path.join(BASE_DIR, 'knowledge_graph/static/'),
 ]
 
 if os.name == 'nt':
