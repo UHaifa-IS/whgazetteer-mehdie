@@ -8,7 +8,7 @@ navigator.serviceWorker.addEventListener("message", onWorkerMessage)
 const registration = await navigator.serviceWorker.getRegistration()
 if (!registration || !navigator.serviceWorker.controller) {
     console.debug("Not registered. Registering.")
-    const registration2 = await navigator.serviceWorker.register("./worker.js", {type: "module"})
+    const registration2 = await navigator.serviceWorker.register("/static/rdf-3d/worker.js", {type: "module"})
 
     if (!registration2 || !navigator.serviceWorker.controller) {
         console.debug("Reloading")
