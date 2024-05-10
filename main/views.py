@@ -199,17 +199,25 @@ class GraphView(TemplateView):
         # Prepare the data for JavaScript
         # Assuming 'g' is your rdflib.Graph instance
         triples = []
-        classes = set()
+        classes = set([obj for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
+                                                                                 '-syntax-ns#type'])
+        print("Classes:", classes)
         exclude_subjects = set()
+
+        if selected_classes:
+            selected_classes = selected_classes.split(',')
+        else:
+            # If no specific class filter is provided, consider all classes as selected
+            selected_classes = classes
+
+        print("Selected classes:", selected_classes)
 
         for subj, pred, obj in g:
             # if the predicate is  rdf:type, skip it
-            if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-                classes.add(format_uri(obj, g.namespace_manager))
-                if selected_classes:
-                    if obj not in selected_classes:
-                        exclude_subjects.add(subj)
-                    continue
+            if obj not in selected_classes:
+                exclude_subjects.add(subj)
+                print("Excluding subject:", subj)
+                continue
 
             triples.append({
                 "subject": format_uri(subj, g.namespace_manager),
