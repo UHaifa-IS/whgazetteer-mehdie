@@ -204,10 +204,7 @@ class GraphView(TemplateView):
         print("Classes:", classes)
         exclude_subjects = set()
 
-        if selected_classes:
-            selected_classes = selected_classes.split(',')
-        else:
-            # If no specific class filter is provided, consider all classes as selected
+        if not selected_classes:
             selected_classes = classes
 
         print("Selected classes:", selected_classes)
@@ -232,5 +229,5 @@ class GraphView(TemplateView):
         # Add triples to the context
         context['triples'] = triples
         context['classes'] = list(classes)
-        context['selected_classes'] = selected_classes or list(classes)
+        context['selected_classes'] = selected_classes
         return context
