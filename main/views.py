@@ -1,5 +1,5 @@
 # main.views
-
+import rdflib
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
@@ -169,3 +169,28 @@ class CommentCreateView(BSModalCreateView):
 
 class GraphView(TemplateView):
     template_name = "datasets/graph.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Path to your Turtle file
+        file_path = '../knowledge_graph/output.ttl'
+
+        # Create a graph
+        g = rdflib.Graph()
+
+        # Parse the Turtle file
+        g.parse(file_path, format='turtle')
+
+        # Prepare the data for JavaScript
+        triples = []
+        for subj, pred, obj in g:
+            triples.append({
+                "subject": str(subj.n3(g.namespace_manager)),
+                "predicate": str(pred.n3(g.namespace_manager)),
+                "object": str(obj.n3(g.namespace_manager))
+            })
+
+        # Add triples to the context
+        context['triples'] = triples
+        return context
