@@ -185,6 +185,7 @@ class GraphView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        selected_classes = self.request.GET.get('classes', '').split(',')
 
         # Path to your Turtle file
         file_path = 'knowledge_graph/output.ttl'
@@ -198,16 +199,29 @@ class GraphView(TemplateView):
         # Prepare the data for JavaScript
         # Assuming 'g' is your rdflib.Graph instance
         triples = []
+        classes = set()
+        exclude_subjects = set()
+
         for subj, pred, obj in g:
             # if the predicate is  rdf:type, skip it
             if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-                continue
+                classes.add(obj)
+                if selected_classes:
+                    if obj not in selected_classes:
+                        exclude_subjects.add(subj)
+                    continue
+
             triples.append({
                 "subject": format_uri(subj, g.namespace_manager),
                 "predicate": format_uri(pred, g.namespace_manager),
                 "object": format_uri(obj, g.namespace_manager)
             })
 
+        # Filter out triples with excluded subjects
+        triples = [t for t in triples if t["subject"] not in exclude_subjects]
+
+
         # Add triples to the context
         context['triples'] = triples
+        context['classes'] = list(classes)
         return context

@@ -100,6 +100,10 @@
         </ul>
         <div class="tab-content">
             <div id="svg-body" class="panel-body"></div>
+            {% for cls in classes %}
+                <input type="checkbox" checked="checked" class="class-filter" id="filter-{{ cls }}" value="{{ cls }}">
+                <label for="filter-{{ cls }}">{{ cls }}</label><br>
+            {% endfor %}
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 	        <script src="https://d3js.org/d3.v3.min.js"></script>
             <script src="{% static 'js/rdfd3.js' %}"></script>
@@ -126,6 +130,11 @@
 
                 update();
 
+                $('.class-filter').change(function() {
+                    // Construct the URL with selected classes
+                    let selectedClasses = $('.class-filter:checked').map(function() { return $(this).val(); }).get().join(',');
+                    window.location.href = `{% url 'graph' %}?classes=${selectedClasses}`;
+                });
               </script>
         </div>
     </div>
