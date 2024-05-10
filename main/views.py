@@ -186,6 +186,7 @@ class GraphView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         selected_classes = self.request.GET.get('classes', '').split(',')
+        print("Selected classes:", selected_classes)
 
         # Path to your Turtle file
         file_path = 'knowledge_graph/output.ttl'
