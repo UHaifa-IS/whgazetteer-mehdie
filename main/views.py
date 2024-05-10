@@ -174,7 +174,7 @@ class GraphView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         # Path to your Turtle file
-        file_path = '../knowledge_graph/output.ttl'
+        file_path = 'knowledge_graph/output.ttl'
 
         # Create a graph
         g = rdflib.Graph()
