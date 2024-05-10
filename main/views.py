@@ -205,7 +205,7 @@ class GraphView(TemplateView):
         for subj, pred, obj in g:
             # if the predicate is  rdf:type, skip it
             if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
-                classes.add(obj)
+                classes.add(format_uri(obj, g.namespace_manager))
                 if selected_classes:
                     if obj not in selected_classes:
                         exclude_subjects.add(subj)
@@ -224,4 +224,5 @@ class GraphView(TemplateView):
         # Add triples to the context
         context['triples'] = triples
         context['classes'] = list(classes)
+        context['selected_classes'] = selected_classes or list(classes)
         return context

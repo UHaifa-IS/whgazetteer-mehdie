@@ -101,7 +101,8 @@
         <div class="tab-content">
             <div id="svg-body" class="panel-body"></div>
             {% for cls in classes %}
-                <input type="checkbox" checked="checked" class="class-filter" id="filter-{{ cls }}" value="{{ cls }}">
+                <input type="checkbox" class="class-filter" id="filter-{{ cls }}" value="{{ cls }}"
+                    {% if cls in selected_classes %}checked="checked"{% endif %}>
                 <label for="filter-{{ cls }}">{{ cls }}</label><br>
             {% endfor %}
             <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
