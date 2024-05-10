@@ -25,3 +25,6 @@ sudo supervisorctl tail -10000 celery stderr
 # Celery config
 
 sudo vi /etc/supervisor/conf.d/celery.conf
+
+# Collect static files (only adds, does not overwrite or delete)
+python manage.py collectstatic

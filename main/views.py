@@ -199,6 +199,9 @@ class GraphView(TemplateView):
         # Assuming 'g' is your rdflib.Graph instance
         triples = []
         for subj, pred, obj in g:
+            # if the predicate is  rdf:type, skip it
+            if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
+                continue
             triples.append({
                 "subject": format_uri(subj, g.namespace_manager),
                 "predicate": format_uri(pred, g.namespace_manager),
