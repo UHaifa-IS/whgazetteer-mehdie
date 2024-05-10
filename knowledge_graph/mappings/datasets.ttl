@@ -1,6 +1,6 @@
 @prefix rr: <http://www.w3.org/ns/r2rml#> .
 @prefix rml: <http://semweb.mmlab.be/ns/rml#> .
-@prefix meh: <http://tools.mehdie.org/ns/> .
+@prefix mhd: <http://tools.mehdie.org/ns/mehdie#> .
 @prefix ql: <http://semweb.mmlab.be/ns/ql#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
@@ -12,12 +12,12 @@
   ];
 
   rr:subjectMap [
-    rr:template "http://tools.mehdie.org/ns/datasets/{id}" ;
-    rr:class meh:Dataset
+    rr:template "http://tools.mehdie.org/ns/mehdie#dataset/{id}" ;
+    rr:class mhd:Dataset
   ];
 
   rr:predicateObjectMap [
-    rr:predicate meh:label ;
+    rr:predicate mhd:label ;
     rr:objectMap [
        rml:reference "label";
        rml:datatype xsd:string
@@ -25,7 +25,7 @@
   ];
 
   rr:predicateObjectMap [
-    rr:predicate meh:title ;
+    rr:predicate mhd:title ;
     rr:objectMap [
        rml:reference "title";
        rml:datatype xsd:string
