@@ -167,6 +167,19 @@ class CommentCreateView(BSModalCreateView):
         return kwargs
     # ** END
 
+
+def format_uri(node, namespace_manager):
+    """
+    Custom function to format RDF node URIs using namespace prefixes.
+    """
+    uri = str(node)
+    for prefix, ns in namespace_manager.namespaces():
+        ns = str(ns)
+        if uri.startswith(ns):
+            return f"{prefix}:{uri[len(ns):]}"
+    return node.n3(namespace_manager)  # Fallback to default n3 serialization
+
+
 class GraphView(TemplateView):
     template_name = "datasets/graph.html"
 
@@ -183,12 +196,13 @@ class GraphView(TemplateView):
         g.parse(file_path, format='turtle')
 
         # Prepare the data for JavaScript
+        # Assuming 'g' is your rdflib.Graph instance
         triples = []
         for subj, pred, obj in g:
             triples.append({
-                "subject": str(subj.n3(g.namespace_manager)),
-                "predicate": str(pred.n3(g.namespace_manager)),
-                "object": str(obj.n3(g.namespace_manager))
+                "subject": format_uri(subj, g.namespace_manager),
+                "predicate": format_uri(pred, g.namespace_manager),
+                "object": format_uri(obj, g.namespace_manager)
             })
 
         # Add triples to the context
