@@ -226,8 +226,7 @@ class GraphView(TemplateView):
             ?s ?p ?o .
             ?s rdf:type ?type .
             FILTER(?type IN ({classes_str}))
-            LIMIT 500
-        }}'''
+        }} LIMIT 500'''
         qres = g.query(query)
         print(f"Query executed in {monotonic() - query_start:.2f} seconds")
         # print("Graph size after filtering:", len(g))
