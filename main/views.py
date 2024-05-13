@@ -189,7 +189,7 @@ class GraphView(TemplateView):
         context = super().get_context_data(**kwargs)
         selected_classes = self.request.GET.get('classes', '').split(',')
         # selected_classes = [urllib.parse.unquote(cls) for cls in selected_classes]
-        print("Selected classes:", selected_classes)
+        # print("Selected classes:", selected_classes)
 
         # Path to your Turtle file
         file_path = 'knowledge_graph/output.ttl'
@@ -205,18 +205,18 @@ class GraphView(TemplateView):
         triples = []
         classes = set([obj for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
                                                                                  '-syntax-ns#type'])
-        print("Classes:", classes)
+        #print("Classes:", classes)
 
         if not selected_classes:
-            print("No classes selected, using all classes")
+            # print("No classes selected, using all classes")
             selected_classes = classes
 
-        print("Selected classes:", selected_classes)
+        # print("Selected classes:", selected_classes)
         classes_str = ", ".join(f"<{cls}>" for cls in selected_classes)
-        print("Classes string:", classes_str)
+        # print("Classes string:", classes_str)
 
         # filter the graph for the selected classes
-        print("Graph size before filtering:", len(g))
+        # print("Graph size before filtering:", len(g))
         query = f'''
         SELECT ?s ?p ?o WHERE {{
             ?s ?p ?o .
@@ -224,7 +224,7 @@ class GraphView(TemplateView):
             FILTER(?type IN ({classes_str}))
         }}'''
         qres = g.query(query)
-        print("Graph size after filtering:", len(g))
+        # print("Graph size after filtering:", len(g))
 
         for subj, pred, obj in qres:
             # if the predicate is  rdf:type, skip it
