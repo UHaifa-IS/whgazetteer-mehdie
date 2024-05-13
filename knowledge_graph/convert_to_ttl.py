@@ -12,7 +12,7 @@ if __name__ == '__main__':
      - using the file examples/artist/artist-map.ttl (see the examples in this repo);
      - obtaining an RDF graph as output.
     '''
-    rml_file_path = os.path.join('mappings', 'datasets.ttl')  # 'pyrml-example.ttl')
+    rml_file_path = os.path.join('mappings', 'datasets_and_places.ttl')  # 'pyrml-example.ttl')
     rdf_graph = rml_converter.convert(rml_file_path)
     logging.info('Converted datasets table to RDF graph.')
     rdf_graph.bind('mhd', 'http://tools.mehdie.org/ns/mehdie#')
