@@ -2,6 +2,7 @@
 import urllib
 
 import rdflib
+from time import monotonic
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
 from django.http import HttpResponse
@@ -198,7 +199,9 @@ class GraphView(TemplateView):
         g = rdflib.Graph()
 
         # Parse the Turtle file
+        start = monotonic()
         g.parse(file_path, format='turtle')
+        print(f"Graph parsed in {monotonic() - start:.2f} seconds")
 
         # Prepare the data for JavaScript
         # Assuming 'g' is your rdflib.Graph instance
@@ -217,21 +220,19 @@ class GraphView(TemplateView):
 
         # filter the graph for the selected classes
         # print("Graph size before filtering:", len(g))
+        query_start = monotonic()
         query = f'''
         SELECT ?s ?p ?o WHERE {{
             ?s ?p ?o .
             ?s rdf:type ?type .
             FILTER(?type IN ({classes_str}))
+            LIMIT 500
         }}'''
         qres = g.query(query)
+        print(f"Query executed in {monotonic() - query_start:.2f} seconds")
         # print("Graph size after filtering:", len(g))
 
-        limit = 500
         for subj, pred, obj in qres:
-            if limit == 0:
-                break
-
-            limit -= 1
             # if the predicate is  rdf:type, skip it
             if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
                 continue
