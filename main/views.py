@@ -203,7 +203,7 @@ class GraphView(TemplateView):
         # Prepare the data for JavaScript
         # Assuming 'g' is your rdflib.Graph instance
         triples = []
-        classes = set([obj for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
+        classes = set([str(obj) for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
                                                                                  '-syntax-ns#type'])
         print("Classes:", classes)
         exclude_subjects = set()
@@ -232,7 +232,7 @@ class GraphView(TemplateView):
 
         # Add triples to the context
         context['triples'] = triples
-        context['classes'] = list(classes)
-        context['selected_classes'] = selected_classes
+        context['classes'] = sorted(list(classes))
+        context['selected_classes'] = [str(cls) for cls in selected_classes]
         print(context)
         return context
