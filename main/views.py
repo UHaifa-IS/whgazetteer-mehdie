@@ -234,4 +234,5 @@ class GraphView(TemplateView):
         context['triples'] = triples
         context['classes'] = list(classes)
         context['selected_classes'] = selected_classes
+        print(context)
         return context
