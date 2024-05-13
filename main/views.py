@@ -203,7 +203,7 @@ class GraphView(TemplateView):
         # Prepare the data for JavaScript
         # Assuming 'g' is your rdflib.Graph instance
         triples = []
-        classes = set([str(obj) for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
+        classes = set([obj for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
                                                                                  '-syntax-ns#type'])
         print("Classes:", classes)
         exclude_subjects = set()
@@ -214,11 +214,15 @@ class GraphView(TemplateView):
 
         print("Selected classes:", selected_classes)
 
+        # filter the graph for the selected classes
+        print("Graph size before filtering:", len(g))
+        g = g.query('SELECT ?s ?p ?o WHERE { ?s ?p ?o . ?s rdf:type ?type . FILTER(?type IN (?selected_classes)) }',
+                    initBindings={'selected_classes': [rdflib.URIRef(cls) for cls in selected_classes]})
+        print("Graph size after filtering:", len(g))
+
         for subj, pred, obj in g:
             # if the predicate is  rdf:type, skip it
-            if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' and str(obj) not in selected_classes:
-                exclude_subjects.add(str(subj))
-                print("Excluding subject:", subj, "   object was:", obj, "predicate was:", pred)
+            if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
                 continue
 
             triples.append({
@@ -227,23 +231,8 @@ class GraphView(TemplateView):
                 "object": format_uri(obj, g.namespace_manager)
             })
 
-        # Filter out triples with excluded subjects
-        print("Excluded subjects:", exclude_subjects)
-        print("Before filtering:", len(triples))
-        remaining_triples = []
-        for t in triples:
-            print(t)
-            if str(t["subject"]) in exclude_subjects:
-                print("Removing:", t)
-            else:
-                remaining_triples.append(t)
-
-        # triples = [t for t in triples if str(t["subject"]) not in exclude_subjects]
-        print("After filtering:", len(remaining_triples))
-        triples = remaining_triples
-
         # Add triples to the context
         context['triples'] = triples
-        context['classes'] = sorted(list(classes))
+        context['classes'] = sorted([str(cls) for cls in classes])
         context['selected_classes'] = [str(cls) for cls in selected_classes]
         return context
