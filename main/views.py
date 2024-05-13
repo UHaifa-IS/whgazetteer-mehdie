@@ -226,7 +226,12 @@ class GraphView(TemplateView):
         qres = g.query(query)
         # print("Graph size after filtering:", len(g))
 
+        limit = 500
         for subj, pred, obj in qres:
+            if limit == 0:
+                break
+
+            limit -= 1
             # if the predicate is  rdf:type, skip it
             if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
                 continue
