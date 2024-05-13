@@ -4,22 +4,30 @@
 @prefix ql: <http://semweb.mmlab.be/ns/ql#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<#DatasetMapping>
+<#PlaceMapping>
 
   rml:logicalSource [
-    rml:source "./database_dump/datasets.csv" ;
+    rml:source "./database_dump/places.csv" ;
     rml:referenceFormulation ql:CSV
   ];
 
   rr:subjectMap [
-    rr:template "http://tools.mehdie.org/ns/mehdie#dataset/{id}" ;
-    rr:class mhd:Dataset
+    rr:template "http://tools.mehdie.org/ns/mehdie#place/{id}" ;
+    rr:class mhd:Place
   ];
 
   rr:predicateObjectMap [
-    rr:predicate mhd:label ;
+    rr:predicate mhd:placeid ;
     rr:objectMap [
-       rml:reference "label";
+       rml:reference "id";
+       rml:datatype xsd:int
+    ]
+  ];
+
+  rr:predicateObjectMap [
+    rr:predicate mhd:src_id ;
+    rr:objectMap [
+       rml:reference "src_id";
        rml:datatype xsd:string
     ]
   ];
