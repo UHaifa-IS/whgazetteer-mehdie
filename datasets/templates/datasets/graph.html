@@ -133,7 +133,10 @@
 
                 $('.class-filter').change(function() {
                     // Construct the URL with selected classes
-                    let selectedClasses = $('.class-filter:checked').map(function() { return $(this).val(); }).get().join(',');
+                    // Construct the URL with selected classes
+                    let selectedClasses = $('.class-filter:checked').map(function() {
+                        return encodeURIComponent($(this).val());
+                    }).get().join(',');
                     window.location.href = `{% url 'graph' %}?classes=${selectedClasses}`;
                 });
               </script>

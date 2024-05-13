@@ -1,4 +1,6 @@
 # main.views
+import urllib
+
 import rdflib
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
@@ -186,6 +188,7 @@ class GraphView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         selected_classes = self.request.GET.get('classes', '').split(',')
+        # selected_classes = [urllib.parse.unquote(cls) for cls in selected_classes]
         print("Selected classes:", selected_classes)
 
         # Path to your Turtle file
@@ -214,7 +217,7 @@ class GraphView(TemplateView):
             # if the predicate is  rdf:type, skip it
             if obj not in selected_classes:
                 exclude_subjects.add(subj)
-                print("Excluding subject:", subj)
+                # print("Excluding subject:", subj)
                 continue
 
             triples.append({
