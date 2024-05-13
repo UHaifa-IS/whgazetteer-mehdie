@@ -51,5 +51,5 @@ if __name__ == '__main__':
     # Dump the tables
     dump_table('datasets', ['id', 'label', 'title', 'description', 'webpage', 'uri_base', 'datatype'])
     logging.info('Dumped datasets table')
-    dump_table('place', ['id', 'title', 'src_id'])
+    dump_table('places', ['id', 'title', 'src_id'])
     logging.info('Dumped place table')
