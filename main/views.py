@@ -216,7 +216,7 @@ class GraphView(TemplateView):
         for subj, pred, obj in g:
             # if the predicate is  rdf:type, skip it
             if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' and obj not in selected_classes:
-                exclude_subjects.add(subj)
+                exclude_subjects.add(str(subj))
                 print("Excluding subject:", subj, "   object was:", obj, "predicate was:", pred)
                 continue
 
@@ -237,5 +237,4 @@ class GraphView(TemplateView):
         context['triples'] = triples
         context['classes'] = sorted(list(classes))
         context['selected_classes'] = [str(cls) for cls in selected_classes]
-        print(context)
         return context
