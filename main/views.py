@@ -227,7 +227,10 @@ class GraphView(TemplateView):
             })
 
         # Filter out triples with excluded subjects
-        triples = [t for t in triples if t["subject"] not in exclude_subjects]
+        print("Excluded subjects:", exclude_subjects)
+        print("Before filtering:", len(triples))
+        triples = [t for t in triples if str(t["subject"]) not in exclude_subjects]
+        print("After filtering:", len(triples))
 
 
         # Add triples to the context
