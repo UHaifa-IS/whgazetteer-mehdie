@@ -206,18 +206,24 @@ class GraphView(TemplateView):
         classes = set([obj for subj, pred, obj in g if str(pred) == 'http://www.w3.org/1999/02/22-rdf'
                                                                                  '-syntax-ns#type'])
         print("Classes:", classes)
-        exclude_subjects = set()
 
         if not selected_classes:
             print("No classes selected, using all classes")
             selected_classes = classes
 
         print("Selected classes:", selected_classes)
+        classes_str = ", ".join(f"<{cls}>" for cls in selected_classes)
+        print("Classes string:", classes_str)
 
         # filter the graph for the selected classes
         print("Graph size before filtering:", len(g))
-        g = g.query('SELECT ?s ?p ?o WHERE { ?s ?p ?o . ?s rdf:type ?type . FILTER(?type IN (?selected_classes)) }',
-                    initBindings={'selected_classes': [rdflib.URIRef(cls) for cls in selected_classes]})
+        query = f'''
+        SELECT ?s ?p ?o WHERE {{
+            ?s ?p ?o .
+            ?s rdf:type ?type .
+            FILTER(?type IN ({classes_str}))
+        }}'''
+        g = g.query(query)
         print("Graph size after filtering:", len(g))
 
         for subj, pred, obj in g:
