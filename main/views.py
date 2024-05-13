@@ -223,10 +223,10 @@ class GraphView(TemplateView):
             ?s rdf:type ?type .
             FILTER(?type IN ({classes_str}))
         }}'''
-        g = g.query(query)
+        qres = g.query(query)
         print("Graph size after filtering:", len(g))
 
-        for subj, pred, obj in g:
+        for subj, pred, obj in qres:
             # if the predicate is  rdf:type, skip it
             if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type':
                 continue
