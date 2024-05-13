@@ -209,13 +209,14 @@ class GraphView(TemplateView):
         exclude_subjects = set()
 
         if not selected_classes:
+            print("No classes selected, using all classes")
             selected_classes = classes
 
         print("Selected classes:", selected_classes)
 
         for subj, pred, obj in g:
             # if the predicate is  rdf:type, skip it
-            if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' and obj not in selected_classes:
+            if str(pred) == 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type' and str(obj) not in selected_classes:
                 exclude_subjects.add(str(subj))
                 print("Excluding subject:", subj, "   object was:", obj, "predicate was:", pred)
                 continue
