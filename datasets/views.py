@@ -855,10 +855,11 @@ def ds_recon(request, pk):
 
             form_threshold = request.POST['threshold']
             form_phonetic_threshold = request.POST['phonetic_threshold']
+            form_semantic_threshold = request.POST['semantic_threshold']
             form_max_distance_km = request.POST['max_distance_km']
 
             match_config = {'threshold': form_threshold, 'phonetic_threshold': form_phonetic_threshold
-                , 'max_distance_km': form_max_distance_km}
+                ,'semantic_threshold': form_semantic_threshold , 'max_distance_km': form_max_distance_km}
 
             # try:
             print("[DEBUG] running run_mehdi_er.delay({},{},{},{},{},{},{})".format(dt_1, dt_2, ds.id, aug_geom,
@@ -869,7 +870,8 @@ def ds_recon(request, pk):
             request.session['d2'] = p_dataset
 
             messages.add_message(request, messages.INFO,
-                                 "Your dataset matching task is being processed. Please wait a few minutes and refresh this page.")
+                                 "Your dataset matching task is being processed. Please wait a few minutes and "
+                                 "refresh this page.")
             return redirect('/datasets/' + str(ds.id) + '/reconcile')
 
         if auth == 'idx' and ds.public == False:
