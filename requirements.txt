@@ -34,3 +34,5 @@ edtf
 validators
 redis
 pyrml @ git+https://github.com/anuzzolese/pyrml
+rdflib
+gunicorn
