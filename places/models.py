@@ -27,6 +27,7 @@ class Place(models.Model):
     fclasses = ArrayField(models.CharField(max_length=1, choices=FEATURE_CLASSES), null=True, blank=True)
     indexed = models.BooleanField(default=False)
     flag = models.BooleanField(default=False)  # not in use
+    name_parts = JSONField(blank=True, null=True)
 
     # collections = models.ManyToManyField("collection.Collection")
 
