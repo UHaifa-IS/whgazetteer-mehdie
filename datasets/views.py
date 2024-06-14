@@ -1360,6 +1360,7 @@ def ds_update(request):
                     p.ccodes = [] if str(rdp['ccodes']) == 'nan' else rdp['ccodes'].replace(' ', '').split(';')
                     p.minmax = minmax_new
                     p.timespans = [minmax_new]
+                    p.name_parts = json.loads(rdp['name_parts']) if 'name_parts' in rdp and rdp['name_parts'] else None
                     p.save()
                     pobj = p
                 else:
@@ -1371,7 +1372,8 @@ def ds_update(request):
                         ccodes=[] if str(rdp['ccodes']) == 'nan' else rdp['ccodes'].replace(' ', '').split(';'),
                         dataset=ds,
                         minmax=minmax_new,
-                        timespans=[minmax_new]
+                        timespans=[minmax_new],
+                        name_parts=json.loads(rdp['name_parts']) if 'name_parts' in rdp and rdp['name_parts'] else None
                     )
                     newpl.save()
                     pobj = newpl
@@ -1866,6 +1868,8 @@ def ds_insert_tsv(request, pk):
                         "minmax": []}
                     print('[WARN] ValueError in date parsing:', e, start, end)
 
+                name_parts = json.loads(r[header.index('name_parts')]) if 'name_parts' in header \
+                                                                          and r[header.index('name_parts')] else None
                 # returns {timespans:[{}],minmax[]}
 
                 if 'description' in header and len(r) > header.index('description')-1:
@@ -1882,7 +1886,8 @@ def ds_insert_tsv(request, pk):
                     title=title,
                     ccodes=ccodes,
                     minmax=datesobj['minmax'],
-                    timespans=[datesobj['minmax']]  # list of lists
+                    timespans=[datesobj['minmax']],  # list of lists
+                    name_parts=name_parts
                 )
                 newpl.save()
                 countrows += 1

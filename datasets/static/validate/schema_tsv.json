@@ -108,6 +108,14 @@
   {"name": "description",
     "type": "string",
     "description": "A short text description of the place"
+  },
+  {
+    "name": "name_parts",
+    "type": "object",
+    "description": "A JSON object containing parts of the place name",
+    "constraints": {
+      "required": false
+    }
   }
 ],
   "primaryKey": "id",
