@@ -223,7 +223,7 @@ def make_download(request, *args, **kwargs):
                     if type(identifier) == str and re.match(r'^\d+:\d+$', identifier):
                         dataset_id, place_id = identifier.split(':')
                         dataset = Dataset.objects.get(pk=dataset_id)
-                        place = dataset.places.get(src_id=place_id)
+                        place = dataset.places.get(pk=place_id)
                         return f"{dataset.label}:{place.src_id}"
                     return str(identifier)
                 # LINKS (matches)
