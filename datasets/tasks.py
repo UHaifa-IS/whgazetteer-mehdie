@@ -216,10 +216,20 @@ def make_download(request, *args, **kwargs):
                     newrow[m] = ''
                 # newrow now has all keys -> fill with db values as req.
 
+                def replace_ids(identifier):
+                    # if the identifier is a string comprised of two numbers and a colon (e.g. 123:456), lookup the
+                    # first number in the Dataset model and return the label field and the second number is the Place
+                    # model and return the src_id field concat them with a colon
+                    if type(identifier) == str and re.match(r'^\d+:\d+$', identifier):
+                        dataset_id, place_id = identifier.split(':')
+                        dataset = Dataset.objects.get(pk=dataset_id)
+                        place = dataset.places.get(src_id=place_id)
+                        return f"{dataset.label}:{place.src_id}"
+                    return str(identifier)
                 # LINKS (matches)
                 # get all distinct matches in db as string
                 links = (';').join(
-                    list(set([str(pl.jsonb['identifier']) for pl in p.links.exclude(jsonb__type__exact='different')])))
+                    list(set([replace_ids(pl.jsonb['identifier']) for pl in p.links.exclude(jsonb__type__exact='different')])))
                 # replace whatever was in file
                 newrow['matches'] = links
 
