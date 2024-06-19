@@ -2,7 +2,12 @@ import codecs, csv, datetime, sys, openpyxl, os, re, time
 import simplejson as json
 
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
+try:
+    from django.contrib.gis.geos import GEOSGeometry
+    from areas.models import Country
+    geos_installed = True
+except Exception:
+    geos_installed = False
 from django.core import mail
 from django.core.mail import EmailMultiAlternatives
 from django.http import FileResponse, JsonResponse, HttpResponse
@@ -16,7 +21,6 @@ from goodtables import validate as gvalidate
 from jsonschema import draft7_format_checker, validate
 from shapely import wkt
 
-from areas.models import Country
 from datasets.models import Dataset, DatasetUser, Hit
 from datasets.static.hashes import parents, aat_q
 from datasets.static.hashes import aliases as al
@@ -517,7 +521,7 @@ def validate_lpf(tempfn, format):
 
 
 # incoming csv or tsv
-def validate_tsv(fn, ext):
+def validate_tsv(fn, ext = None):
     result = {"format": "delimited", "errors": []}
     schema_lpt_sv = json.loads(codecs.open('datasets/static/validate/schema_tsv.json', 'r', 'utf8').read())
     report = fvalidate(fn, schema=schema_lpt_sv, sync_schema=True)

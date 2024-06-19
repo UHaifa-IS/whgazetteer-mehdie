@@ -2309,7 +2309,8 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
                 df_status='format_ok',
                 upload_date=None,
                 header=result['columns'] if "columns" in result.keys() else [],
-                numrows=result['count']
+                numrows=result['count'],
+                datatype=data['datatype']
             )
 
             return redirect('/datasets/' + str(dsobj.id) + '/summary')
