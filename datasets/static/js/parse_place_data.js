@@ -176,7 +176,6 @@ function parsePlace(data) {
     if (data.minmax && !(mm[0] == null && mm[1] == null)) {
         descrip += '<p><b>When</b>: earliest: ' + data.minmax[0] + '; latest: ' + data.minmax[1]
     }
-
     // NAME_PARTS
     if (data.name_parts) {
         let namePartsJSON = JSON.stringify(data.name_parts, null, 2); // Pretty-print JSON
@@ -191,14 +190,6 @@ function parsePlace(data) {
         descrip += namePartsHTML;
     }
 
-    function toggleNameParts() {
-        let content = document.getElementById('namePartsContent');
-        if (content.style.display === 'none') {
-            content.style.display = 'block';
-        } else {
-            content.style.display = 'none';
-        }
-    }
     // if geom(s) and 'certainty', add it
     if (data.geoms.length > 0) {
         cert = data.geoms[0].certainty

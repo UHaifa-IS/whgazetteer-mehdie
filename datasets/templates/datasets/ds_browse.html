@@ -839,6 +839,15 @@
 
 
         // fetch complete-ish place record
+        function toggleNameParts() {
+        let content = document.getElementById('namePartsContent');
+        if (content.style.display === 'none') {
+            content.style.display = 'block';
+        } else {
+            content.style.display = 'none';
+        }
+        }
+
         function getPlace(pid) {
             console.log('getPlace()', pid)
             $.ajax({
