@@ -275,8 +275,8 @@ class DatasetFile(models.Model):
     file = models.FileField(upload_to=user_directory_path)
     format = models.CharField(max_length=12, null=False,
                               choices=FORMATS, default='lpf')
-    # datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
-    #                            default='place')
+    datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
+                                default='place')
     delimiter = models.CharField(max_length=5, null=True, blank=True)
     df_status = models.CharField(max_length=12, null=True, blank=True, choices=STATUS_FILE)
     upload_date = models.DateTimeField(null=True, auto_now_add=True)
