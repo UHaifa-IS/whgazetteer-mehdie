@@ -521,6 +521,7 @@ def validate_tsv(fn, ext):
     result = {"format": "delimited", "errors": []}
     schema_lpt_sv = json.loads(codecs.open('datasets/static/validate/schema_tsv.json', 'r', 'utf8').read())
     report = fvalidate(fn, schema=schema_lpt_sv, sync_schema=True)
+    print(report)
     rpt = report['tables'][0]
     req = ['id', 'title', 'title_source', 'start']
     result['count'] = rpt['stats']['rows']  # count
