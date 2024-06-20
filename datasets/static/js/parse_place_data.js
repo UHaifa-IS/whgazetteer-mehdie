@@ -102,7 +102,7 @@ function parsePlace(data) {
     //
     // LINKS
     //
-    console.log(data)
+    // console.log(data)
     descrip += '<p class="mb-0"><b>Links</b>: <i>original: </i>'
     close_count = added_count = related_count = 0
     html_close = html_added = html_related = ''
