@@ -172,10 +172,15 @@ function parsePlace(data) {
     // MINMAX
     //
     //console.log('data.minmax',data.minmax)
-    mm = data.minmax
+    mm = data.minmax;
     if (data.minmax && !(mm[0] == null && mm[1] == null)) {
-        descrip += '<p><b>When</b>: earliest: ' + data.minmax[0] + '; latest: ' + data.minmax[1]
+        if (data.datatype && data.datatype.toLowerCase() === 'people') {
+            descrip += '<p><b>Birth Date</b>: ' + data.minmax[0] + ' ; <b>Death Date</b>: ' + data.minmax[1] + '</p>';
+        } else {
+            descrip += '<p><b>When</b>: earliest: ' + data.minmax[0] + '; latest: ' + data.minmax[1] + '</p>';
+        }
     }
+
     // NAME_PARTS
     if (data.name_parts) {
         let namePartsJSON = JSON.stringify(data.name_parts, null, 2); // Pretty-print JSON

@@ -731,6 +731,7 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
         this_place_id = response.data['id']
         this_place = Place.objects.get(id=this_place_id)
         response.data['name_parts'] = this_place.name_parts
+        response.data['datatype'] = this_place.dataset.datatype
         this_dataset_id = this_place.dataset.id
 
         # Initialize nodes with the title of the current place
