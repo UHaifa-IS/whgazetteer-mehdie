@@ -784,16 +784,23 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
 
         def process_link(from_node, link_type, link_identifier, reverse=False):
             # Check if link type is not 'closeMatch' and identifier has the correct format
-            if link_type != "closeMatch" and ':' in link_identifier:
-                try:
-                    dataset_id, place_id = link_identifier.split(':')
-                    # Fetching labels from Dataset and Place models
-                    dataset_label = Dataset.objects.get(id=dataset_id).label
-                    place_label = Place.objects.get(id=place_id).title
-                    node_lbl = f"{dataset_label}:{place_label}"
-                except (ValueError, ObjectDoesNotExist):
-                    # If parsing fails or objects don't exist, use the original identifier
+            if link_type != "closeMatch":
+                # check if the link_identifier is a string
+                if not isinstance(link_identifier, str):
+                    logging.warning(f"Link identifier {link_identifier} from node {from_node} is not a string")
                     node_lbl = link_identifier
+                else:
+                    if ':' in link_identifier:
+                        try:
+                            dataset_id, place_id = link_identifier.split(':')
+                            # Fetching labels from Dataset and Place models
+                            dataset_label = Dataset.objects.get(id=dataset_id).label
+                            place_label = Place.objects.get(id=place_id).title
+                            node_lbl = f"{dataset_label}:{place_label}"
+                        except (ValueError, ObjectDoesNotExist):
+                            # If parsing fails or objects don't exist, use the original identifier
+                            logging.warning(f"Could not parse link identifier {link_identifier}")
+                            node_lbl = link_identifier
             else:
                 node_lbl = link_identifier
 
