@@ -1,0 +1,146 @@
+{% extends "main/base.html" %}
+{% block title %}<title>MEHDIE::Graph</title>{% endblock %}
+{% block extra_head %}
+    {% block mycss %}
+        <style>
+            .fa-sort {
+                cursor: pointer;
+            }
+
+            #table_ds th, #table_areas th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #fdf5e6;
+            }
+
+            #dataset_list, #area_list {
+                position: relative !important;
+                height: 75vh !important
+            }
+
+            .list-box {
+                overflow-y: auto !important;
+                max-height: 100%;
+            }
+
+            /* Additional styles for RDF 3D graph */
+            canvas {
+                display: block;
+                width: 100%;
+                height: 80vh; /* Adjust as needed */
+            }
+            .node {
+              stroke: #fff;
+              fill:#ddd;
+              stroke-width: 1.5px;
+            }
+
+            .link {
+              stroke: #999;
+              stroke-opacity: .6;
+              stroke-width: 1px;
+            }
+
+            marker {
+                stroke: #999;
+                fill:rgba(124,240,10,0);
+            }
+
+            .node-text {
+              font: 11px sans-serif;
+              fill:black;
+            }
+
+            .link-text {
+              font: 9px sans-serif;
+              fill:grey;
+            }
+
+            svg{
+                border:1px solid black;
+            }
+        </style>
+    {% endblock mycss %}
+{% endblock %}
+
+{% block content %}
+    {% load static %}
+    {% load fontawesome %}
+    {% load mathfilters %}
+    {% load dataset_extras %}
+
+    <div class="container pt-3">
+        <ul id="dashboard_tabs" class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link" id="mydslist-tab"
+                   href="{% url 'data-datasets' %}"
+                   role="tab" aria-controls="dslist" aria-selected="true">Datasets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="collectionlist-tab"
+                   href="{% url 'data-collections' %}"
+                   role="tab" aria-controls="collectionlist" aria-selected="false">Collections</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="arealist-tab"
+                   href="{% url 'data-areas' %}"
+                   role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="graph-tab" href="{% url 'graph' %}"
+                   role="tab" aria-controls="graph" aria-selected="false">Graph</a>
+            </li>
+            {% if beta_or_better %}
+                <li class="nav-item">
+                    <a class="nav-link active" id="resourcelist-tab" data-link="resourcelist" data-toggle="tab"
+                       role="tab" aria-controls="resourcelist" aria-selected="false">Teaching resources</a>
+                </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content">
+            <div id="svg-body" class="panel-body"></div>
+            {% for cls in classes %}
+                <input type="checkbox" class="class-filter" id="filter-{{ cls }}" value="{{ cls }}"
+                    {% if cls in selected_classes %}checked="checked"{% endif %}>
+                <label for="filter-{{ cls }}">{{ cls }}</label><br>
+            {% endfor %}
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	        <script src="https://d3js.org/d3.v3.min.js"></script>
+            <script src="{% static 'js/rdfd3.js' %}"></script>
+            <script>
+                {#var triples = [#}
+                {#        {subject:"ex:ThaiLand", 	predicate:"ex:hasFood", 	object:"ex:TomYumKung"},#}
+                {#        {subject:"ex:TomYumKung", 	predicate:"rdf:type", 		object:"ex:SpicyFood"},#}
+                {#        {subject:"ex:TomYumKung", 	predicate:"ex:includes", 	object:"ex:shrimp"},#}
+                {#        {subject:"ex:TomYumKung", 	predicate:"ex:includes", 	object:"ex:chilly"},#}
+                {#        {subject:"ex:TomYumKung", 	predicate:"ex:includes", 	object:"ex:lemon"},#}
+                {#        {subject:"ex:lemon", 		predicate:"ex:hasTaste", 	object:"ex:sour"},#}
+                {#        {subject:"ex:chilly", 		predicate:"ex:hasTaste", 	object:"ex:spicy"}#}
+                {#    ];#}
+                var triples = {{ triples|safe }};
+
+                var svg = d3.select("#svg-body").append("svg")
+                            .attr("width", 800)
+                            .attr("height", 600)
+                            ;
+
+                var force = d3.layout.force().size([800, 600]);
+
+                var graph = triplesToGraph(triples);
+
+                update();
+
+                $('.class-filter').change(function() {
+                    // Construct the URL with selected classes
+                    // Construct the URL with selected classes
+                    let selectedClasses = $('.class-filter:checked').map(function() {
+                        return encodeURIComponent($(this).val());
+                    }).get().join(',');
+                    window.location.href = `{% url 'graph' %}?classes=${selectedClasses}`;
+                });
+              </script>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,3 +1,9 @@
+@font-face {
+    font-family: 'Arial Unicode MS';
+    src: url('static/fonts/ArialUnicodeMS.ttf');
+    unicode-range: U+0590-06FF; /* Hebrew and Arabic */
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -1329,6 +1335,7 @@ span.edit-row {
   position: absolute;
   width: 1px;
 }
+
 
 /* help modal content */
 .ui-widget,

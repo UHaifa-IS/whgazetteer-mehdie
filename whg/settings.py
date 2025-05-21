@@ -8,13 +8,15 @@ updates: 2.2.10 (20200211); 2.2.8(20191204); 2.2.4 (20190819); 2.1.7 (?); 2.1.2 
 import os
 from celery.schedules import crontab
 from django.contrib.messages import constants as messages
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 DEBUG = True
 INSTALLED_APPS = [
-  'django.contrib.admin',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.gis',
@@ -27,9 +29,9 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    #'allauth.socialaccount.providers.github',
-    #'allauth.socialaccount.providers.google',
-    #'allauth.socialaccount.providers.orcid',
+    # 'allauth.socialaccount.providers.github',
+    # 'allauth.socialaccount.providers.google',
+    # 'allauth.socialaccount.providers.orcid',
 
     # 3rd party
     'bootstrap_modal_forms',
@@ -62,13 +64,13 @@ INSTALLED_APPS = [
     'main.apps.MainConfig',
     'places.apps.PlacesConfig',
     'remote.apps.RemoteConfig',
-    'resources.apps.ResourcesConfig', # for teaching
+    'resources.apps.ResourcesConfig',  # for teaching
     'search.apps.SearchConfig',
     'traces.apps.TracesConfig'
 ]
 
 MIDDLEWARE = [
-  'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -85,14 +87,14 @@ PUBLIC_GROUP_ID = 'review'
 TIME_ZONE = 'America/New_York'
 
 MESSAGE_TAGS = {
-        messages.DEBUG: 'alert-secondary',
-        messages.INFO: 'alert-info',
-        messages.SUCCESS: 'alert-success',
-        messages.WARNING: 'alert-warning',
-        messages.ERROR: 'alert-danger',
- }
+    messages.DEBUG: 'alert-secondary',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}
 
-CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -102,10 +104,9 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_EAGER_PROPAGATES = True
 
 CELERY_BEAT_SCHEDULE = {
-  'task01': {
-      'task': 'datasets.tasks.testy','schedule': crontab(minute='*/2')
+    'task01': {
+        'task': 'datasets.tasks.testy', 'schedule': crontab(minute='*/2')
     }}
-
 
 # CAPTCHA_NOISE_FUNCTIONS = (
 #   #'captcha.helpers.noise_arcs',
@@ -121,107 +122,100 @@ DJANGORESIZED_DEFAULT_NORMALIZE_ROTATION = True
 # replacement section from drf-datatables
 # https://django-rest-framework-datatables.readthedocs.io/en/latest/
 REST_FRAMEWORK = {
-  'DEFAULT_RENDERER_CLASSES': (
-      'rest_framework.renderers.JSONRenderer',
-        #'api.views.PrettyJsonRenderer',
-        #'rest_framework.renderers.BrowsableAPIRenderer',
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
-        ),
+    ),
     'DEFAULT_FILTER_BACKENDS': (
-      'rest_framework_datatables.filters.DatatablesFilterBackend',
-        #'django_filters.rest_framework.DjangoFilterBackend'
-        ),
+        'rest_framework_datatables.filters.DatatablesFilterBackend',
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework_datatables.pagination.DatatablesPageNumberPagination',
     'PAGE_SIZE': 15000,
-    #'PAGE_SIZE': 20,
 }
 
 TEMPLATES = [
-  {
-      'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-          os.path.join(BASE_DIR, 'main/templates'),
+            os.path.join(BASE_DIR, 'main/templates'),
             os.path.join(BASE_DIR, 'templates')
-            ],
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
-          'debug': True,
+            'debug': True,
             'context_processors': [
-              'django.contrib.auth.context_processors.auth',
+                'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.media',
                 'django.template.context_processors.request',
-                ],
+            ],
             'builtins': [
-              'whg.builtins',
+                'whg.builtins',
             ]
-            },
         },
+    },
 ]
 
 WSGI_APPLICATION = 'whg.wsgi.application'
 
-
 LEAFLET_CONFIG = {
-  'TILES':[],
+    'TILES': [],
     'DEFAULT_CENTER': (35.0, 13.0),
     'DEFAULT_ZOOM': 1,
     'MIN_ZOOM': 1,
     'MAX_ZOOM': 14,
     'RESET_VIEW': False,
-    #'MAX_BOUNDS_VISCOSITY': 0,
     'ATTRIBUTION_PREFIX':
-    "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | "+
-    "<a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'> CC-BY-NC 3.0</a>"
+        "Tiles &copy; <a href='http://mapbox.com/' target='_blank'>MapBox</a> | " +
+        "<a href='http://creativecommons.org/licenses/by-nc/3.0/deed.en_US' target='_blank'> CC-BY-NC 3.0</a>"
 }
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL='/accounts/login/'
-LOGOUT_REDIRECT_URL='/'
-
+LOGIN_REDIRECT_URL = '/accounts/login/'
+LOGOUT_REDIRECT_URL = '/'
 
 # /././././././.
 # start django-allauth
 # /././././././.
 SITE_ID = 2
 
-ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS =1
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 1
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 86400 # 1 day in seconds
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 86400  # 1 day in seconds
 
-ACCOUNT_LOGOUT_REDIRECT_URL ='/'
-LOGIN_REDIRECT_URL = '/accounts/email/' # default to /accounts/profile
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+# LOGIN_REDIRECT_URL = '/accounts/email/'  # default to /accounts/profile
 
-ACCOUNT_FORMS = {'signup': 'allauth.account.forms.WHGRegisterForm',}
+ACCOUNT_FORMS = {'signup': 'allauth.account.forms.WHGRegisterForm', }
 
-#SOCIALACCOUNT_PROVIDERS = {
-  ## For each OAuth based provider, either add a ``SocialApp``
-  ## (``socialaccount`` app) containing the required client
-  ## credentials, or list them here:
-  #'github': {
-    #'APP': {
-      #'client_id': '123',
-      #'secret': '456',
-      #'key': ''
-    #}
-  #},
-  #'orcid': {
-      ## Base domain of the API. Default value: 'orcid.org', for the production API
-      #'BASE_DOMAIN':'sandbox.orcid.org',  # for the sandbox API
-      ## Member API or Public API? Default: False (for the public API)
-      #'MEMBER_API': True,  # for the member API
-  #}}
+# SOCIALACCOUNT_PROVIDERS = {
+## For each OAuth based provider, either add a ``SocialApp``
+## (``socialaccount`` app) containing the required client
+## credentials, or list them here:
+# 'github': {
+# 'APP': {
+# 'client_id': '123',
+# 'secret': '456',
+# 'key': ''
+# }
+# },
+# 'orcid': {
+## Base domain of the API. Default value: 'orcid.org', for the production API
+# 'BASE_DOMAIN':'sandbox.orcid.org',  # for the sandbox API
+## Member API or Public API? Default: False (for the public API)
+# 'MEMBER_API': True,  # for the member API
+# }}
 # /././././././.
 # end django-allauth
 # /././././././.
 
 AUTHENTICATION_BACKENDS = (
-  'django.contrib.auth.backends.ModelBackend', # default
+    'django.contrib.auth.backends.ModelBackend',  # default
     'guardian.backends.ObjectPermissionBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 )
@@ -229,12 +223,11 @@ AUTHENTICATION_BACKENDS = (
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
-  {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
@@ -255,22 +248,18 @@ MEDIA_URL = '/media/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
-# STATIC_URL = '/static/'
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
-# STATICFILES_DIRS = [
-#     # os.path.join(BASE_DIR, 'datasets/static/'),
-#     # os.path.join(BASE_DIR, 'main/static/'),
-#     os.path.join(BASE_DIR, 'whg/static/'),
-# ]
-
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 STATICFILES_DIRS = [
-        os.path.join(BASE_DIR, 'whg/static/')
-        ]
+    os.path.join(BASE_DIR, 'datasets/static/'),
+    os.path.join(BASE_DIR, 'main/static/'),
+    os.path.join(BASE_DIR, 'whg/static/'),
+    os.path.join(BASE_DIR, 'knowledge_graph/static/'),
+]
 
 if os.name == 'nt':
     import platform
+
     OSGEO4W = r"C:\OSGeo4W"
     assert os.path.isdir(OSGEO4W), "Directory does not exist: " + OSGEO4W
     os.environ['OSGEO4W_ROOT'] = OSGEO4W
@@ -278,7 +267,16 @@ if os.name == 'nt':
     os.environ['PROJ_LIB'] = OSGEO4W + r"\share\proj"
     os.environ['PATH'] = OSGEO4W + r"\bin;" + os.environ['PATH']
 
+sentry_sdk.init(
+    dsn="https://8ed85dfd268f456c978b6c1c19bd4124@o4504564890271745.ingest.sentry.io/4504564892893184",
+    integrations=[DjangoIntegration()],
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    traces_sample_rate=1.0,
+    send_default_pii=True
+)
+
 try:
-  from .local_settings import *
+    from .local_settings import *
 except ImportError:
-  pass
+    pass

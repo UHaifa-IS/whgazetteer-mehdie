@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # run this using sudo
-apt install -y git wget
+apt install -y git wget vim nginx
 apt install -y python-is-python3
 apt update
 apt upgrade
