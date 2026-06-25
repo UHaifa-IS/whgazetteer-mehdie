@@ -126,7 +126,6 @@ def contactView(request):
                 send_mail(subject_reply, message_reply, 'mehdie.org@gmail.com', [from_email])
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
-
             except (SMTPException, socket.timeout, OSError) as e:
                 logger.exception("Email delivery failed")
                 # still show success page so users are not blocked
