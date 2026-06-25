@@ -2,9 +2,12 @@
 import urllib
 
 import rdflib
+import logging
+from smtplib import SMTPException
 from time import monotonic
 from django.conf import settings
 from django.core.mail import send_mail, BadHeaderError
+from smtplib import SMTPException
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect  # , render_to_response
 from django.urls import reverse_lazy
@@ -21,6 +24,7 @@ from elasticsearch import Elasticsearch
 es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 from random import shuffle
 
+logger = logging.getLogger(__name__)
 
 # import requests
 
@@ -122,6 +126,12 @@ def contactView(request):
                 send_mail(subject_reply, message_reply, 'mehdie.org@gmail.com', [from_email])
             except BadHeaderError:
                 return HttpResponse('Invalid header found.')
+
+            except (SMTPException, socket.timeout, OSError) as e:
+                logger.exception("Email delivery failed")
+                # still show success page so users are not blocked
+                return redirect('/success?return=' + sending_url if sending_url else '/')
+
             return redirect('/success?return=' + sending_url if sending_url else '/')
             # return redirect(sending_url)
         else:

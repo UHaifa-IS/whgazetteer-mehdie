@@ -33,6 +33,5 @@ sentry-sdk==1.14.0
 edtf
 validators
 redis
-pyrml @ git+https://github.com/anuzzolese/pyrml
 rdflib
 gunicorn
