@@ -6,12 +6,34 @@ import psycopg2
 import csv
 import logging
 
+import os
+from pathlib import Path
+
+try:  # optional: load DB_* variables from a .env file next to this script
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass
+
+
+def get_db_params():
+    """Database connection parameters from environment variables (see .env.example)."""
+    missing = [k for k in ("DB_NAME", "DB_USER", "DB_PASSWORD") if not os.getenv(k)]
+    if missing:
+        raise SystemExit(
+            f"Missing environment variables: {', '.join(missing)}. "
+            "Copy .env.example to .env next to this script and fill it in."
+        )
+    return {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": int(os.getenv("DB_PORT", "5432")),
+        "dbname": os.getenv("DB_NAME"),
+        "user": os.getenv("DB_USER"),
+        "password": os.getenv("DB_PASSWORD"),
+    }
+
 # Connect to the database
-conn = psycopg2.connect(
-    host="localhost",
-    database="mehdie-gui",
-    user="mehdie",
-    password="aLSDmci4243Q")
+conn = psycopg2.connect(**get_db_params())
 
 OUT_FOLDER = 'database_dump'
 
