@@ -21,11 +21,11 @@ less /srv/www/tools.mehdie.org/log-app/gunicorn-error.log
 
 # Celery restart
 
-sudo systemctl restart celery
+sudo systemctl restart celery@whg
 
 # Celery log
 
-sudo journalctl --unit=celery | tail -n 300
+sudo journalctl --unit=celery@whg | tail -n 300
 
 
 # Collect static files (only adds, does not overwrite or delete)
