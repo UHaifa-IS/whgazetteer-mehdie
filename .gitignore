@@ -54,3 +54,18 @@ db.sqlite3
 .env
 db.yaml
 db.yml
+
+### MEHDIE additions ###
+# Virtual environments
+venv/
+.venv/
+
+# Database dumps/backups - never commit (keep them outside the app directory)
+*.sql
+!postgres_init.sql
+*.dump
+
+# Generated knowledge-graph output (KG code lives in mehdie-knowledge-graph)
+knowledge_graph/database_dump/*.csv
+!knowledge_graph/database_dump/pyRML-example-*.csv
+output*.ttl
