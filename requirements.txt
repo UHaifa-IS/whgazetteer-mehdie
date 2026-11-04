@@ -34,3 +34,4 @@ validators
 redis
 rdflib
 gunicorn
+setuptools<81  # django-geojson imports pkg_resources
