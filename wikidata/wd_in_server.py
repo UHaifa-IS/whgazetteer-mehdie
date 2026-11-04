@@ -9,7 +9,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from datetime import date
 from django.contrib.gis.geos import MultiPoint, Point
-from elasticsearch import Elasticsearch
+from elasticsearch7 import Elasticsearch
 es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 
 wd = './'

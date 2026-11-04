@@ -19,7 +19,7 @@ from places.models import Place
 from bootstrap_modal_forms.generic import BSModalCreateView
 
 from .forms import CommentModalForm, ContactForm
-from elasticsearch import Elasticsearch
+from elasticsearch7 import Elasticsearch
 
 es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 from random import shuffle
