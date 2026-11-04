@@ -1,6 +1,6 @@
 # update ES records for this and that
 
-from elasticsearch import Elasticsearch
+from elasticsearch7 import Elasticsearch
 es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 
 from datasets.models import Dataset

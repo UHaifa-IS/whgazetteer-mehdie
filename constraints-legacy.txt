@@ -1,5 +1,5 @@
 # Celery 4.4.7 compatible stack (Django 2.2). Use with:
-#   pip install -r requirements.txt -c constraints-legacy.txt
+#   (superseded: install from requirements.lock)
 celery==4.4.7
 kombu>=4.6.10,<4.7
 billiard>=3.6.1,<4.0
