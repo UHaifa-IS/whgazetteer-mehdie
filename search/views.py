@@ -135,7 +135,6 @@ def suggestionItem(s,doctype,scope):
   actually performs es search, places  or traces
 """
 def suggester(doctype,q,scope,idx):
-  print('key', settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY)
   # returns only parents; children retrieved into place portal
   print('suggester',doctype,q)
   es = Elasticsearch([{'host': '0.0.0.0',

@@ -298,7 +298,6 @@ def collector(q, datatype, idx):
 
 
 def bundler(q, whgid, idx):
-    print('key', settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY)
     es = Elasticsearch([{'host': 'localhost',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
@@ -306,7 +305,6 @@ def bundler(q, whgid, idx):
                          'timeout': 30,
                          'max_retries': 10,
                          'retry_on_timeout': True}])
-    print('bundler es connector', es)
     res = es.search(index=idx, body=q)
     hits = res['hits']['hits']
     bundle = []
@@ -374,7 +372,6 @@ class TracesAPIView(View):
 class IndexAPIView(View):
     # @staticmethod
     def get(self, request):
-        print('key', settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY)
         params = request.GET
         print('IndexAPIView request params', params)
         """
