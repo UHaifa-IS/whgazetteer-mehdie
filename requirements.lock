@@ -82,7 +82,7 @@ rich==13.7.1              # via typer
 rpds-py==0.18.1           # via jsonschema, referencing
 s3transfer==0.10.1        # via boto3
 sentry-sdk==1.45.1        # via -r requirements.txt
-setuptools==84.2.1        # via rdflib
+setuptools==80.9.0        # via rdflib, django-geojson (needs pkg_resources, removed in setuptools 81)
 shapely==2.0.4            # via -r requirements.txt
 shellingham==1.5.4        # via typer
 simpleeval==1.0.5         # via frictionless, goodtables
