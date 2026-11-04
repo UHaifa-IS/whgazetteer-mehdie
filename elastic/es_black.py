@@ -119,7 +119,7 @@ def init():
   idx = 'whg' 
 
   from elasticsearch7 import Elasticsearch
-  es = Elasticsearch([{'host': 'localhost',
+  es = Elasticsearch([{'host': '0.0.0.0',
                        'port': 9200,
                        'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                        'timeout':30,

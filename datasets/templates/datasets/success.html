@@ -1,0 +1,26 @@
+<!-- datasets/review.html -->
+{% extends "main/base.html" %}
+{% load leaflet_tags %}
+{% load fontawesome %}
+{% load static %}
+{% load dataset_extras %}
+{% block title %}<title>Review hits::{{ ds_label }}>{{ authority }}</title>{% endblock %}
+{% block extra_head %}
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <script src="{% static 'js/aliases.js' %}"></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.css' rel='stylesheet'/>
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.0/mapbox-gl.js'></script>
+    <script src="{% static 'js/leaflet-mapbox-gl.js' %}"></script>
+{% endblock %}
+{% block content %}
+
+    <i class="icon-flag icon-4x pull-left icon-border"></i>
+    The service returns these fields: id_1, id_1, title_1, title_2, relation, confidence, of the 2 datasets explanation
+    as a CSV file.
+    Download the CSV file with this link
+    {% comment %} {{ csv_url }} {% endcomment %}
+    <a href={{ csv_url }}>Link To CSV</a>
+    <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+{% endblock %}
+

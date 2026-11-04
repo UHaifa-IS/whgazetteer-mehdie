@@ -1,0 +1,8 @@
+# Celery 4.4.7 compatible stack (Django 2.2). Use with:
+#   (superseded: install from requirements.lock)
+celery==4.4.7
+kombu>=4.6.10,<4.7
+billiard>=3.6.1,<4.0
+vine>=1.3.0,<2.0
+# Redis as broker/result backend: Celery 4 needs redis-py 3.x
+redis<4

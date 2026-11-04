@@ -1,51 +1,52 @@
 {% extends 'main/base.html' %}
 {% load static %}
 {% block extra_head %}
-  
-  <link rel="stylesheet" href="{% static 'css/spin.css' %}" />
+
+    <link rel="stylesheet" href="{% static 'css/spin.css' %}"/>
 {% endblock %}
 
 {% block content %}
 
-<div class="container">
-  {% if not user in owners and not user.is_superuser %}
-    <p>Access to this page is limited to the dataset owner(s) and designated collaborators</p>
-  {% else %}
-  <div class="row justify-content-center">
-    <div id="delete_warning" class="col-md-4 mt-5">
-      <form action='' method='POST'>{% csrf_token %}
-          <h3 class="text-danger">CAREFUL!!</h3>
-          <p>This will destroy all <b>{{ object.numrows }}</b> place records in the dataset
-            <b>{{ object.name }} ({{ object.label }})</b>, as well as:</p>
-          <ul>
-            <li>associated reconciliation "hits"</li>
-            <li>any links and geometry records added during reconciliation review</li>
-            {% if object.ds_status == 'indexed' or object.ds_status == 'accessioning' %}
-              <li>{{ object.status_idx.idxcount }} records already accessioned to the WHG index </li>
-            {% endif %}
-          </ul>
-          {% if object.format == 'delimited' %}
-            <p>You might want to perform an update to the dataset instead. <a href="{% url 'contact' %}">Contact us</a> if you would like help with that.</p>
-          {% endif %}
-          <p class="mt-4">
-            <input id="b_delete_ds" type='submit' value='Destroy' />
-            <a href="javascript:history.back()">Cancel</a>
-          </p>
-      </form>
+    <div class="container">
+        {% if not user in owners and not user.is_superuser %}
+            <p>Access to this page is limited to the dataset owner(s) and designated collaborators</p>
+        {% else %}
+            <div class="row justify-content-center">
+                <div id="delete_warning" class="col-md-4 mt-5">
+                    <form action='' method='POST'>{% csrf_token %}
+                        <h3 class="text-danger">CAREFUL!!</h3>
+                        <p>This will destroy all <b>{{ object.numrows }}</b> place records in the dataset
+                            <b>{{ object.name }} ({{ object.label }})</b>, as well as:</p>
+                        <ul>
+                            <li>associated reconciliation "hits"</li>
+                            <li>any links and geometry records added during reconciliation review</li>
+                            {% if object.ds_status == 'indexed' or object.ds_status == 'accessioning' %}
+                                <li>{{ object.status_idx.idxcount }} records already accessioned to the WHG index</li>
+                            {% endif %}
+                        </ul>
+                        {% if object.format == 'delimited' %}
+                            <p>You might want to perform an update to the dataset instead. <a
+                                    href="{% url 'contact' %}">Contact us</a> if you would like help with that.</p>
+                        {% endif %}
+                        <p class="mt-4">
+                            <input id="b_delete_ds" type='submit' value='Destroy'/>
+                            <a href="javascript:history.back()">Cancel</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
     </div>
-  </div>
-  {% endif %}
-</div>
 
-</div>
-<script type="text/javascript">
-  function startDeleteSpinner() {
-    window.spinner_delete = new Spin.Spinner().spin();
-    $("#delete_warning").append(spinner_delete.el);
-  }
+    </div>
+    <script type="text/javascript">
+        function startDeleteSpinner() {
+            window.spinner_delete = new Spin.Spinner().spin();
+            $("#delete_warning").append(spinner_delete.el);
+        }
 
-  $("#b_delete_ds").on('click', function () {
-    startDeleteSpinner()
-  })
-</script>
+        $("#b_delete_ds").on('click', function () {
+            startDeleteSpinner()
+        })
+    </script>
 {% endblock %}

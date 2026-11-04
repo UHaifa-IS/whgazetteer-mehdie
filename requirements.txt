@@ -19,7 +19,6 @@ django-tinymce
 djangorestframework
 djangorestframework-datatables
 djangorestframework-gis
-elasticsearch==7.8.1
 frictionless==3.31.0
 geojson
 goodtables
@@ -28,4 +27,10 @@ pandas
 psycopg2
 simplejson
 Shapely
-elasticsearch7==7.17.1
+elasticsearch7==7.17.13
+sentry-sdk>=1.45.1,<2
+edtf
+validators
+redis
+rdflib
+gunicorn

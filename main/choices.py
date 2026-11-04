@@ -1,61 +1,63 @@
 # model field value choices
 
 AREATYPES = {
-    ('ccodes','Country codes'),
-    ('copied','CopyPasted GeoJSON'),
-    ('search','Region/Polity record'),
-    ('drawn','User drawn'),
-    ('predefined','World Regions'),
+    ('ccodes', 'Country codes'),
+    ('copied', 'CopyPasted GeoJSON'),
+    ('search', 'Region/Polity record'),
+    ('drawn', 'User drawn'),
+    ('predefined', 'World Regions'),
 }
 
-AUTHORITIES = [
-    ('tgn','Getty TGN'),
-    ('dbp','DBpedia'),
-    ('gn','Geonames'),
-    ('wd','Wikidata'),
-    ('core','WHG Spine'),
-    ('whg','WHG'),
-]
+# AUTHORITIES = [
+#     ('md', 'Match data'),
+#     ('tgn', 'Getty TGN'),
+#     ('dbp', 'DBpedia'),
+#     ('gn', 'Geonames'),
+#     ('wd', 'Wikidata'),
+#     ('core', 'WHG Spine'),
+#     ('whg', 'WHG'),
+# ]
 
 AUTHORITY_BASEURI = {
-    'align_tgn':'tgn:',
-    'align_dbp':'dbp:',
-    'align_gn':'gn:',
-    'align_wd':'wd:',
-    'align_wdlocal':'wd:',
-    'align_idx':'whg:',
-    'align_whg':'whg:'
+    'align_match_data': 'md:',
+    'align_tgn': 'tgn:',
+    'align_dbp': 'dbp:',
+    'align_gn': 'gn:',
+    'align_wd': 'wd:',
+    'align_wdlocal': 'wd:',
+    'align_idx': 'whg:',
+    'align_whg': 'whg:'
 }
 
 COLLECTIONCLASSES = [
-    ('dataset','Dataset collection'),
-    ('place','Place collection'),
-    ('region','Region collection')
+    ('dataset', 'Dataset collection'),
+    ('place', 'Place collection'),
+    ('region', 'Region collection')
 ]
 
 COLLECTIONTYPES = [
-    ('event','Event'),
-    ('person','Person'),
-    ('work','Work'),
-    ('theme','Theme'),
+    ('event', 'Event'),
+    ('person', 'Person'),
+    ('work', 'Work'),
+    ('theme', 'Theme'),
 ]
 
 COMMENT_TAGS = [
-    ('typo','Typo'),
-    ('geom_error','Geometry error'),
-    ('misplaced','Record does not belong in set'),
-    ('other','Other'),
+    ('typo', 'Typo'),
+    ('geom_error', 'Geometry error'),
+    ('misplaced', 'Record does not belong in set'),
+    ('other', 'Other'),
 ]
 COMMENT_TAGS_REVIEW = [
-    ('typo','Typo'),
-    ('geom_error','Geometry error'),
+    ('typo', 'Typo'),
+    ('geom_error', 'Geometry error'),
     ('defer', 'Deferring'),
-    ('other','Other'),
+    ('other', 'Other'),
 ]
 
 DATATYPES = [
     ('place', 'Places'),
-    ('anno', 'Traces')
+    ('people', 'People')
 ]
 
 ERAS = [
@@ -65,67 +67,78 @@ ERAS = [
 
 # geonames classes for api filter
 FEATURE_CLASSES = [
-    ('A','Administrative divisions'),
-    ('H','Hydrological features'),
-    ('L','Landscape, regions'),
-    ('P','Populated places (settlements)'),
-    ('R','Roads, routes, transportation'),
-    ('S','Sites (various)'),
-    ('T','Topographical features'),
-    ('U','Undersea features'),
-    ('V','Vegetation landcover'),
+    ('A', 'Administrative divisions'),
+    ('H', 'Hydrological features'),
+    ('L', 'Landscape, regions'),
+    ('P', 'Populated places (settlements)'),
+    ('R', 'Roads, routes, transportation'),
+    ('S', 'Sites (various)'),
+    ('T', 'Topographical features'),
+    ('U', 'Undersea features'),
+    ('V', 'Vegetation landcover'),
 ]
 
-#A: country, state, region,...
-#H: stream, lake, ...
-#L: parks,area, ...
-#P: city, village,...
-#R: road, railroad 
-#S: spot, building, farm
-#T: mountain,hill,rock,... 
-#U: undersea
-#V: forest,heath,...
+# A: country, state, region,...
+# H: stream, lake, ...
+# L: parks,area, ...
+# P: city, village,...
+# R: road, railroad
+# S: spot, building, farm
+# T: mountain,hill,rock,...
+# U: undersea
+# V: forest,heath,...
+
+HitRelationType = [
+    ("same_as", "Same as"),
+    #("part_of", "Part of"),
+    ("located_in ", "Located in"),
+    #("reverse_part_of", "Reverse part of"),
+    ("reverse_located_in", "Reverse located in"),
+    ("borders_with", "Borders with"),
+    ("different", "Different"),
+]
 
 FORMATS = [
     ('delimited', 'Delimited/Spreadsheet'),
     ('lpf', 'Linked Places v1.2'),
-    #('direct', 'direct to db import')
+    # ('direct', 'direct to db import')
 ]
 
 LINKTYPES = [
     # ('page','web page'),
-    ('page',"<i title class='fa fa-window-maximize'></i>"),
-    ('image',"<i title class='fa fa-file-image-o'></i>"),
-    ('pdf',"<i title class='fa fa-file-pdf-o'></i>")
+    ('page', "<i title class='fa fa-window-maximize'></i>"),
+    ('image', "<i title class='fa fa-file-image-o'></i>"),
+    ('pdf', "<i title class='fa fa-file-pdf-o'></i>")
 ]
 
 LOG_CATEGORIES = [
-    ('user','User'),
-    ('dataset','Dataset'),
-    ('collection','Collection')
+    ('user', 'User'),
+    ('dataset', 'Dataset'),
+    ('collection', 'Collection')
 ]
 
 LOG_TYPES = [
-    ('ds_create','Create dataset'),
-    ('ds_update','Update dataset'),
-    ('ds_delete','Delete dataset'),
-    ('ds_recon','Reconciliation task'),
-    ('area_create','Create area'),
-    ('area_update','Update area'),
-    ('area_delete','Delete area'),
-    ('collection_create','Create collection'),
-    ('collection_update','Update collection'),
-    ('collection_delete','Delete collection'),
-    ('annotation','Create/update annotation'),
+    ('ds_create', 'Create dataset'),
+    ('ds_update', 'Update dataset'),
+    ('ds_delete', 'Delete dataset'),
+    ('ds_recon', 'Reconciliation task'),
+    ('area_create', 'Create area'),
+    ('area_update', 'Update area'),
+    ('area_delete', 'Delete area'),
+    ('collection_create', 'Create collection'),
+    ('collection_update', 'Update collection'),
+    ('collection_delete', 'Delete collection'),
+    ('annotation', 'Create/update annotation'),
 ]
 
 MATCHTYPES = [
-    ('close','closeMatch'),
-    ('exact','exactMatch'),
-    ('related','related'),
+    ('close', 'closeMatch'),
+    ('exact', 'exactMatch'),
+    ('related', 'related'),
 ]
 
-PASSES = [
+PASSES = [  # TODO FIX
+    # ('pass0', 'Query pass 0'),
     ('pass1', 'Query pass 1'),
     ('pass2', 'Query pass 2'),
     ('pass3', 'Query pass 3'),
@@ -194,11 +207,11 @@ STATUS_FILE = [
 
 STATUS_HIT = [
     ('match', 'Match'),
-    #('nomatch', 'No Match'),
+    # ('nomatch', 'No Match'),
 ]
 
 STATUS_REVIEW = [
-    #null = 'No hits'
+    # null = 'No hits'
     (0, 'Unreviewed'),
     (1, 'Reviewed'),
     (2, 'Deferred')
@@ -211,29 +224,28 @@ TEAMROLES = [
 ]
 
 TRACERELATIONS = [
-    ('subject','Subject'),
-    ('waypoint','Waypoint'),
-    ('locale','Locale'),
-    ('birthplace','Birth place'),
-    ('deathplace','Death place'),
-    ('resided','Resided'),
-    ('taught','Taught'),
-    ('enlightened','Enlightened'),
-    ('findspot','Findspot'),
-    ('ruled','Ruled')
+    ('subject', 'Subject'),
+    ('waypoint', 'Waypoint'),
+    ('locale', 'Locale'),
+    ('birthplace', 'Birth place'),
+    ('deathplace', 'Death place'),
+    ('resided', 'Resided'),
+    ('taught', 'Taught'),
+    ('enlightened', 'Enlightened'),
+    ('findspot', 'Findspot'),
+    ('ruled', 'Ruled')
 ]
 
 TRACETYPES = [
-    ('person','Person'),
-    ('dataset','Dataset'),
-    ('event','Event'),
-    ('journey','Journey'),
-    ('work','Work'),
-    ('concept','Concept')
+    ('person', 'Person'),
+    ('dataset', 'Dataset'),
+    ('event', 'Event'),
+    ('journey', 'Journey'),
+    ('work', 'Work'),
+    ('concept', 'Concept')
 ]
 
 USERTYPES = [
     ('individual', 'Individual'),
     ('group', 'Group or project team')
 ]
-

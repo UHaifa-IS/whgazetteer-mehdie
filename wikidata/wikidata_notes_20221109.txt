@@ -1,0 +1,98 @@
+(Re)building a Wikidata index (02 Mar 2021; edits Nov 2022)
+===========================================================
+- uses https://github.com/maxlath/wikibase-dump-filter
+
+- Download latest JSON dump
+	$ wget -q https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2
+	- takes a couple hours (~62gb)
+	- latest was downloaded 24 Feb 2021
+
+- extract everything with a location relation (P625; ~8m records) to a json-lines file
+	$ nohup cat latest-all.json.bz2 | bzcat | grep '"P625"' | wikibase-dump-filter  --simplify --claim P625 > p625_20210303.jsonl &
+	local (ext drive) 3 Mar, 9:22 elapsed
+
+- filter for 3141 types of interest in goodqs_fclasses_3141.json
+	$ python wikidata-filter-server.py p625_yyyymmdd.jsonl
+		writes 625_filtered_yyyymmdd.jsonl
+
+- get archaeological ids, then data
+	$ wd query --property P31 --object Q839954 > arch_ids.txt
+	$ cat arch_ids.txt | wd data --simplify > idx_archaeo_yyyymmdd.jsonl
+
+- filter for settlements w/o location
+	$ nohup cat latest-all.json.bz2 | bzcat | grep '"Q486972"'| wikibase-dump-filter  --simplify --claim 'P31:Q486972&~P625' > idx_settlements_noloc.jsonl
+
+- rebuild wd index
+	$ python wd_in_server.py {filename} {idx}
+		idx_625_filtered_yyyymmdd.jsonl
+		idx_archaeo_yyyymmdd.jsonl
+		idx_settlements_noloc.jsonl
+
+
+MISC NOTES re: above
+====================
+# wikidata indexing steps
+
+# delete previous
+$ rm ~/whgdata/wikidata/wd_*.json.bz2
+
+# download latest full dump (takes hours)
+$ nohup curl -s https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2 > wd_yyyymmdd.json.bz2
+$ wget -q https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.bz2
+
+# filter for everything with a location (P625; ~8m records)
+$ nohup cat wd_yyyymmdd.json.bz2 | bzcat | grep '"P625"' | wikibase-dump-filter  --claim P625 > p625_yyyymmdd.ndjson
+
+# filter for n item classes of interest (goodqs_fclasses_447.json)
+# REMOTE
+$ nohup python wikidata-filter.py p625_yyyymmdd.ndjson 
+    returns p625_yyyymmdd_filtered.jsonl
+    (~4 min. 25 Jan)
+    ( min. 14 Feb)
+
+# get archaeological ids, then data
+wd query --property P31 --object Q839954 > arch_ids.txt
+cat arch_ids.txt | wd data --simplify > Q839954_yyyymmdd.jsonl
+
+# filter for settlements w/o location
+$ nohup cat wd_20210112.json.bz2 | bzcat | grep '"Q486972"'| wikibase-dump-filter  --simplify --claim 'P31:Q486972&~P625' > settlements_noloc.jsonl
+
+# rebuild wd index
+wd_in.py
+
+p625_yyyymmdd_filtered.jsonl (places w/location)
+  3081997 rows; 1.5 hrs 16 Feb ->  2.5gb 
+Q839954_yyyymmdd.jsonl (archaeological sites)
+  39024 rows; 64 sec. 16 Feb ->  3090381 total  (net 8384 added)
+settlements_noloc.jsonl (unlocated settlements)
+  165790 rows; 4 min 16 Feb ->  3256000 total (net 165619 added)
+
+
+
+utilities
+=========
+$ wc -l
+$ tail -n 1000 file.ext > file.out
+
+
+## need to include more admin entities
+## try: entity IDs, then records
+##
+- admin type ids: admin_ids_missing.txt (union of admin_ids_existing.txt and id column in admin_taxonomy_full.xlsx)
+- paste into FILTER in admin_big.rq
+- wb sparql -e https://query.wikidata.org/sparql -f csv admin_big01.rq > ./admin_entities01
+- wb sparql -e https://query.wikidata.org/sparql -f csv admin_big02.rq > ./admin_entities02
+- wb sparql -e https://query.wikidata.org/sparql -f csv admin_big03.rq > ./admin_entities03
+	-> entity ids as URIs
+- cat the three results
+	- 
+# strip URI prefix
+sed -i '' 's|http://www.wikidata.org/entity/||g' admin_entities
+# strip first line
+tail -n +2 admin_entities > admin_entities_ids.txt
+	-> list of desired admin entity Q ids 
+# 
+cat admin_entities_ids.txt | wd data --simplify > admin_missing_20210215.jsonl
+# errored out -- split the job
+
+

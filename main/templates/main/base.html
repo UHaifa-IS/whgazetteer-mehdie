@@ -4,17 +4,8 @@
 {% load fontawesome %}
 <html lang="en">
 <head>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-147954240-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    
-    gtag('config', 'UA-147954240-1');
-  </script>
-  
-  {% block title %}<title>WHG</title>{% endblock %}
+
+  {% block title %}<title>MEHDIE</title>{% endblock %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
@@ -50,7 +41,7 @@
 		<div class="smallish d-none d-lg-block pt-2">
 		  <span id="beta_links">
       <a href="#" class="feedback">contact us</a> |
-			<a href="https://twitter.com/graphmehdie" target="_blank"><img src="{% static 'images/twitter30h.png'%}" height=14></a>
+			<a href="https://twitter.com/whgazetteer" target="_blank"><img src="{% static 'images/twitter30h.png'%}" height=14></a>
 		  </span>
 		</div>
 		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,7 +66,7 @@
 				<a class="dropdown-item" href="{% url 'about' %}">Introduction</a>
 				<a class="dropdown-item" href="{% url 'system' %}">System details</a>
 				<a class="dropdown-item" href="{% url 'licensing' %}">Licensing, Terms</a>
-				{% comment %} <a class="dropdown-item" href="{% url 'credits' %}">Credits & Contacts</a> {% endcomment %}
+			        {#<a class="dropdown-item" href="{% url 'credits' %}">Credits & Contacts</a>#}
 				<div class="dropdown-divider"></div>
 				<a class="dropdown-item" href="http://blog.whgazetteer.org" target="_blank">
 				  News {% fontawesome_icon 'external-link' %}</a>

@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # run this using sudo
-apt install -y git wget
+apt install -y git wget vim nginx
 apt install -y python-is-python3
 apt update
 apt upgrade
 apt install -y gdal-bin libgdal-dev gfortran gunicorn
 apt install -y python3-pip
-pip install -r requirements.txt
+python -m pip install -r requirements.lock
 wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
 chmod +x cloud_sql_proxy
 apt install -y htop

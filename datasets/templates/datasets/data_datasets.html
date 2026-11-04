@@ -3,54 +3,70 @@
 {% extends "main/base.html" %}
 {% block title %}<title>MEHDIE::My dataasets</title>{% endblock %}
 {% block extra_head %}
-{% block mycss %}
-  <style>
-    .fa-sort {cursor:pointer;}
-    #table_ds th, #table_areas th {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #fdf5e6;}
-    #dataset_list, #area_list {position:relative !important; height:75vh !important }
-    .list-box {overflow-y:auto  !important; max-height:100%;}
-  </style>
-{% endblock mycss %}
-{% endblock%}
+    {% block mycss %}
+        <style>
+            .fa-sort {
+                cursor: pointer;
+            }
+
+            #table_ds th, #table_areas th {
+                position: sticky;
+                top: 0;
+                z-index: 10;
+                background-color: #fdf5e6;
+            }
+
+            #dataset_list, #area_list {
+                position: relative !important;
+                height: 75vh !important
+            }
+
+            .list-box {
+                overflow-y: auto !important;
+                max-height: 100%;
+            }
+        </style>
+    {% endblock mycss %}
+{% endblock %}
 
 
 {% block content %}
-  {% load static %}
-  {% load fontawesome %}
-  {% load mathfilters %}
-  {% load dataset_extras %}
+    {% load static %}
+    {% load fontawesome %}
+    {% load mathfilters %}
+    {% load dataset_extras %}
 
-  <div class="container pt-3">
-    <ul id="dashboard_tabs" class="nav nav-tabs" role="tablist">
-      <li class="nav-item">
-        <a class="nav-link active" id="mydslist-tab" data-link="mydslist" data-toggle="tab"
-          role="tab" aria-controls="dslist" aria-selected="true">Datasets</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="collectionlist-tab" href="{% url 'data-collections' %}"
-           role="tab" aria-controls="collectionlist" aria-selected="false">Collections</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="arealist-tab" href="{% url 'data-areas' %}"
-           role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
-      </li>
-      {% if beta_or_better %}
-      <li class="nav-item">
-        <a class="nav-link" id="resourcelist-tab" href="{% url 'data-resources' %}"
-           role="tab" aria-controls="resourcelist" aria-selected="false">Teaching resources</a>
-      </li>
-      {% endif %}
-    </ul>
-    <div class="tab-content">
-      <div id="mydslist" class="tab-pane fade show active" role="tabpanel" aria-labelledby="mydslist-tab">
-        <p class="mb-1 ml-1"><a href="{% url 'datasets:dataset-create' %}" class="">
-          {% fontawesome_icon 'plus-square' color='#336699' %} add new</a>
-	        {% if whgteam %}
-          <span class="ml-2 float-right small">
+    <div class="container pt-3">
+        <ul id="dashboard_tabs" class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="mydslist-tab" data-link="mydslist" data-toggle="tab"
+                   role="tab" aria-controls="dslist" aria-selected="true">Datasets</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="collectionlist-tab" href="{% url 'data-collections' %}"
+                   role="tab" aria-controls="collectionlist" aria-selected="false">Collections</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="arealist-tab" href="{% url 'data-areas' %}"
+                   role="tab" aria-controls="arealist" aria-selected="false">Study Areas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="graph-tab" href="{% url 'graph' %}"
+                   role="tab" aria-controls="graph" aria-selected="false">Graph</a>
+            </li>
+            {% if beta_or_better %}
+                <li class="nav-item">
+                    <a class="nav-link" id="resourcelist-tab" href="{% url 'data-resources' %}"
+                       role="tab" aria-controls="resourcelist" aria-selected="false">Teaching resources</a>
+                </li>
+            {% endif %}
+        </ul>
+        <div class="tab-content">
+            <div id="mydslist" class="tab-pane fade show active" role="tabpanel" aria-labelledby="mydslist-tab">
+                <p class="mb-1 ml-1"><a href="{% url 'datasets:dataset-create' %}" class="">
+                    {% fontawesome_icon 'plus-square' color='#336699' %} add new</a>
+                    {% if whgteam %}
+                        <span class="ml-2 float-right small">
 	          <select id="status_select">
 	          <option value="all">Filter status</option>
 	          <option value="uploaded">Uploaded</option>
@@ -60,172 +76,183 @@
 	          <option value="indexed">Indexed</option>
             </select>
           </span>
-	        {% endif %}
-        </p>
-        <div id="dataset_list" class="mt-1">
-          <div class="list-box">
-            <h6 class="my-2">My Datasets</h6>
-            {% if dataset_list|length == 0 %}<p class="smaller"><i>None yet...</i></p>
-            {% else %}
-            <table id="table_ds" class="table table-striped">
-              <thead class="small strong">
-                <th>id</th>
-                <th>name <i class="fa fa-sort ml-1" data-id=1 ref=asc></i></th>
-                <th>label <i class="fa fa-sort ml-1" data-id=2 ref=asc></i></th>
-                <th>created <i class="fa fa-sort ml-1" data-id=3 title="UTC"></i></th>
-                <th>format</th>
-                <th># rows</th>
-                <th>status <i class="fa fa-sort ml-1" data-id=6 ref=asc></i></th>
-                <!--{ if user.is_superuser %}-->
-                {% if beta_or_better %}
-                <th>owner <i class="fa fa-sort ml-1" data-id=7 ref=asc></i></th>{% endif %}
-              </thead>
-              <tbody>
-                {% for d in dataset_list %}
-                  <tr class="place-row">
-                    <td>{{ d.id }}</td>
-                    <td>
-                    <a href="{% url 'datasets:ds_summary' d.id %}" title="Dataset details" rel="tooltip">{{ d.title }}</a>
-                    </td>
-                    <td>{% if d.core == True %}
-                          {{ d.label }} <span class="corerow"> (core)</span>
-                        {% else %}{{ d.label }}{% endif %}</td>
-                    <td class="small">{{ d.create_date|date:"Y-m-d, H:i" }}</td>
-                    <td>{{ d.format }}</td>
-                    <td>{{ d.numrows }}</td>
-                    <td>{{ d.ds_status }}</td>
-                    <!--{ if user.is_superuser %}-->
-                    {% if beta_or_better %}
-                    <td>{{ d.owner|truncatechars:20 }}</td>
                     {% endif %}
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            {% endif %}
-            {% if shared_list|length > 0 and user.is_superuser is False %}<hr/>
-            <h6 class="mb-0">Shared with me</h6>
-            <table class="table table-striped">
-              <thead class="small strong">
-                <th>id</th>
-                <th>name</th>
-                <th>label</th>
-                <th>created (utc)</th>
-                <!--<th>type</th>-->
-                <th># rows</th>
-                <th>status</th>
-                <th>owner</th>
-              </thead>
-              <tbody>
-                {% for d in shared_list %}
-                  <tr class="place-row">
-                    <td>{{ d.id }}</td>
-                    <td><a href="{% url 'datasets:ds_summary' d.id %}" title="Dataset details" rel="tooltip"
-                      >{{ d.title }}</a></td>
-                    <td>{% if d.core == True %}
-                          {{ d.label }} <span class="corerow"> (core)</span>
-                        {% else %}{{ d.label }}{% endif %}</td>
-                    <!--<td class="small">{ d.create_date|date:"d-M-Y, H:i (e)" }}</td>-->
-                    <td class="small">{{ d.create_date|date:"d M Y, H:i" }}</td>
-                    <!--<td>{ d.datatype }}</td>-->
-                    <td>{{ d.numrows }}</td>
-                    <td>{{ d.ds_status }}</td>
-                    <td>{{ d.owner }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-            {% endif %}
-          </div>
+                </p>
+                <div id="dataset_list" class="mt-1">
+                    <div class="list-box">
+                        <h6 class="my-2">My Datasets</h6>
+                        {% if dataset_list|length == 0 %}<p class="smaller"><i>None yet...</i></p>
+                        {% else %}
+                            <table id="table_ds" class="table table-striped">
+                                <thead class="small strong">
+                                <th>id</th>
+                                <th>name <i class="fa fa-sort ml-1" data-id=1 ref=asc></i></th>
+                                <th>label <i class="fa fa-sort ml-1" data-id=2 ref=asc></i></th>
+                                <th>created <i class="fa fa-sort ml-1" data-id=3 title="UTC"></i></th>
+                                <th>format</th>
+                                <th># rows</th>
+                                <th>status <i class="fa fa-sort ml-1" data-id=6 ref=asc></i></th>
+                                <!--{ if user.is_superuser %}-->
+                                {% if beta_or_better %}
+                                    <th>owner <i class="fa fa-sort ml-1" data-id=7 ref=asc></i></th>
+                                {% endif %}
+                                <th>type</th>
+                                {#                <th>related to:</th>#}
+
+                                </thead>
+                                <tbody>
+                                {% for d in dataset_list %}
+                                    <tr class="place-row">
+                                        <td>{{ d.id }}</td>
+                                        <td>
+                                            <a href="{% url 'datasets:ds_summary' d.id %}" title="Dataset details"
+                                               rel="tooltip">{{ d.title }}</a>
+                                        </td>
+                                        <td>{% if d.core == True %}
+                                            {{ d.label }} <span class="corerow"> (core)</span>
+                                        {% else %}{{ d.label }}{% endif %}</td>
+                                        <td class="small">{{ d.create_date|date:"Y-m-d, H:i" }}</td>
+                                        <td>{{ d.format }}</td>
+                                        <td>{{ d.numrows }}</td>
+                                        <td>{{ d.ds_status }}</td>
+                                        <!--{ if user.is_superuser %}-->
+                                        {% if beta_or_better %}
+                                            <td>{{ d.owner|truncatechars:20 }}</td>
+                                        {% endif %}
+                                        <td>{{ d.datatype }}</td>
+                                        {#                    {% for place in d.places.all %}#}
+                                        {#                        <td>{{ place.id }} - {{ place.title }}</td>#}
+                                        {#                    {% endfor %}#}
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                        {% if shared_list|length > 0 and user.is_superuser is False %}
+                            <hr/>
+                            <h6 class="mb-0">Shared with me</h6>
+                            <table class="table table-striped">
+                                <thead class="small strong">
+                                <th>id</th>
+                                <th>name</th>
+                                <th>label</th>
+                                <th>created (utc)</th>
+                                <!--<th>type</th>-->
+                                <th># rows</th>
+                                <th>status</th>
+                                <th>owner</th>
+                                </thead>
+                                <tbody>
+                                {% for d in shared_list %}
+                                    <tr class="place-row">
+                                        <td>{{ d.id }}</td>
+                                        <td><a href="{% url 'datasets:ds_summary' d.id %}" title="Dataset details"
+                                               rel="tooltip"
+                                        >{{ d.title }}</a></td>
+                                        <td>{% if d.core == True %}
+                                            {{ d.label }} <span class="corerow"> (core)</span>
+                                        {% else %}{{ d.label }}{% endif %}</td>
+                                        <!--<td class="small">{ d.create_date|date:"d-M-Y, H:i (e)" }}</td>-->
+                                        <td class="small">{{ d.create_date|date:"d M Y, H:i" }}</td>
+                                        <!--<td>{ d.datatype }}</td>-->
+                                        <td>{{ d.numrows }}</td>
+                                        <td>{{ d.ds_status }}</td>
+                                        <td>{{ d.owner }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <script>
-    $(function(){
-      $("[rel='tooltip']").tooltip();
+    <script>
+        $(function () {
+            $("[rel='tooltip']").tooltip();
 
-      // manage url
-      var url = document.location.toString();
-      if (url.match('#')) {
-        tab = url.split('#')[1]
-        $('.nav-tabs a[href="#' + tab+ '"]').tab('show');
-        history.pushState("", document.title, window.location.pathname);
-      }
-    })
+            // manage url
+            var url = document.location.toString();
+            if (url.match('#')) {
+                tab = url.split('#')[1]
+                $('.nav-tabs a[href="#' + tab + '"]').tab('show');
+                history.pushState("", document.title, window.location.pathname);
+            }
+        })
 
-    $("#status_select").change(function() {
-        let term = $(this).val()
-		    console.log('select term', term)
-        statusFilter(term)
-    })
+        $("#status_select").change(function () {
+            let term = $(this).val()
+            console.log('select term', term)
+            statusFilter(term)
+        })
 
-    statusFilter = function(term) {
-        sel = $('#status_select').find(":selected").val()
-		    if (sel != 'all'){
-					$("#status_select option")[0].innerHTML='Show all'
-		    }
-        results = $("#table_ds tbody tr")
-        for (i = 0; i < results.length; i++) {
-            ds_status = results[i].cells[6].innerHTML
-				    {#console.log('ds_status', ds_status)#}
-            if (term == ds_status || term == 'all') {
-                results[i].style.display = "";
-            } else if (term != ds_status) {
-                results[i].style.display = "none";
+        statusFilter = function (term) {
+            sel = $('#status_select').find(":selected").val()
+            if (sel != 'all') {
+                $("#status_select option")[0].innerHTML = 'Show all'
+            }
+            results = $("#table_ds tbody tr")
+            for (i = 0; i < results.length; i++) {
+                ds_status = results[i].cells[6].innerHTML
+                {#console.log('ds_status', ds_status)#}
+                if (term == ds_status || term == 'all') {
+                    results[i].style.display = "";
+                } else if (term != ds_status) {
+                    results[i].style.display = "none";
+                }
             }
         }
-    }
 
-    $(".fa-sort").on('click',function(){
-      table_id =$(this).closest('table').prop('id') // parent table id
-      console.log('table_id',table_id)
-      sortTable($(this).data('id'), $(this).attr('ref'), table_id)
-    })
+        $(".fa-sort").on('click', function () {
+            table_id = $(this).closest('table').prop('id') // parent table id
+            console.log('table_id', table_id)
+            sortTable($(this).data('id'), $(this).attr('ref'), table_id)
+        })
 
-    // TODO: this sort function is crude and slow
-    sortTable = function(col_idx, order, table_id) {
-      var table, rows, switching, i, x, y, shouldSwitch;
-      table = document.getElementById(table_id);
-      switching = true;
-      /* Make a loop that will continue until
-      no switching has been done: */
-      while (switching) {
-        // Start by saying: no switching is done:
-        switching = false;
-        rows = table.rows;
-        /* Loop through all table rows (except the
-        first, which contains table headers): */
-        for (i = 1; i < (rows.length - 1); i++) {
-          // no switching to start
-          shouldSwitch = false;
-          /* Get the two elements to compare,
-          one from current row and one from the next: */
-          x = rows[i].getElementsByTagName("TD")[col_idx];
-          y = rows[i + 1].getElementsByTagName("TD")[col_idx];
-          // Check if the two rows should switch place:
-          if (order == 'asc'){
-            if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
-              // If so, mark as a switch and break the loop:
-              shouldSwitch = true;
-              break;
+        // TODO: this sort function is crude and slow
+        sortTable = function (col_idx, order, table_id) {
+            var table, rows, switching, i, x, y, shouldSwitch;
+            table = document.getElementById(table_id);
+            switching = true;
+            /* Make a loop that will continue until
+            no switching has been done: */
+            while (switching) {
+                // Start by saying: no switching is done:
+                switching = false;
+                rows = table.rows;
+                /* Loop through all table rows (except the
+                first, which contains table headers): */
+                for (i = 1; i < (rows.length - 1); i++) {
+                    // no switching to start
+                    shouldSwitch = false;
+                    /* Get the two elements to compare,
+                    one from current row and one from the next: */
+                    x = rows[i].getElementsByTagName("TD")[col_idx];
+                    y = rows[i + 1].getElementsByTagName("TD")[col_idx];
+                    // Check if the two rows should switch place:
+                    if (order == 'asc') {
+                        if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+                            // If so, mark as a switch and break the loop:
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else {
+                        if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+                if (shouldSwitch) {
+                    /* If a switch has been marked, make the switch
+                    and mark that a switch has been done: */
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                }
             }
-          } else {
-            if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
-              shouldSwitch = true;
-              break;
-            }
-          }
         }
-        if (shouldSwitch) {
-          /* If a switch has been marked, make the switch
-          and mark that a switch has been done: */
-          rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-          switching = true;
-        }
-      }
-    }
 
-  </script>
+    </script>
 {% endblock %}

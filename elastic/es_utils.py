@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from places.models import Place
 from datasets.static.hashes.parents import ccodes as cchash
 from elasticsearch7 import Elasticsearch
-es = Elasticsearch([{'host': 'localhost',
+es = Elasticsearch([{'host': '0.0.0.0',
                      'port': 9200,
                      'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                      'timeout': 30,
@@ -432,7 +432,7 @@ def removeDatasetFromIndex(request, *args, **kwargs):
   from datasets.models import Dataset
   from elasticsearch7 import Elasticsearch
   ds = Dataset.objects.get(id = kwargs['dsid'])
-  es = Elasticsearch([{'host': 'localhost',
+  es = Elasticsearch([{'host': '0.0.0.0',
                        'port': 9200,
                        'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                        'timeout': 30,
@@ -610,7 +610,7 @@ def esq_children(_id):
 # ***
 def escount_ds(idx,label):
   from elasticsearch7 import Elasticsearch
-  es = Elasticsearch([{'host': 'localhost',
+  es = Elasticsearch([{'host': '0.0.0.0',
                        'port': 9200,
                        'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                        'timeout':30,
@@ -653,7 +653,7 @@ def esInit(idx):
   os.chdir('/Users/karlg/Documents/Repos/_whgazetteer/')
 
   from elasticsearch7 import Elasticsearch
-  es = Elasticsearch([{'host': 'localhost',
+  es = Elasticsearch([{'host': '0.0.0.0',
                        'port': 9200,
                        'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
                        'timeout': 30,
