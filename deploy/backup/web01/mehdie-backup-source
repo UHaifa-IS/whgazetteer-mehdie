@@ -1,0 +1,30 @@
+#!/bin/bash
+# MEHDIE backup source - runs on cs-mehdie-web01 as user `mehdie-backup`.
+#
+# Never run by hand: it is the forced command for the backup server's SSH key
+# (see ~mehdie-backup/.ssh/authorized_keys). The backup server asks for one
+# artefact per connection and this script streams it to stdout:
+#
+#   db       pg_dump of the `mehdie` database (custom format, compressed)
+#   globals  roles and other cluster-wide objects (pg_dumpall --globals-only)
+#   media    the Django media folder (uploaded datasets etc.) as .tar.gz
+#
+# Install: /usr/local/sbin/mehdie-backup-source (root:root, 0755).
+# Each command below must match /etc/sudoers.d/mehdie-backup exactly.
+set -euo pipefail
+
+case "${SSH_ORIGINAL_COMMAND:-}" in
+  db)
+    exec sudo -n -u postgres /usr/bin/pg_dump --format=custom --compress=6 mehdie
+    ;;
+  globals)
+    exec sudo -n -u postgres /usr/bin/pg_dumpall --globals-only
+    ;;
+  media)
+    exec sudo -n -u www-data /usr/bin/tar -C /srv/www/tools.mehdie.org/app -czf - media
+    ;;
+  *)
+    echo "mehdie-backup-source: expected one of: db, globals, media" >&2
+    exit 2
+    ;;
+esac

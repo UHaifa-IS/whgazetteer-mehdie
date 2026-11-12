@@ -1,0 +1,16 @@
+# /etc/systemd/system/mehdie-backup.service on cs-mehdie-web01
+[Unit]
+Description=Send MEHDIE database and media backup to a256-gc1-01
+Wants=network-online.target
+After=network-online.target postgresql.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/default/mehdie-backup
+ExecStart=/usr/local/sbin/mehdie-backup-push
+Nice=10
+IOSchedulingClass=idle
+# Hardening: the job only reads; it writes nothing on web01.
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
