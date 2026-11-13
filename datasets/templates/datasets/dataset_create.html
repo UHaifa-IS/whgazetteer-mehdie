@@ -81,6 +81,13 @@
                             <td>{{ form.webpage }}</td>
                         </tr>
                         <tr>
+                            <td><b>Licence</b></td>
+                            <td>{{ form.license }}
+                                <datalist id="license-options">
+    {% for url, name in license_choices %}<option value="{{ url }}">{{ name }}</option>{% endfor %}
+</datalist></td>
+                        </tr>
+                        <tr>
                             <td><b>Public?</b></td>
                             <td>{% if form.public == true %}Yes{% endif %}
                                 <a href="#"><span class="help-matches" data-id="going_public_ds">Making a dataset public. {% fontawesome_icon 'question-circle' color='#336699' %}</span></a>

@@ -25,7 +25,7 @@ from elasticsearch7 import Elasticsearch
 from areas.models import Area
 from collection.models import Collection
 from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateModelForm
-from datasets.models import DatasetFile
+from datasets.models import DatasetFile, LICENSE_CHOICES
 from datasets.static.hashes import mimetypes_plus as mthash_plus
 from datasets.static.hashes.parents import ccodes as cchash
 from datasets.tasks import maxID, run_mehdi_er
@@ -2154,8 +2154,13 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
     template_name = 'datasets/dataset_create.html'
     success_message = 'dataset created'
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['license_choices'] = LICENSE_CHOICES  # licence suggestions (FIXES D14)
+        return context
+
     def form_invalid(self, form):
-        context = {'form': form}
+        context = {'form': form, 'license_choices': LICENSE_CHOICES}
         return self.render_to_response(context=context)
 
     @transaction.atomic()
@@ -2503,6 +2508,7 @@ class DatasetSummaryView(LoginRequiredMixin, UpdateView):
             file.save()
 
         # build context for rendering ds_summary.html
+        context['license_choices'] = LICENSE_CHOICES  # licence suggestions (FIXES D14)
         me = self.request.user
         placeset = ds.places.all()
 

@@ -29,6 +29,20 @@ def ds_image_path(instance, filename):
     return 'datasets/{0}_{1}'.format(instance.id, filename)
 
 
+# Suggested licences (form datalist) and their readable names; keys are
+# normalised URLs (https, lower case, no trailing slash).
+LICENSE_CHOICES = [
+    ('https://creativecommons.org/publicdomain/zero/1.0/', 'CC0 1.0 (public domain)'),
+    ('https://creativecommons.org/licenses/by/4.0/', 'CC BY 4.0'),
+    ('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0'),
+    ('https://creativecommons.org/licenses/by-nc/4.0/', 'CC BY-NC 4.0'),
+    ('https://creativecommons.org/licenses/by-nc-sa/4.0/', 'CC BY-NC-SA 4.0'),
+    ('https://creativecommons.org/licenses/by-nd/4.0/', 'CC BY-ND 4.0'),
+    ('https://opendatacommons.org/licenses/odbl/1-0/', 'ODbL 1.0'),
+]
+LICENSE_LABELS = {url.rstrip('/'): name for url, name in LICENSE_CHOICES}
+
+
 # owner = models.ForeignKey('auth.User', related_name='snippets', on_delete=models.CASCADE)
 class Dataset(models.Model):
     # idx='whg'
@@ -56,6 +70,9 @@ class Dataset(models.Model):
     contributors = models.CharField(max_length=500, null=True, blank=True)
     # user-added; if absent, generated in browser
     citation = models.CharField(max_length=2044, null=True, blank=True)
+    # licence of the dataset as a URL, e.g. https://creativecommons.org/licenses/by/4.0/
+    # (published as dcterms:license in the knowledge graph; FIXES D14)
+    license = models.URLField(max_length=255, null=True, blank=True)
 
     # TODO: these are updated in both Dataset & DatasetFile  (??)
     datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
@@ -69,6 +86,14 @@ class Dataset(models.Model):
     def __str__(self):
         return self.label
         # return '%d: %s' % (self.id, self.label)
+
+    @property
+    def license_label(self):
+        # readable name for well-known licence URLs, else the URL itself
+        if not self.license:
+            return None
+        url = self.license.strip().rstrip('/').replace('http://', 'https://').lower()
+        return LICENSE_LABELS.get(url, self.license)
 
     def get_absolute_url(self):
         return reverse('datasets:ds_summary', kwargs={'id': self.id})

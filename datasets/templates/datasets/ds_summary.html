@@ -100,6 +100,19 @@
                                         </td>
                                     </tr>
                                     <tr>
+                                        <td style="vertical-align:top;"><b>Licence</b>
+                                            <a href="#"
+                                               class="edit-license">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="form-license">{% if ds.license %}<a href="{{ ds.license }}" target="_blank">{{ ds.license_label }}</a>{% else %}...{% endif %}</span>
+                                            <span class="hidden editing-license">{{ form.license }}
+                                                <datalist id="license-options">
+    {% for url, name in license_choices %}<option value="{{ url }}">{{ name }}</option>{% endfor %}
+</datalist></span>&nbsp;
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td style="vertical-align:top;"><b>Description</b>
                                             <a href="#"
                                                class="edit-description">{% fontawesome_icon 'edit' color='#336699' %}</a>
@@ -780,6 +793,11 @@
         $(".edit-webpage").click(function () {
             $(".editing-webpage").toggleClass("hidden")
             $(".form-webpage").toggleClass("hidden")
+            $(".btn-ds").toggleClass("hidden")
+        })
+        $(".edit-license").click(function () {
+            $(".editing-license").toggleClass("hidden")
+            $(".form-license").toggleClass("hidden")
             $(".btn-ds").toggleClass("hidden")
         })
         $(".edit-featured").click(function () {
