@@ -12,9 +12,12 @@ overwrite or delete stored backups.
 | Postgres roles (needed for a full restore) | `pg_dumpall --globals-only` | `globals.sql` |
 | Django media folder (uploads) | `tar` of `app/media` | `media.tar.gz` |
 
-Kept on a256 in `/srv/backup/mehdie/`: 14 daily, 8 weekly (Sunday), 12 monthly
-(1st) copies. Weekly/monthly copies are hard links, so they cost no extra space
-until the daily copy is pruned. On every run a256 checks the files (dump header,
+Kept on a256 in `/srv/backup/mehdie/`: 7 daily, 4 weekly (Sunday) and 2 monthly
+(1st of the month) copies; older copies are deleted by the receiver on every run.
+Weekly/monthly copies are hard links, so they cost no extra space while the same
+night is still among the dailies. At ~85 MB per night (Nov 2026) that is about
+1 GB in total. Change with `KEEP_DAILY`, `KEEP_WEEKLY`, `KEEP_MONTHLY` in
+`/etc/default/mehdie-backup` on a256. On every run a256 checks the files (dump header,
 table list, gzip, globals header), refuses a dump under 50% of the previous
 night's size, writes `SHA256SUMS`, and stores nothing if anything failed.
 Nothing is written to web01's disk; the dumps are streamed.

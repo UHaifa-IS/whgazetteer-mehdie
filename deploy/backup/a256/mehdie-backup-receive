@@ -16,8 +16,8 @@
 #
 # Layout under $DEST:
 #   daily/YYYY-MM-DD/    last $KEEP_DAILY nights
-#   weekly/YYYY-MM-DD/   Sunday copies, last $KEEP_WEEKLY (hard links)
-#   monthly/YYYY-MM-DD/  1st-of-month copies, last $KEEP_MONTHLY (hard links)
+#   weekly/YYYY-MM-DD/   Sunday copies, last $KEEP_WEEKLY (hard links; 0 = none)
+#   monthly/YYYY-MM-DD/  1st-of-month copies, last $KEEP_MONTHLY (hard links; 0 = none)
 #   LAST_SUCCESS         time of the last stored backup
 #
 # Install: /usr/local/bin/mehdie-backup-receive (root:root, 0755).
@@ -27,9 +27,9 @@ umask 077
 
 [ -r /etc/default/mehdie-backup ] && . /etc/default/mehdie-backup
 DEST=${MEHDIE_BACKUP_DIR:-/srv/backup/mehdie}
-KEEP_DAILY=${KEEP_DAILY:-14}
-KEEP_WEEKLY=${KEEP_WEEKLY:-8}
-KEEP_MONTHLY=${KEEP_MONTHLY:-12}
+KEEP_DAILY=${KEEP_DAILY:-7}
+KEEP_WEEKLY=${KEEP_WEEKLY:-4}
+KEEP_MONTHLY=${KEEP_MONTHLY:-2}
 INCLUDE_MEDIA=${INCLUDE_MEDIA:-1}
 # Refuse a dump under this % of the previous one (a shrunken DB is suspicious).
 MIN_SIZE_PCT=${MIN_SIZE_PCT:-50}
@@ -119,10 +119,10 @@ case "${verb:-}" in
     chmod 700 "$DEST/daily/$stamp"
     log "stored $DEST/daily/$stamp ($(du -sh "$DEST/daily/$stamp" | cut -f1))"
 
-    if [ "$(date +%u)" = 7 ]; then
+    if [ "$KEEP_WEEKLY" -gt 0 ] && [ "$(date +%u)" = 7 ]; then
       rm -rf "$DEST/weekly/$stamp"; cp -al "$DEST/daily/$stamp" "$DEST/weekly/$stamp"
     fi
-    if [ "$(date +%d)" = 01 ]; then
+    if [ "$KEEP_MONTHLY" -gt 0 ] && [ "$(date +%d)" = 01 ]; then
       rm -rf "$DEST/monthly/$stamp"; cp -al "$DEST/daily/$stamp" "$DEST/monthly/$stamp"
     fi
 

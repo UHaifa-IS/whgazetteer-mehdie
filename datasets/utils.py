@@ -13,7 +13,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.http import FileResponse, JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
-from sentry_sdk import capture_exception
+from whg.errors import capture_exception
 
 from chardet import detect
 from frictionless import validate as fvalidate

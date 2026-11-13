@@ -17,7 +17,7 @@ import pandas as pd
 import simplejson as json
 from copy import deepcopy
 from itertools import chain
-from sentry_sdk import capture_exception
+from whg.errors import capture_exception
 
 from areas.models import Area
 from collection.models import Collection
