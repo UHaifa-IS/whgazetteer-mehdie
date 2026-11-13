@@ -81,6 +81,10 @@
                             <td>{{ form.webpage }}</td>
                         </tr>
                         <tr>
+                            <td><b>Record group</b></td>
+                            <td>{{ form.record_group }}<br/><small class="text-muted">Datasets from the same source share a group; records with the same source id are merged in the knowledge graph.</small></td>
+                        </tr>
+                        <tr>
                             <td><b>Licence</b></td>
                             <td>{{ form.license }}
                                 <datalist id="license-options">

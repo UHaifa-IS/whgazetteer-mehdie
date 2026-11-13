@@ -113,6 +113,16 @@
                                         </td>
                                     </tr>
                                     <tr>
+                                        <td style="vertical-align:top;"><b>Record group</b>
+                                            <a href="#"
+                                               class="edit-record_group">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="form-record_group">{{ form.record_group.value|default_if_none:"..." }}</span>
+                                            <span class="hidden editing-record_group">{{ form.record_group }}<br/><small class="text-muted">Datasets from the same source share a group; records with the same source id are merged in the knowledge graph.</small></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td style="vertical-align:top;"><b>Description</b>
                                             <a href="#"
                                                class="edit-description">{% fontawesome_icon 'edit' color='#336699' %}</a>
@@ -793,6 +803,11 @@
         $(".edit-webpage").click(function () {
             $(".editing-webpage").toggleClass("hidden")
             $(".form-webpage").toggleClass("hidden")
+            $(".btn-ds").toggleClass("hidden")
+        })
+        $(".edit-record_group").click(function () {
+            $(".editing-record_group").toggleClass("hidden")
+            $(".form-record_group").toggleClass("hidden")
             $(".btn-ds").toggleClass("hidden")
         })
         $(".edit-license").click(function () {

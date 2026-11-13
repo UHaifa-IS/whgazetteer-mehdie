@@ -73,6 +73,12 @@ class Dataset(models.Model):
     # licence of the dataset as a URL, e.g. https://creativecommons.org/licenses/by/4.0/
     # (published as dcterms:license in the knowledge graph; FIXES D14)
     license = models.URLField(max_length=255, null=True, blank=True)
+    # datasets drawn from the same source share record ids (src_id); in the
+    # knowledge graph, records with the same src_id in one group are merged
+    # into a single place/person (FIXES D12). Free text, e.g. 'kima'.
+    record_group = models.CharField(max_length=40, null=True, blank=True, db_index=True,
+                                    help_text='Datasets from the same source share a group; records with the same '
+                                              'source id are merged in the knowledge graph.')
 
     # TODO: these are updated in both Dataset & DatasetFile  (??)
     datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
