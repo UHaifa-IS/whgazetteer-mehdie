@@ -25,6 +25,7 @@ from elasticsearch7 import Elasticsearch
 from areas.models import Area
 from collection.models import Collection
 from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateModelForm
+from datasets.access import DatasetAccessMixin, require_dataset_access
 from datasets.models import DatasetFile, LICENSE_CHOICES
 from datasets.static.hashes import mimetypes_plus as mthash_plus
 from datasets.static.hashes.parents import ccodes as cchash
@@ -2339,7 +2340,7 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
 """
 
 
-class DatasetPublicView(DetailView):
+class DatasetPublicView(DatasetAccessMixin, DetailView):
     template_name = 'datasets/ds_meta.html'
 
     model = Dataset
@@ -2407,6 +2408,7 @@ class DatasetDeleteView(DeleteView):
 
 
 def ds_list(request, label):
+    require_dataset_access(request, get_object_or_404(Dataset, label=label))
     qs = Place.objects.all().filter(dataset=label)
     geoms = []
     for p in qs.all():
@@ -2590,7 +2592,7 @@ class DatasetBrowseView(LoginRequiredMixin, DetailView):
 """
 
 
-class DatasetPlacesView(DetailView):
+class DatasetPlacesView(DatasetAccessMixin, DetailView):
     login_url = '/accounts/login/'
     redirect_field_name = 'redirect_to'
 

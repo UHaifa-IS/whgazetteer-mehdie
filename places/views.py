@@ -7,6 +7,7 @@ from elasticsearch7 import Elasticsearch
 import itertools, re
 
 from collection.models import Collection
+from datasets.access import DatasetAccessMixin
 from datasets.models import Dataset, Hit
 from places.models import Place
 from places.utils import attribListFromSet
@@ -46,7 +47,7 @@ def defer_review(request, pid, auth, last, tid=None):
     return HttpResponseRedirect(return_url)
 
 
-class PlacePortalView(DetailView):
+class PlacePortalView(DatasetAccessMixin, DetailView):
     template_name = 'places/place_portal.html'
 
     #
@@ -201,7 +202,7 @@ class PlacePortalView(DetailView):
         # })
 
 
-class PlaceDetailView(DetailView):
+class PlaceDetailView(DatasetAccessMixin, DetailView):
     # login_url = '/accounts/login/'
     redirect_field_name = 'redirect_to'
 
@@ -240,7 +241,7 @@ class PlaceDetailView(DetailView):
 
 
 # TODO:  tgn query very slow
-class PlaceModalView(DetailView):
+class PlaceModalView(DatasetAccessMixin, DetailView):
     model = Place
 
     template_name = 'places/place_modal.html'

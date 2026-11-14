@@ -15,6 +15,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 
+from datasets.access import can_view_dataset
 from datasets.models import Dataset
 from places.models import Place, PlaceName, PlaceGeom
 
@@ -26,8 +27,8 @@ def _see_other(url):
 
 
 def _visible(request, dataset):
-    # records of non-public datasets resolve only for signed-in users
-    return bool(dataset.public) or request.user.is_authenticated
+    # same rule as the pages the redirect leads to (datasets.access)
+    return can_view_dataset(request.user, dataset)
 
 
 def kg_entity_redirect(request, kind, id, rest=None):
