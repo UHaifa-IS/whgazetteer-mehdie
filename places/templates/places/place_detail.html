@@ -14,6 +14,8 @@
   <script src="{% static 'js/tags/bloodhound.js' %}"></script>
   <script src="{% static 'js/clipboard.min.js' %}"></script>
   <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+  <script src="{% static 'js/aliases.js' %}"></script>
   
   <link rel="stylesheet" href="{% static 'js/tags/bootstrap-tagsinput.css' %}"/>
   <link rel="stylesheet" href="{% static 'js/tags/bootstrap-tagsinput-typeahead.css' %}"/>
@@ -121,6 +123,19 @@
     <!--<div class="col-sm-5 mt-2">-->
     <div id="mapdiv" class="col-sm-5 mt-2" style="max-height:400px"></div>
   </div> <!-- d-flex -->
+  <div id="place_connections" class="mt-3 mb-4" style="display:none">
+    <p class="larger strong mb-0">Connections</p>
+    <p class="small text-muted mb-1">How this record links to other MEHDIE records and to external gazetteers.
+      Click a node to open it.
+      {% if user.is_authenticated %}
+        <a href="{% url 'datasets:ds_browse' dataset.id %}?pid={{ object.id }}">Open in the dataset browser</a>
+      {% endif %}
+    </p>
+    <div id="cy" style="width:100%; height:420px; border:1px solid #e1e4e8; border-radius:4px;"></div>
+  </div>
+  <p class="small text-muted mt-3">Knowledge graph identifier:
+    <code>https://tools.mehdie.org/{% if dataset.datatype == 'place' %}place{% else %}person{% endif %}/{{ object.id }}</code>
+    (<a href="{% url 'sparql-examples' %}">SPARQL examples</a>)</p>
 </div> <!-- container -->
 
 <script type="text/javascript">
@@ -506,6 +521,68 @@
     }
   } // end map_init  
 
+</script>
+
+<script type="text/javascript">
+  // Connections mini-graph (same data and look as the dataset browse page):
+  // /api/place/<id> returns graph = {nodes: [...], urls: [...], edges: [{from, relation, to}]}
+  (function () {
+    function nodeUrl(identifier) {
+      if (!identifier) return '';
+      if (identifier.substring(0, 4).toLowerCase() === 'http') return identifier;
+      if (identifier.match(/^\d+:\d+$/)) {            // "<dataset id>:<place id>" = a MEHDIE record
+        return '/places/' + identifier.split(':')[1] + '/detail';
+      }
+      var re = /^(bnf|cerl|dbp|gn|gnd|gov|loc|pl|tgn|viaf|wd|wdlocal|whg|wp):(.*)$/;
+      var m = identifier.match(re);
+      return (m && typeof base_urls !== 'undefined' && base_urls[m[1]]) ? base_urls[m[1]] + m[2].trim() : '';
+    }
+    function drawGraph(graph) {
+      var elements = [];
+      var first = graph.nodes[0];
+      graph.nodes.forEach(function (node, i) {
+        var url = nodeUrl(graph.urls ? graph.urls[i] : '');
+        var internal = url.indexOf('/places/') === 0;
+        elements.push({data: {id: node, url: url},
+                       classes: (i === 0 ? 'highlighted-node' : (internal ? '' : 'external-node'))});
+      });
+      graph.edges.forEach(function (edge, i) {
+        elements.push({data: {id: 'e' + i, source: edge.from, target: edge.to, label: edge.relation},
+                       classes: (edge.to === first ? 'reverse-edge' : '')});
+      });
+      var cy = cytoscape({
+        container: document.getElementById('cy'),
+        elements: elements,
+        style: [
+          {selector: 'node', style: {'background-color': '#666', 'label': 'data(id)', 'color': 'blue',
+                                     'text-valign': 'bottom', 'font-size': 13}},
+          {selector: '.external-node', style: {'background-color': '#aaa', 'color': '#555'}},
+          {selector: '.highlighted-node', style: {'background-color': 'darkorange', 'font-weight': 'bold'}},
+          {selector: 'edge', style: {'width': 3, 'line-color': '#ff5733', 'target-arrow-color': '#ff5733',
+                                     'target-arrow-shape': 'triangle', 'label': 'data(label)', 'font-size': 11,
+                                     'curve-style': 'bezier', 'control-point-step-size': 20}},
+          {selector: 'edge.reverse-edge', style: {'line-color': '#00008b', 'target-arrow-color': '#00008b'}}
+        ],
+        layout: {name: 'cose', idealEdgeLength: 100, nodeOverlap: 20, fit: true, padding: 30, randomize: false,
+                 componentSpacing: 100, nodeRepulsion: 400000, edgeElasticity: 100, nestingFactor: 5, gravity: 80,
+                 numIter: 1000, initialTemp: 200, coolingFactor: 0.95, minTemp: 1.0}
+      });
+      cy.userZoomingEnabled(false);   // keep page scrolling; drag still pans
+      cy.on('tap', 'node', function (evt) {
+        var url = evt.target.data('url');
+        if (!url || evt.target.hasClass('highlighted-node')) return;
+        if (url.indexOf('/places/') === 0) { window.location.href = url; } else { window.open(url, '_blank'); }
+      });
+    }
+    $(function () {
+      $.ajax({url: '/api/place/{{ object.id }}'}).done(function (data) {
+        var graph = data.graph;
+        if (!graph || !graph.nodes || !graph.edges || graph.edges.length === 0) return;  // nothing to show
+        $('#place_connections').show();
+        drawGraph(graph);
+      });
+    });
+  })();
 </script>
 
 {% endblock %}
