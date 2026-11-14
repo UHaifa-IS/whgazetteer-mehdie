@@ -50,6 +50,7 @@ urlpatterns = [
     path('licensing/', TemplateView.as_view(template_name="main/licensing.html"), name="licensing"),
     path('system/', TemplateView.as_view(template_name="main/system.html"), name="system"),
     path('usingapi/', TemplateView.as_view(template_name="main/usingapi.html"), name="usingapi"),
+    path('sparql-examples/', TemplateView.as_view(template_name="main/sparql_examples.html"), name="sparql-examples"),
     path('tinymce/', include('tinymce.urls')),
 
     path('comment/<int:rec_id>', views.CommentCreateView.as_view(), name='comment-create'),
