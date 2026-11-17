@@ -66,6 +66,13 @@
                 <div id="summary" class="tab-pane fade show active" role="tabpanel" aria-labelledby="summary-tab">
                     <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
                         {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger small">Not saved:
+                                {% for field, errors in form.errors.items %}
+                                    <br/><b>{{ field }}</b>: {{ errors|join:" " }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         <div class="row">
                             <div id="ds_details" class="col-sm-7 small">
                                 {% if object.owner.id == user.id or user.is_superuser %}
@@ -285,8 +292,8 @@
                                             </tr>
                                             <tr>
                                                 <td><b>License</b></td>
-                                                <td><a href="https://creativecommons.org/licenses/by/4.0/"
-                                                       target="_blank">CC BY 4.0</a></td>
+                                                <td>{% if ds.license %}<a href="{{ ds.license }}"
+                                                       target="_blank">{{ ds.license_label }}</a>{% else %}not recorded{% endif %}</td>
                                             </tr>
                                             {% if current_file.format == 'delimited' %}
                                                 <tr>

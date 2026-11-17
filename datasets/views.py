@@ -15,6 +15,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.utils import DataError
 from django.forms import modelformset_factory
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -2464,20 +2465,41 @@ class DatasetSummaryView(LoginRequiredMixin, UpdateView):
 
     template_name = 'datasets/ds_summary.html'
 
-    # Dataset has been edited, form submitted
+    # Fields this page never changes. 'public' is shown as text only, so it is
+    # never posted: a plain form.save() would make every edited dataset private.
+    PROTECTED_FIELDS = ('id', 'owner', 'label', 'datatype', 'numlinked', 'public')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        for name in self.PROTECTED_FIELDS:
+            if name in form.fields:
+                form.fields[name].required = False
+        return form
+
+    # Dataset has been edited, form submitted. Only the fields present in the
+    # POST are saved; fields the page does not render (featured and image for
+    # non-superusers, numlinked, public) keep their values. (Previously the
+    # form never validated, because datatype was not posted, and form_valid
+    # read a 'file' field the form does not have.)
     def form_valid(self, form):
-        data = form.cleaned_data
         ds = get_object_or_404(Dataset, pk=self.kwargs.get("id"))
-        if data["file"] == None:
-            ds.title = data['title']
-            ds.description = data['description']
-            ds.uri_base = data['uri_base']
-            ds.save()
-        return super().form_valid(form)
+        user = self.request.user
+        # the page hides the edit links from others; enforce it here too
+        if not (user.is_superuser or user in ds.owners or user in ds.collaborators.all()):
+            raise PermissionDenied('Only owners and collaborators can edit this dataset.')
+        posted = set(self.request.POST) | set(self.request.FILES)
+        changed = []
+        for name, value in form.cleaned_data.items():
+            if name in posted and name not in self.PROTECTED_FIELDS:
+                setattr(ds, name, value)
+                changed.append(name)
+        if changed:
+            ds.save(update_fields=changed)
+        self.object = ds
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
-        context = {}
-        context['errors'] = form.errors
+        # errors are shown at the top of the form (ds_summary.html)
         return super().form_invalid(form)
 
     def get_object(self):
