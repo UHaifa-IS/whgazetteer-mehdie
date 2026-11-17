@@ -93,7 +93,7 @@ class Command(BaseCommand):
     help = 'Set name languages (and add missing names) for Himme from the HIMME TEI records.'
 
     def add_arguments(self, p):
-        p.add_argument('--dataset', default='Himme')
+        p.add_argument('--dataset', default='himme', help='dataset label (not title); matched case-insensitively')
         p.add_argument('--apply', action='store_true')
         p.add_argument('--no-insert', action='store_true')
         p.add_argument('--cache-dir', default='/srv/backup/himme_tei_cache')
@@ -137,7 +137,7 @@ class Command(BaseCommand):
         os.makedirs(self.cache_dir, exist_ok=True)
 
         with connection.cursor() as c:
-            c.execute('SELECT id, src_id FROM places WHERE dataset = %s ORDER BY id', [o['dataset']])
+            c.execute('SELECT id, src_id FROM places WHERE lower(dataset) = lower(%s) ORDER BY id', [o['dataset']])
             rows = c.fetchall()
         if not rows:
             raise CommandError(f'No places in {o["dataset"]}')
