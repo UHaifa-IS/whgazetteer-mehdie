@@ -33,6 +33,7 @@ def ds_image_path(instance, filename):
 # normalised URLs (https, lower case, no trailing slash).
 LICENSE_CHOICES = [
     ('https://creativecommons.org/publicdomain/zero/1.0/', 'CC0 1.0 (public domain)'),
+    ('https://creativecommons.org/licenses/by/3.0/', 'CC BY 3.0'),
     ('https://creativecommons.org/licenses/by/4.0/', 'CC BY 4.0'),
     ('https://creativecommons.org/licenses/by-sa/4.0/', 'CC BY-SA 4.0'),
     ('https://creativecommons.org/licenses/by-nc/4.0/', 'CC BY-NC 4.0'),
