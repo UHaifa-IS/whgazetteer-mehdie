@@ -123,6 +123,17 @@
                                         </td>
                                     </tr>
                                     <tr>
+                                        <td style="vertical-align:top;"><b>Name languages</b>
+                                            <a href="#"
+                                               class="edit-script_languages">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="form-script_languages">{{ form.script_languages.value|default_if_none:"..." }}</span>
+                                            <span class="hidden editing-script_languages">{{ form.script_languages }}<br/><small class="text-muted">Language of names by script, for names without one, e.g. <code>Arab=ar Latn=ar-Latn</code>. Used by the knowledge graph.</small></span>
+                                            {% if form.script_languages.errors %}<div class="text-danger small">{{ form.script_languages.errors|join:" " }}</div>{% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td style="vertical-align:top;"><b>Description</b>
                                             <a href="#"
                                                class="edit-description">{% fontawesome_icon 'edit' color='#336699' %}</a>
@@ -808,6 +819,11 @@
         $(".edit-record_group").click(function () {
             $(".editing-record_group").toggleClass("hidden")
             $(".form-record_group").toggleClass("hidden")
+            $(".btn-ds").toggleClass("hidden")
+        })
+        $(".edit-script_languages").click(function () {
+            $(".editing-script_languages").toggleClass("hidden")
+            $(".form-script_languages").toggleClass("hidden")
             $(".btn-ds").toggleClass("hidden")
         })
         $(".edit-license").click(function () {

@@ -85,6 +85,10 @@
                             <td>{{ form.record_group }}<br/><small class="text-muted">Datasets from the same source share a group; records with the same source id are merged in the knowledge graph.</small></td>
                         </tr>
                         <tr>
+                            <td><b>Name languages</b></td>
+                            <td>{{ form.script_languages }}<br/><small class="text-muted">Language of names by script, for names without one, e.g. <code>Arab=ar Latn=ar-Latn</code>. Used by the knowledge graph.</small>{% if form.script_languages.errors %}<div class="text-danger small">{{ form.script_languages.errors|join:" " }}</div>{% endif %}</td>
+                        </tr>
+                        <tr>
                             <td><b>Licence</b></td>
                             <td>{{ form.license }}
                                 <datalist id="license-options">

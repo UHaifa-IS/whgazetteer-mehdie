@@ -80,6 +80,10 @@ class Dataset(models.Model):
     record_group = models.CharField(max_length=40, null=True, blank=True, db_index=True,
                                     help_text='Datasets from the same source share a group; records with the same '
                                               'source id are merged in the knowledge graph.')
+    # Language of this dataset's names by script, where a name has no language
+    # of its own: "Arab=ar Latn=ar-Latn" (FIXES D7). Used by the KG mapping.
+    script_languages = models.CharField(max_length=200, null=True, blank=True,
+                                        help_text='Language of names by script, for names without one, e.g. "Arab=ar Latn=ar-Latn". Used by the knowledge graph.')
 
     # TODO: these are updated in both Dataset & DatasetFile  (??)
     datatype = models.CharField(max_length=12, null=False, choices=DATATYPES,
