@@ -96,6 +96,9 @@ SCRIPTS = [
     ('Cyrl', re.compile('[Ѐ-ԯ]')),
     ('Latn', re.compile('[A-Za-zÀ-ɏḀ-ỿ]')),
 ]
+# Yiddish spelling: double vav/yod ligatures, pointed alef, or ayin as a vowel
+# inside a word (יערושאלאים). Hebrew names without these are not Yiddish.
+YIDDISH = re.compile('[\u05F0-\u05F2]|\u05D0[\u05B7\u05B8]|[\u05D0-\u05EA]\u05E2')
 QUALIFIER = re.compile(r'\s*\([^()]*\)\s*$')
 
 
@@ -128,6 +131,8 @@ def lang_tag(code, text):
     sc = script_of(text)
     if sc not in scripts:
         return None
+    if tag == 'yi' and not YIDDISH.search(text):
+        return None  # Hebrew name cited in a Yiddish book (e.g. "קיבוץ אלונים")
     return f'{tag}-{sc}' if tag in SCRIPT_SUBTAG else tag
 
 
