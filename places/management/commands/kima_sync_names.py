@@ -4,6 +4,11 @@ Sync place names of Kima-derived datasets with the Kima API (FIXES D7).
     python manage.py kima_sync_names --dataset KIMA-IL            # dry run
     python manage.py kima_sync_names --dataset KIMA-IL --apply    # write
 
+Give all datasets of the Kima record group in one run
+(--record-group kima, or repeat --dataset):
+rows with the same Kima id are one KG entity, and missing names are added
+only once per Kima id.
+
 The datasets' places.src_id is the Kima place id. For each place the command
 builds Kima's name list:
 
@@ -33,7 +38,7 @@ objects per list and the download fails.
 
 API responses are cached in --cache-dir; use --refresh to download again.
 With --apply, the affected place_name rows are first copied to a backup
-table kg_backup_place_name_kima_<YYYYMMDD>.
+table kg_backup_place_name_kima_<YYYYMMDD_HHMM>.
 """
 import csv
 import json
@@ -45,7 +50,7 @@ import unicodedata
 import urllib.parse
 import urllib.request
 from collections import Counter, defaultdict
-from datetime import date
+from datetime import datetime
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -203,8 +208,10 @@ class Command(BaseCommand):
     help = 'Set name languages (and add missing names) for Kima-derived datasets from the Kima API.'
 
     def add_arguments(self, p):
-        p.add_argument('--dataset', action='append', required=True,
+        p.add_argument('--dataset', action='append', default=[],
                        help='dataset label whose places.src_id are Kima ids (repeatable)')
+        p.add_argument('--record-group', help='all datasets with this datasets.record_group (e.g. kima)')
+        p.add_argument('--exclude', action='append', default=[], help='dataset label to leave out (repeatable)')
         p.add_argument('--apply', action='store_true', help='write to the database (default: dry run)')
         p.add_argument('--no-insert', action='store_true', help='only set languages, add no names')
         p.add_argument('--cache-dir', default='/srv/backup/kima_api_cache')
@@ -223,9 +230,25 @@ class Command(BaseCommand):
         if not api_key and (o['refresh'] or not cached):
             raise CommandError('Set KIMA_API_KEY in whg/local_settings.py (or the environment).')
 
+        # ---- datasets
+        if o['record_group']:
+            with connection.cursor() as c:
+                c.execute('SELECT label FROM datasets WHERE lower(btrim(record_group)) = lower(btrim(%s)) ORDER BY label',
+                          [o['record_group']])
+                o['dataset'] += [r[0] for r in c.fetchall()]
+        o['dataset'] = sorted(set(o['dataset']) - set(o['exclude']))
+        if not o['dataset']:
+            raise CommandError('Give --dataset or --record-group.')
+        self.log('Datasets: ' + ', '.join(o['dataset']))
+        with connection.cursor() as c:
+            c.execute('SELECT dataset, count(*), count(*) FILTER (WHERE btrim(src_id) ~ %s) FROM places '
+                      'WHERE dataset = ANY(%s) GROUP BY dataset ORDER BY dataset', ['^[0-9]+$', o['dataset']])
+            for ds, n, num in c.fetchall():
+                self.log(f'  {ds}: {n} places, {n - num} without a numeric src_id')
+
         # ---- places of the datasets
         with connection.cursor() as c:
-            c.execute('SELECT id, src_id, dataset FROM places WHERE dataset = ANY(%s)', [o['dataset']])
+            c.execute('SELECT id, src_id, dataset FROM places WHERE dataset = ANY(%s) ORDER BY id', [o['dataset']])
             rows = c.fetchall()
         if not rows:
             raise CommandError(f'No places in {o["dataset"]}')
@@ -303,15 +326,17 @@ class Command(BaseCommand):
         stats = Counter()
         for kpid, pid_list in places.items():
             kn = names.get(kpid, {})
+            # one Kima place can be a row in several datasets of the record
+            # group; they become one KG entity, so a missing name is added
+            # once (to the first row) and only if no row has it yet
+            seen = {key(top) for pid in pid_list for _, top, _ in by_place.get(pid, [])}
             for pid in pid_list:
-                seen = set()
                 for nid, top, js in by_place.get(pid, []):
                     kk = key(top)
                     e = kn.get(kk)
                     new_top = clean(top)
                     new_js = dict(js)
                     if e:
-                        seen.add(kk)
                         stats['matched'] += 1
                         if e['votes']:
                             tag, n = e['votes'].most_common(1)[0]
@@ -332,11 +357,12 @@ class Command(BaseCommand):
                         updates.append((nid, new_top, new_js))
                         report.append(['update', pid, kpid, nid, f'{top} -> {new_top}' if new_top != top else top,
                                        js.get('lang', ''), new_js.get('lang', '')])
-                if o['no_insert']:
+                if o['no_insert'] or pid != pid_list[0]:
                     continue
                 for kk, e in kn.items():
                     if kk in seen:
                         continue
+                    seen.add(kk)
                     tag = e['votes'].most_common(1)[0][0] if e['votes'] else None
                     js = {'toponym': e['text'], 'citations': [{'label': e['source'], 'id': e['ref']}]}
                     if tag:
@@ -365,9 +391,9 @@ class Command(BaseCommand):
             self.log('\nDry run: nothing written. Add --apply to write.')
             return
 
-        backup = f'kg_backup_place_name_kima_{date.today():%Y%m%d}'
+        backup = f'kg_backup_place_name_kima_{datetime.now():%Y%m%d_%H%M}'
         with transaction.atomic(), connection.cursor() as c:
-            c.execute(f'CREATE TABLE IF NOT EXISTS {backup} AS SELECT * FROM place_name WHERE false')
+            c.execute(f'CREATE TABLE {backup} AS SELECT * FROM place_name WHERE false')
             c.execute(f'INSERT INTO {backup} SELECT * FROM place_name WHERE place_id = ANY(%s)', [pids])
             for nid, top, js in updates:
                 c.execute('UPDATE place_name SET toponym = %s, jsonb = %s::jsonb WHERE id = %s',
