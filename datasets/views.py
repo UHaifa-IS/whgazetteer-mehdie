@@ -2488,9 +2488,12 @@ class DatasetSummaryView(LoginRequiredMixin, UpdateView):
         if not (user.is_superuser or user in ds.owners or user in ds.collaborators.all()):
             raise PermissionDenied('Only owners and collaborators can edit this dataset.')
         posted = set(self.request.POST) | set(self.request.FILES)
+        # the form also has upload fields (file, format, ...) that are not
+        # Dataset columns; Dataset.format is a read-only property
+        columns = {f.name for f in Dataset._meta.concrete_fields}
         changed = []
         for name, value in form.cleaned_data.items():
-            if name in posted and name not in self.PROTECTED_FIELDS:
+            if name in posted and name in columns and name not in self.PROTECTED_FIELDS:
                 setattr(ds, name, value)
                 changed.append(name)
         if changed:
