@@ -29,8 +29,16 @@ logger = logging.getLogger(__name__)
 # import requests
 
 def custom_error_view(request, exception=None):
-    print('error request', request.GET.__dict__)
-    return render(request, "main/500.html", {'error': 'fubar'})
+    # Write the traceback straight to stderr (the journal: journalctl -u
+    # gunicorn-tools), whatever the LOGGING settings say; Django calls this
+    # view while the exception is still being handled.
+    import sys
+    import traceback
+    sys.stderr.write(f'Server error: {request.method} {request.get_full_path()} '
+                     f'user={getattr(request, "user", None)}\n')
+    traceback.print_exc(file=sys.stderr)
+    sys.stderr.flush()
+    return render(request, "main/500.html", {'error': 'fubar'}, status=500)
 
 
 # experiment with MapLibre
