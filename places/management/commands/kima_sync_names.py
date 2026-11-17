@@ -152,7 +152,10 @@ class Kima:
 
     def get(self, path):
         url = API + urllib.parse.quote(path, safe='/|')
-        req = urllib.request.Request(url, headers={'code': self.api_key, 'Accept': 'application/json'})
+        headers = {'Accept': 'application/json'}
+        if self.api_key:
+            headers['code'] = self.api_key
+        req = urllib.request.Request(url, headers=headers)
         for attempt in range(6):
             try:
                 with urllib.request.urlopen(req, timeout=180) as r:
@@ -218,6 +221,7 @@ class Command(BaseCommand):
         p.add_argument('--refresh', action='store_true', help='download from the API again')
         p.add_argument('--page-size', type=int, default=1000)
         p.add_argument('--report', default='kima_sync_names_report.csv')
+        p.add_argument('--coverage', help='CSV: names still without a language, by Kima source')
 
     def log(self, msg):
         self.stdout.write(msg)
@@ -271,6 +275,7 @@ class Command(BaseCommand):
         self.log(f'Kima: {len(kplaces)} places, {len(variants)} variants, {len(atts)} attestations')
 
         votes = defaultdict(Counter)  # variant id -> Counter(tag)
+        rejected = defaultdict(Counter)  # variant id -> Counter((att source, code))
         unknown_codes, unfit = Counter(), Counter()
         vtext = {g(v, 'Id'): g(v, 'variant') or '' for v in variants}
         for at in atts:
@@ -281,22 +286,28 @@ class Command(BaseCommand):
             tag = lang_tag(code, vtext[vid])
             if tag:
                 votes[vid][tag] += 1
-            elif code not in LANG:
+                continue
+            rejected[vid][(g(at, 'SourceId'), code)] += 1
+            if code not in LANG:
                 unknown_codes[code] += 1
             else:
                 unfit[f'{code}/{script_of(vtext[vid])}'] += 1
 
         names = defaultdict(dict)  # kima place id -> key -> {text, votes, source, ref}
-        def add(kpid, text, tag_votes, source, ref):
+        def add(kpid, text, tag_votes, source, ref, vsrc=None, rej=None):
             t = clean(text)
             if not t or kpid not in places:
                 return
-            e = names[kpid].setdefault(key(t), {'text': t, 'votes': Counter(), 'source': source, 'ref': ref})
+            e = names[kpid].setdefault(key(t), {'text': t, 'votes': Counter(), 'source': source, 'ref': ref,
+                                                'vsrc': Counter(), 'rej': Counter()})
             e['votes'].update(tag_votes)
+            e['vsrc'][vsrc] += 1
+            e['rej'].update(rej or {})
 
         for v in variants:
             add(g(v, 'PlaceId'), g(v, 'variant'), votes.get(g(v, 'Id'), Counter()),
-                f'Kima variant (source {g(v, "SourceId")})', f'{API}Variants/{g(v, "Id")}')
+                f'Kima variant (source {g(v, "SourceId")})', f'{API}Variants/{g(v, "Id")}',
+                vsrc=g(v, 'SourceId'), rej=rejected.get(g(v, 'Id')))
         for kpid in places:
             kp = kplaces.get(kpid)
             if not kp:
@@ -306,12 +317,14 @@ class Command(BaseCommand):
             ara = QUALIFIER.sub('', g(kp, 'primary_arab_full') or '')
             rom = QUALIFIER.sub('', g(kp, 'primary_rom_full') or '')
             if script_of(heb) == 'Hebr':
-                add(kpid, heb, Counter({'he': 10 ** 6}), 'Kima primary Hebrew name', ref)
+                add(kpid, heb, Counter({'he': 10 ** 6}), 'Kima primary Hebrew name', ref, vsrc='primary')
             if script_of(ara) == 'Arab':
-                add(kpid, ara, Counter({'ar': 10 ** 6}), 'Kima primary Arabic name', ref)
-            add(kpid, rom, Counter(), 'Kima primary romanised name', ref)
+                add(kpid, ara, Counter({'ar': 10 ** 6}), 'Kima primary Arabic name', ref, vsrc='primary')
+            add(kpid, rom, Counter(), 'Kima primary romanised name', ref, vsrc='primary')
 
         missing_kima = [kp for kp in places if kp not in kplaces]
+        if o['coverage']:
+            self.coverage(k, names, o['coverage'])
 
         # ---- existing names
         pids = [pid for lst in places.values() for pid in lst]
@@ -403,3 +416,42 @@ class Command(BaseCommand):
                 c.execute('INSERT INTO place_name (place_id, src_id, toponym, jsonb) VALUES (%s, %s, %s, %s::jsonb)',
                           [pid, src[pid], text, json.dumps(js, ensure_ascii=False)])
         self.log(f'\nWritten. Previous rows saved in {backup}.')
+
+    def coverage(self, k, names, path):
+        """Distinct Kima names (per Kima place) that get no language, grouped by
+        the source of the variant and, where attestations exist but were
+        rejected, by attestation source and language code."""
+        try:
+            srcs = {g(x, 'Id'): g(x, 'abbreviation') for x in (k.get('Details/Sources').get('entities') or [])}
+        except Exception:  # offline: show source ids only
+            srcs = {}
+        name = lambda i: 'primary heading' if i == 'primary' else (f'{srcs.get(i, "?")} ({i})' if i is not None else 'none')
+        groups = defaultdict(lambda: [0, []])
+        total = with_lang = 0
+        for kpid, kn in names.items():
+            for e in kn.values():
+                total += 1
+                if e['votes']:
+                    with_lang += 1
+                    continue
+                sc = script_of(e['text']) or 'mixed'
+                if e['rej']:
+                    for (asrc, code), _ in e['rej'].most_common(1):
+                        gk = ('attestations rejected', name(asrc), code, sc)
+                else:
+                    vs = e['vsrc'].most_common(1)[0][0]
+                    gk = ('no attestations', name(vs), '', sc)
+                grp = groups[gk]
+                grp[0] += 1
+                if len(grp[1]) < 8:
+                    grp[1].append(f'{e["text"]} [{kpid}]')
+        rows = sorted(groups.items(), key=lambda x: -x[1][0])
+        with open(path, 'w', newline='', encoding='utf-8') as f:
+            w = csv.writer(f)
+            w.writerow(['case', 'source', 'attestation_language', 'script', 'names', 'examples (Kima place id)'])
+            for (case, src, code, sc), (n, ex) in rows:
+                w.writerow([case, src, code, sc, n, ' | '.join(ex)])
+        self.log(f'\nCoverage: {with_lang} of {total} distinct Kima names have a language. '
+                 f'Without one, by source (top 25; all in {path}):')
+        for (case, src, code, sc), (n, ex) in rows[:25]:
+            self.log(f'  {n:7d}  {case:22s} {src:18s} {code:5s} {sc:5s}  e.g. {"; ".join(ex[:3])}')
