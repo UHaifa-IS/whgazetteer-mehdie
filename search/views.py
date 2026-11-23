@@ -14,6 +14,10 @@ from datasets.models import Dataset, Hit
 from datasets.tasks import normalize, get_bounds_filter
 from elasticsearch7 import Elasticsearch
 from places.models import Place, PlaceGeom
+from search.name_search import rank_places, NameSearchUnavailable
+import logging
+
+logger = logging.getLogger(__name__)
 
     
 class SearchPageView(TemplateView):
@@ -280,98 +284,104 @@ class SearchView(View):
   executes search on db.places
 """
 class SearchDatabaseView(View):
+  """
+    args in request.GET:
+      [string] name: query string (fuzzy, accent-insensitive, ranked; see search/name_search.py)
+      [string] name_contains: if given, plain substring match on place title instead
+      [string] fclasses: geonames classes (A,H,L,P,S,T,R); all of them = no class filter
+      [int] year: within place.minmax timespan (not applied)
+      [string] bounds: text of JSON {id:[area id]} for a spatial filter
+      [int] dsid: dataset.id
+  """
+  ALL_FCLASSES = set('AHLPRST')
+
   @staticmethod
   def get(request):
     pagesize = 200
-    print('SearchDatabaseView() request',request.GET)
-    """
-      args in request.GET:
-        [string] name: query string
-        [string] fclasses: geonames class (A,H,L,P,S,T)
-        [int] year: within place.minmax timespan
-        [string] bounds: text of JSON geometry
-        [int] dsid: dataset.id
-        
-    """
-    name = request.GET.get('name')
+    name = (request.GET.get('name') or '').strip()
     name_contains = request.GET.get('name_contains') or None
-    fclasses = request.GET.get('fclasses').split(',')
-    year = request.GET.get('year')
+    fclasses = [c for c in (request.GET.get('fclasses') or '').split(',') if c]
     bounds = request.GET.get('bounds')
     dsid = request.GET.get('dsid')
     ds = Dataset.objects.get(pk=int(dsid)) if dsid else None
-    print('dsid, ds',dsid, ds)
 
-    from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
-    if bounds:
-      bounds=json.loads(bounds)
-      area = Area.objects.get(id = bounds['id'][0])
-      print('bounds area', area)
-      ga = GEOSGeometry(json.dumps(area.geojson))
-    
-    print('seach db params:', {'name':name,'name_contains':name_contains,'fclasses':fclasses,'bounds':bounds,'ds':ds})
-    
     qs = Place.objects.filter(dataset__public=True)
-    
+
     if bounds:
-      #print('bounds geometry', ga[:200])
-      qs = qs.filter(geoms__geom__within=ga)      
-      #qs = qs.filter(geoms__geom__intersects=ga)      
-    qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
-    #qs = qs.filter(minmax__0__lte=year,minmax__1__gte=year) if year else qs
-    
+      from django.contrib.gis.geos import GEOSGeometry
+      bounds = json.loads(bounds)
+      area = Area.objects.get(id=bounds['id'][0])
+      qs = qs.filter(geoms__geom__within=GEOSGeometry(json.dumps(area.geojson)))
+
+    # all classes ticked = any place, including places with no fclasses
+    # (people records share the places table, so restrict to place datasets)
+    if not fclasses or set(fclasses) >= SearchDatabaseView.ALL_FCLASSES:
+      qs = qs.filter(dataset__datatype='place')
+    else:
+      qs = qs.filter(fclasses__overlap=fclasses)
+
+    if ds:
+      qs = qs.filter(dataset=ds.label)
+
+    scores = None
     if name_contains:
-      print( 'name_contains exists',name_contains)
       qs = qs.filter(title__icontains=name_contains)
-    elif name and name != '':
-      #qs = qs.filter(title__istartswith=name)
-      qs = qs.filter(names__jsonb__toponym__istartswith=name).distinct()
+    elif name:
+      try:
+        ranked = rank_places(name)
+        scores = dict(ranked)
+        qs = qs.filter(id__in=list(scores))
+      except NameSearchUnavailable as e:
+        # setup_name_search not run yet: old behaviour (case-insensitive prefix)
+        logger.warning('name search unavailable, falling back to prefix match: %s', e)
+        qs = qs.filter(names__toponym__istartswith=name)
 
-    qs = qs.filter(dataset=ds.label) if ds else qs
-    #qs = qs.filter(ccodes__overlap=cc) if cc else qs
-    count = len(qs)
+    qs = qs.distinct()
+    if scores is not None:
+      # rank in Python: at most MAX_CANDIDATES ids, cheap
+      ids = sorted(qs.values_list('id', flat=True), key=lambda i: -scores[i])
+      count = len(ids)
+      page_ids = ids[:pagesize]
+      places = {p.id: p for p in Place.objects.filter(id__in=page_ids)
+                .select_related('dataset').prefetch_related('names', 'types', 'geoms')}
+      filtered = [places[i] for i in page_ids if i in places]
+    else:
+      count = qs.count()
+      filtered = list(qs.select_related('dataset')
+                      .prefetch_related('names', 'types', 'geoms')[:pagesize])
 
-    #filtered = qs[:pagesize] if pagesize and pagesize < 200 else qs[:20]
-    filtered = qs[:pagesize]
-
-    # needed for suglister
-    #pid    #name    #variants[]    #ccodes[]    #types[]    #geom[]
-    # adding dataset
-    
     # normalizes place.geoms objects for results display
     def dbsug_geoms(pobjs):
       suglist = []
       for p in pobjs:
-        g = p.jsonb
-        if 'citation' in g: del g['citation']
+        g = dict(p.jsonb or {})
+        g.pop('citation', None)
         g['src'] = 'db'
-        g["properties"] = {"pid":p.place_id, "title": p.title}
+        g["properties"] = {"pid": p.place_id, "title": p.title}
         suglist.append(g)
       return suglist
-      
-    # mimics suggestion items from SearchView (index)
+
+    # mimics suggestion items from the retired index search
     suggestions = []
-    print('qs length', count)
-    print('filtered qs length', len(filtered))
     for place in filtered:
-      ds=place.dataset
-      try:        
+      ds = place.dataset
+      try:
         suggestions.append({
           "pid": place.id,
-          "ds": {"id":ds.id, "label": ds.label, "title": ds.title},
+          "ds": {"id": ds.id, "label": ds.label, "title": ds.title},
           "name": place.title,
-          "variants": [n.jsonb['toponym'] for n in place.names.all()],
+          "variants": [(n.jsonb or {}).get('toponym') or n.toponym for n in place.names.all()],
           "ccodes": place.ccodes,
           "fclasses": place.fclasses,
-          "types": [t.jsonb['sourceLabel'] or t.jsonb['src_label'] for t in place.types.all()],
+          "types": [t.jsonb.get('sourceLabel') or t.jsonb.get('src_label') for t in place.types.all()],
           "geom": dbsug_geoms(place.geoms.all())
         })
-      except:
-        print("db sugbuilder error:", place.id, sys.exc_info())
-      
+      except Exception:
+        logger.exception("db sugbuilder error for place %s", place.id)
+
     result = {'get': request.GET, 'count': count, 'suggestions': suggestions}
-    return JsonResponse(result, safe=False, json_dumps_params={'ensure_ascii':False})
-  
+    return JsonResponse(result, safe=False, json_dumps_params={'ensure_ascii': False})
+
 '''
   returns 8000 index docs in current map viewport
   OR if task == 'count': count of features in area
