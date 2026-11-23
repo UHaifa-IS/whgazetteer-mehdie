@@ -19,9 +19,6 @@ from places.models import Place
 from bootstrap_modal_forms.generic import BSModalCreateView
 
 from .forms import CommentModalForm, ContactForm
-from elasticsearch7 import Elasticsearch
-
-es = Elasticsearch([{'host': '0.0.0.0', 'port': 9200}])
 from random import shuffle
 
 logger = logging.getLogger(__name__)
@@ -84,28 +81,20 @@ class Home2b(TemplateView):
 def statusView(request):
     context = {"status_site": "??",
                "status_database": "??",
-               "status_index": "??"}
+               "status_tasks": "??"}
 
-    # database
+    # database (the old probe looked for WHG's place 81011 'Abydos')
     try:
-        place = get_object_or_404(Place, id=81011)
-        context["status_database"] = "up" if place.title == 'Abydos' else 'error'
-    except:
+        context["status_database"] = "up" if Place.objects.exists() else 'error'
+    except Exception:
         context["status_database"] = "down"
 
-    # whg index
-    try:
-        q = {"query": {"bool": {"must": [{"match": {"place_id": "81011"}}]}}}
-        res1 = es.search(index="whg", body=q)
-        context["status_index"] = "up" if (
-                res1['hits']['total'] == 1 and res1['hits']['hits'][0]['_source']['title'] == 'Abydos') else "error"
-    except:
-        context["status_index"] = "down"
+    # no search index on MEHDIE (WHG's Elasticsearch index is retired)
 
     # celery recon task
     try:
         result = testAdd.delay(8, 8)
-        context["status_tasks"] = "up" if result.get() == 16 else 'error'
+        context["status_tasks"] = "up" if result.get(timeout=10) == 16 else 'error'
     except:
         context["status_tasks"] = "down"
 

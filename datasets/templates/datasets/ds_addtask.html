@@ -75,6 +75,8 @@
                                     <input type="hidden" name="match_config" id="match_config_input">
 
 
+                                    {# MEHDIE: WHG accession and local Wikidata (wdlocal) need Elasticsearch, which MEHDIE does not run #}
+                                    {% comment %}
                                     {# whg accession option if superuser #}
                                     {% if user.is_superuser %}
                                         <div class="form-check text-danger mt-2">
@@ -137,6 +139,7 @@
                                             </div>
                                         {% endif %}
                                     </div>
+                                    {% endcomment %}
                                     {# geo bounds: regions, study areas #}
                                     <div id="addtask_lower">
                                         <div id="geo_constraint" class="mt-2">

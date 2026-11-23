@@ -4,13 +4,14 @@ from django.conf.urls import url, include
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
+from main.search_index import index_retired
 
 urlpatterns = [
 
     # database places
     path('db/',views.SearchAPIView.as_view(),name='api-search'),
-    # index docs
-    path('index/',views.IndexAPIView.as_view(),name='api-index-search'),
+    # index docs: retired, MEHDIE has no Elasticsearch
+    path('index/', index_retired, name='api-index-search'),
     # spatial (nearby or bbox)
     path('spatial/', views.SpatialAPIView.as_view(), name='api-spatial'),
     # traces (deprecated)

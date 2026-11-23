@@ -76,6 +76,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # MEHDIE has no Elasticsearch: turn leftover ES calls into 503s, not 500s + emails
+    'main.search_index.SearchIndexUnavailableMiddleware',
 ]
 
 ROOT_URLCONF = 'whg.urls'
