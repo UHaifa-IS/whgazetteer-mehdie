@@ -12,7 +12,7 @@ settings from environment variables, never from code:
 | --- | --- | --- |
 | `DB_HOST` | `localhost` | Use an SSH tunnel to the server, e.g. `ssh -L 5432:localhost:5432 cs-mehdie-web01.srv.aau.dk` |
 | `DB_PORT` | `5432` | |
-| `DB_NAME` | - | `mehdie-gui` |
+| `DB_NAME` | - | `mehdie` (on cs-mehdie-web01) |
 | `DB_USER` | - | |
 | `DB_PASSWORD` | - | Ask the project lead; never commit it |
 
