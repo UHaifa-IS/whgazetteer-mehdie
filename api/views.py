@@ -12,7 +12,7 @@ from django.contrib.gis.geos import Polygon, Point
 from django.contrib.gis.measure import D
 from django.contrib.gis.db.models.functions import Distance
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse, HttpResponse  # , FileResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import View
@@ -43,7 +43,10 @@ from datasets.access import can_view_dataset, require_dataset_access
 from datasets.models import Dataset
 from datasets.tasks import get_bounds_filter
 from places.models import Place, PlaceGeom, PlaceLink, PlaceRelated
+from search.name_search import rank_places, NameSearchUnavailable
 from search.views import getGeomCollection
+
+logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -122,8 +125,9 @@ def _lonlat_param(params, name, required=False):
 
 
 def _fclasses_param(params):
-    """Feature-class letters, comma separated or not ('P,S' or 'PS') -> ['P', 'S']."""
-    raw = _raw_param(params, 'fc', required=False)
+    """Feature-class letters, comma separated or not ('P,S' or 'PS') -> ['P', 'S'].
+    Read from 'fc', or from its alias 'fclass'."""
+    raw = _raw_param(params, 'fc', required=False) or _raw_param(params, 'fclass', required=False)
     if raw is None:
         return None
     letters = {c.upper() for c in raw if c not in ', '}
@@ -135,6 +139,16 @@ def _fclasses_param(params):
 def _pagesize_param(params, default=20, cap=200):
     value = _int_param(params, 'pagesize', lo=1)
     return default if value is None else min(value, cap)
+
+
+class PrettyJsonRenderer(JSONRenderer):
+    def get_indent(self, accepted_media_type, renderer_context):
+        return 2
+
+
+def _public_datasets():
+    """The datasets the public API serves: those flagged public."""
+    return Dataset.objects.filter(public=True)
 
 
 """
@@ -156,13 +170,8 @@ class SpatialAPIView(generics.ListAPIView):
                              "or ?type=bbox (with sw and ne).")
         fclasses = _fclasses_param(params)
         ds = params.get('dataset', None)
-        coll = _int_param(params, 'collection', lo=1)
         pagesize = _pagesize_param(params)
         err_note = None
-
-        collids = None
-        if coll is not None:
-            collids = get_object_or_404(Collection, id=coll).places.all().values_list('id', flat=True)
 
         # uses PlaceGeom records and PlaceGeomSerializer
         if qtype == 'nearby':
@@ -176,7 +185,7 @@ class SpatialAPIView(generics.ListAPIView):
                 annotate(distance=Distance('geom', pnt)). \
                 filter(geom__distance_lte=(pnt, D(km=dist))).order_by('distance')
             # filter on params
-            qs = qs.filter(place_id__in=collids) if collids is not None else qs
+            qs = qs.filter(place__dataset__public=True)
             qs = qs.filter(place__dataset=ds) if ds else qs
             qs = qs.filter(place__fclasses__overlap=fclasses) if fclasses else qs
 
@@ -189,7 +198,6 @@ class SpatialAPIView(generics.ListAPIView):
             placeids = PlaceGeom.objects.filter(geom__within=bbox).values_list('place_id')
             qs = qs.filter(id__in=placeids)
             # filter on params
-            qs = qs.filter(id__in=collids) if collids is not None else qs
             qs = qs.filter(dataset=ds) if ds else qs
             qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
 
@@ -521,68 +529,73 @@ class IndexAPIView(View):
 
 
 class SearchAPIView(generics.ListAPIView):
+    """GET /api/db/ : search the places of public datasets.
+
+    name           ranked, accent-insensitive name match (same as the site's search)
+    name_contains  substring of the place title
+    id             a single place by its MEHDIE place id
+    dataset, fc (alias fclass), year, ccode, pagesize: filters
+    """
     renderer_classes = [JSONRenderer]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['@title']
 
-    # def get_queryset(self, format=None):
-    def get(self, format=None, *args, **kwargs):
-        params = self.request.query_params
-        print('SearchAPIView() params', params)
-
+    def get(self, request, format=None, *args, **kwargs):
+        params = request.query_params
         id_ = _int_param(params, 'id', lo=1)
-        name = params.get('name', None)
-        name_contains = params.get('name_contains', None)
+        name = (params.get('name') or '').strip()
+        name_contains = (params.get('name_contains') or '').strip()
+        ds = (params.get('dataset') or '').strip()
         cc = [c.strip().upper() for c in params.get('ccode').split(',') if c.strip()] \
             if params.get('ccode') else None
-        ds = params.get('dataset', None)
         fclasses = _fclasses_param(params)
         year = _int_param(params, 'year', lo=-9999, hi=9999)
         pagesize = _pagesize_param(params)
         err_note = None
-        context = params.get('context', None)
 
-        qs = Place.objects.filter(Q(dataset__public=True) | Q(dataset__core=True))
-
-        if all(v is None for v in [name, name_contains, id_]):
+        if not (id_ or name or name_contains):
             raise ParseError('Needs a "name", "name_contains" or "id" parameter at minimum '
-                             '(e.g. ?name=myplacename, ?name_contains=astring or ?id=integer).')
+                             '(e.g. ?name=jerusalem, ?name_contains=forest or ?id=44942).')
+
+        qs = Place.objects.filter(dataset__public=True)
+        scores = None
+        if id_:
+            qs = qs.filter(id=id_)
+            err_note = 'id given, other parameters ignored' if len(params) > 1 else None
         else:
-            if id_:
-                qs = qs.filter(id=id_)
-                err_note = 'id given, other parameters ignored' if len(params.keys()) > 1 else None
-                print('qs', qs)
+            qs = qs.filter(dataset=ds) if ds else qs
+            qs = qs.filter(ccodes__overlap=cc) if cc else qs
+            qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
+            qs = qs.filter(minmax__0__lte=year, minmax__1__gte=year) if year is not None else qs
+            if name_contains:
+                qs = qs.filter(title__icontains=name_contains)
             else:
-                qs = qs.filter(minmax__0__lte=year, minmax__1__gte=year) if year is not None else qs
-                qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
+                try:
+                    scores = dict(rank_places(name))
+                    qs = qs.filter(id__in=list(scores))
+                except NameSearchUnavailable as e:
+                    # setup_name_search not run: fall back to a case-insensitive prefix match
+                    logger.warning('name search unavailable, falling back to prefix match: %s', e)
+                    qs = qs.filter(names__toponym__istartswith=name).distinct()
 
-                # res=qs.filter(names__jsonb__toponym__icontains=name)
+        if scores is not None:
+            # best match first; at most MAX_CANDIDATES ids, so ranking in Python is cheap
+            ids = sorted(qs.values_list('id', flat=True), key=lambda i: -scores[i])
+            count = len(ids)
+            page_ids = ids[:pagesize]
+            places = {p.id: p for p in Place.objects.filter(id__in=page_ids).select_related('dataset')}
+            filtered = [places[i] for i in page_ids if i in places]
+        else:
+            qs = qs.order_by('id')
+            count = qs.count()
+            filtered = list(qs.select_related('dataset')[:pagesize])
 
-                if name_contains:
-                    qs = qs.filter(title__icontains=name_contains)
-                elif name and name != '':
-                    # qs = qs.filter(title__istartswith=name)
-                    qs = qs.filter(names__jsonb__toponym__icontains=name)
-
-                qs = qs.filter(dataset=ds) if ds else qs
-                qs = qs.filter(ccodes__overlap=cc) if cc else qs
-
-            filtered = qs[:pagesize]
-
-            # serial = LPFSerializer if context else SearchDatabaseSerializer
-            serial = LPFSerializer
-            serializer = serial(filtered, many=True, context={'request': self.request})
-
-            serialized_data = serializer.data
-            result = {"count": qs.count(),
-                      "pagesize": len(filtered),
-                      "parameters": params,
-                      "note": err_note,
-                      "type": "FeatureCollection",
-                      "features": serialized_data
-                      }
-            # print('place result',result)
-            return JsonResponse(result, safe=False, json_dumps_params={'ensure_ascii': False, 'indent': 2})
+        features = LPFSerializer(filtered, many=True, context={'request': request}).data
+        result = {"count": count,
+                  "pagesize": len(filtered),
+                  "parameters": params,
+                  "note": err_note,
+                  "type": "FeatureCollection",
+                  "features": features}
+        return JsonResponse(result, safe=False, json_dumps_params={'ensure_ascii': False, 'indent': 2})
 
 
 """ *** """
@@ -653,36 +666,71 @@ class DownloadDatasetAPIView(generics.ListAPIView):
 """
 
 
-class DatasetAPIView(LoginRequiredMixin, generics.ListAPIView):
-    """    List public datasets    """
-    serializer_class = DatasetSerializer
+def _dataset_record(ds):
+    """Public metadata of a dataset; `ds` must be annotated with place_count."""
+    return {
+        'id': ds.id,
+        'label': ds.label,
+        'title': ds.title,
+        'description': ds.description,
+        'datatype': ds.datatype,
+        'place_count': ds.place_count,
+        'creator': ds.creator,
+        'contributors': ds.contributors,
+        'source': ds.source,
+        'citation': ds.citation,
+        'license': ds.license,
+        'webpage': ds.webpage,
+        'owner': ds.owner.username,
+        'page': f'/datasets/{ds.id}',
+        'places': reverse('ds-places', kwargs={'label': ds.label}),
+    }
+
+
+class DatasetAPIView(APIView):
+    """GET /api/datasets/ : the public datasets, optionally filtered
+    by id, label, q (in title or description) or datatype (place|people)."""
+    renderer_classes = [PrettyJsonRenderer]
+
+    def get(self, request, format=None):
+        params = request.query_params
+        id_ = _int_param(params, 'id', lo=1)
+        label = (params.get('label') or '').strip()
+        query = (params.get('q') or '').strip()
+        datatype = (params.get('datatype') or '').strip().lower()
+        if datatype and datatype not in ('place', 'people'):
+            raise ParseError(f"Parameter 'datatype' must be 'place' or 'people', got {datatype!r}.")
+
+        qs = _public_datasets().select_related('owner') \
+            .annotate(place_count=Count('places')).order_by('label')
+        qs = qs.filter(id=id_) if id_ else qs
+        qs = qs.filter(label=label) if label else qs
+        qs = qs.filter(Q(title__icontains=query) | Q(description__icontains=query)) if query else qs
+        qs = qs.filter(datatype=datatype) if datatype else qs
+
+        results = [_dataset_record(ds) for ds in qs]
+        return Response({'count': len(results), 'results': results})
+
+
+class DatasetDetailAPIView(APIView):
+    """GET /api/datasets/<label>/ : metadata of one public dataset."""
+    renderer_classes = [PrettyJsonRenderer]
+
+    def get(self, request, label, format=None):
+        qs = _public_datasets().select_related('owner').annotate(place_count=Count('places'))
+        return Response(_dataset_record(get_object_or_404(qs, label=label)))
+
+
+class DatasetPlacesAPIView(APIView):
+    """GET /api/datasets/<label>/places/ : id, src_id and title of every place
+    in one public dataset, ordered by id. Full records: /api/place/<id>/."""
     renderer_classes = [JSONRenderer]
 
-    def get_queryset(self, format=None, *args, **kwargs):
-        params = self.request.query_params
-        print('api/datasets params', params)
-        id_ = params.get('id', None)
-        dslabel = params.get('label', None)
-        query = params.get('q', None)
-
-        qs = Dataset.objects.filter(Q(public=True) | Q(core=True)).order_by('label')
-
-        if id_:
-            qs = qs.filter(id=id_)
-        elif dslabel:
-            qs = qs.filter(label=dslabel)
-        elif query:
-            qs = qs.filter(Q(description__icontains=query) | Q(title__icontains=query))
-
-        print('qs', qs)
-        result = {
-            "count": qs.count(),
-            "parameters": params,
-            # "features":serialized_data
-            "features": qs
-        }
-        print('ds result', result, type(result))
-        return qs
+    def get(self, request, label, format=None):
+        ds = get_object_or_404(_public_datasets(), label=label)
+        places = list(Place.objects.filter(dataset=ds.label).order_by('id')
+                      .values('id', 'src_id', 'title'))
+        return Response({'dataset': ds.label, 'count': len(places), 'places': places})
 
 
 """
@@ -747,11 +795,6 @@ def api_root(request, format=None):
         # 'datasets': reverse('dataset-list', request=request, format=format)
         'datasets': reverse('api:ds-list', request=request, format=format)
     })
-
-
-class PrettyJsonRenderer(JSONRenderer):
-    def get_indent(self, accepted_media_type, renderer_context):
-        return 2
 
 
 #

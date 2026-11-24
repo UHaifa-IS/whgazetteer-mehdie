@@ -1,241 +1,199 @@
 {% extends "main/base.html" %}
-{% block title %}<title>MEHDIE::APIs</title>{% endblock %}
+{% block title %}<title>MEHDIE::API</title>{% endblock %}
 
 {% block content %}
-{% load fontawesome %}
 {% load static %}
 
   <div class="container">
     <div id="api_content" class="mx-3">
       <div class="row mt-2">
-        <div class="col-sm-5"> 
-			<h4>Using the API</h4>
-            <p class="mb-2">Development of the external API is in draft stage. We plan to refine options and add endpoints in response to community feedback. Please use <a href="#" class="feedback">this form</a> for suggestions.</p>
-			
-			<h5 class="red-head strong">Two place data stores</h5>
-			
-            <p>The <b class="red-head">relational database</b> holds individual records from uploaded datasets</p>
-            <p class="ml-2 notebox small">Note that records from all uploaded datasets are assigned a unique identifier within the WHG system (<b>place_id</b>). Both that place_id and the contributor's own <b>src_id</b> will be maintained unless and until the dataset is deleted by its owner. If a dataset is flagged as "public," its records will be accessible via the "database API" as indicated. In this way WHG can serve as a Linked Open Data publisher for those projects unable to stand up their own per-record landing pages.</p>
-			
-            <p>The <b class="red-head">"union index"</b>: links <i>contributed</i> records deemed to be close or exact matches in the optional accessioning step that follows initial uploading and reconciliation tasks. So, results of an index query will return a set of one or more records as distinct attestations of the "same" place.</p>
-						{%comment%}
-            <h5 class="red-head strong ">Trace data</h5>
-            <p>We have indexed a limited number of "trace annotation" datasets, which can be searched by keyword. Trace records can optionally be returned in place searches,</p>
-						{%endcomment%}
-          </div>
-          <div class="col-sm-7 smallish">
-			<h4>Endpoints</h4>
-			<!--<span class="text-danger"><b>NOTE:</b> Only the example links are confirmed to work right now.</span>.-->
-			<ul id="api_tabs" class="nav nav-tabs" role="tablist">
-			  <li class="nav-item">
-				<a class="nav-link" id="placedb-tab" data-toggle="tab" href="#place_db" role="tab" aria-controls="place_db" aria-selected="true">Places (database)</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link active" id="placeidx-tab" data-toggle="tab" href="#place_idx" role="tab" aria-controls="place_idx" aria-selected="false">Places (index)</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" id="spatial-tab" data-toggle="tab" href="#spatial" role="tab" aria-controls="spatial" aria-selected="false">Spatial</a>
-			  </li>
-			  <!-- <li class="nav-item">
-				<a class="nav-link" id="traces-tab" data-toggle="tab" href="#traces" role="tab" aria-controls="traces" aria-selected="false">Traces</a>
-			  </li> -->
-			  <li class="nav-item">
-				<a class="nav-link" id="areas-tab" data-toggle="tab" href="#areas" role="tab" aria-controls="areas" aria-selected="false">Regions/Areas</a>
-			  </li>
-			  <li class="nav-item">
-				<a class="nav-link" id="datasets-tab" data-toggle="tab" href="#datasets" role="tab" aria-controls="datasets" aria-selected="false">Datasets</a>
-			  </li>
-			</ul>
-			<div class="tab-content">
-			  <div id="place_db" class="tab-pane fade" role="tabpanel" aria-labelledby="placedb-tab">
-				<p class="mb-0">
-				  Search <span class="red-head strong">public database records</span> (<b>whgazetteer.org/api/db?</b>)</p>
-				<table class="table table-striped table-api">
-				  <thead>
-					<tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
-				  </thead>
-				  <tbody>
-					<tr><td>id</td><td>integer</td><td>returns single database record</td></tr>
-					<tr><td>name</td><td>string</td><td>equals or starts with; <b>name, name_contains, or id is required</b></td></tr>
-					<tr><td>name_contains</td><td>string</td><td>includes string</td></tr>
-					<tr><td>dataset</td><td>string</td><td>dataset label</td></tr>
-					<tr><td>fclass</td><td>string</td><td>1 or more <a href="#" data-html="true" onClick='return false;' title="A=administrative; H=hydrological; L=landscape; P=settlements;<br/> S='sites';<br/> T=topographical" rel="tooltip" class="ttip">GeoNames feature class code</a>, comma-separated</td></tr>
-					<tr><td>year</td><td>integer</td><td>year within attested timespan(s) if any (<a href="#" data-html="true" onClick='return false;' title="Core records from TGN and GeoNames have no temporal information" rel="tooltip" class="ttip">Note</a>).<br/>use '-' for BCE dates, to -9999</td></tr>
-					<tr><td>ccode</td><td>string</td><td>1 or more <a href="https://www.iso.org/obp/ui/#search/code" target="_blank">2-letter ISO codes {% fontawesome_icon 'external-link' %}</a>, comma separated</td></tr>
-					<tr><td>area</td><td>integer</td><td>within this region or user study area</td></tr>
-					<tr><td>pagesize</td><td>integer</td><td>Default is 20; maximum allowed=200</td></tr>
-				  </tbody>
-				</table>
-				<p class="mb-2"><span class="text-danger strong">NOTE:</span> All places in a dataset may be downloaded as a file from the owner's dataset portal page, by the dataset owner and collaborators, or if flagged as "public," from the public dataset page.</span></p>
-				<div id="examples">
-				  <p class="mb-0 strong">Examples</p>
-				  <p class="mb-0">Abydos, Egypt in the database, attested to exist at 4000 BCE</p>
-				  <p><a href="{% url 'api-search' %}?name=abydos&ccode=eg&year=-4000" target="_blank">/api/db/?name=abydos&ccode=eg&year=-4000</a></p>
-				  
-				  <p class="mb-0">Khmer "landscape" features (regions, cultural groups, peoples) or settlements.</p>
-				  <p><a href="{% url 'api-search' %}?name_contains=khmer&fclass=p,l" target="_blank">/api/db/?name_contains=khmer&fclass=p,l</a></p>
+        <div class="col-sm-5">
+          <h4>Using the API</h4>
+          <p>The MEHDIE API gives read-only access to the <b>public datasets</b> on this site: their metadata, the
+            places (or people) they contain, and searches over those records by name or location. No sign-in or key is
+            needed. Suggestions are welcome through <a href="#" class="feedback">this form</a>.</p>
 
-				</div>
-			  </div> <!-- place_db -->
-			  <div id="place_idx" class="tab-pane fade show active" role="tabpanel" aria-labelledby="placeidx-tab">
-{#				  <div id="disabled" style="position:absolute; top:200px; min-height: 400px; min-width:400px; color:#993333; opacity: 80%;"><h3>Access to the index API is temporarily disabled. Back soon!</h3></div>#}
-				<p class="mb-0">
-				  Search <span class="red-head strong">union index</span> (<b>whgazetteer.org/api/index?</b>). Returns GeoJSON.</p>
-				<!--<p class="smaller my-0"><i>using these parameters</i></p>-->
-				<table class="table table-striped table-api">
-				  <thead>
-					<tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
-				  </thead>
-				  <tbody>
-					<tr><td>whgid</td><td>integer</td><td>index identifier; returns 1 or more linked records</td></tr>
-					<tr><td>name</td><td>string</td><td>exact match; <b>name, name_startswith, or whgid is required</b></td></tr>
-					<tr><td>name_startswith</td><td>string</td><td>starts <i>any part of</i> a name</td></tr>
-					<tr><td>dataset</td><td>string</td><td>dataset label</td></tr>
-					<tr><td>ccode</td><td>string</td><td>1 or more 2-letter ISO codes, comma separate</td></tr>
-					<tr>
-					  <td>fclass</td><td>string</td><td>1-letter GeoNames feature category <a href="#" data-html="true" onClick='return false;' title="A=administrative; H=hydrological; L=landscape; P=settlements;<br/> S='sites';<br/> T=topographical" rel="tooltip"> {% fontawesome_icon 'question-circle' color='#993333' %}</a>; >=1)</i>; </td>
-					</tr>
-					<tr>
-					  <td>year</td><td>integer</td><td>within any timespan of linked records;<br/>use '-' for BCE dates, to -9999</td>
-					</tr>
-					<tr><td>area</td><td>integer</td><td>within this region or user study area</td></tr>
-					<tr><td>pagesize</td><td>integer</td><td>Default is unlimited; results are unordered</td></tr>
-				  </tbody>
-				</table>
+          <h5 class="red-head strong">Identifiers</h5>
+          <p>Each dataset has a numeric <b>id</b> and a short, unique <b>label</b> (e.g. <code>KIMA-IL</code>).
+            Every record has a MEHDIE <b>place_id</b>, unique across the site, and keeps the <b>src_id</b> it had
+            in its source dataset. Both stay stable as long as the dataset is on the site. The record URI is
+            <code>https://tools.mehdie.org/api/place/&lt;place_id&gt;/</code>.</p>
+          <p class="ml-2 notebox small">People datasets (e.g. DiJeSt People) are stored like place datasets; their
+            records are served by the same endpoints. A dataset's <code>datatype</code> says which it is.</p>
 
-				<div id="examples">
-				  <p class="mb-0 strong">Examples</p>
-				  <p class="mb-0">Sites named Abydos: one in Turkey, two in Egypt. Two have two attestations each.</p>
-				  <p><a href="{{ settings.URL_FRONT }}/api/index/?name=abydos&fclass=s" target="_blank">/api/index/?name=abydos&fclass=s</a></p>
+          <h5 class="red-head strong">Responses</h5>
+          <p>All responses are JSON. Place searches return a GeoJSON <code>FeatureCollection</code> in the
+            <a href="https://github.com/LinkedPasts/linked-places-format" target="_blank">Linked Places format</a>,
+            with every name variant of a record (in all its languages and scripts), its types, links, dates and
+            geometry.</p>
+          <p>An invalid request gets status <b>400</b> and a record or dataset that does not exist (or is not
+            public) gets <b>404</b>, each with a JSON message, e.g. <code>{"detail": "Parameter 'lat' must be a
+            number, got 'abc'."}</code></p>
 
-				  <p class="mb-0">Index record linking the two database records for Abydos, EG asserted as matches.</p>
-					<p><a href="{{ settings.URL_FRONT }}/api/index/?whgid=12608007" target="_blank">/api/index/?whgid=12608007</a></p>
+          <h5 class="red-head strong">Linked data</h5>
+          <p>The same data, with the links MEHDIE found between records, is also available as RDF from the
+            knowledge graph: see the <a href="{% url 'sparql-examples' %}">SPARQL examples</a>.</p>
+        </div>
 
-					<p class="mb-0">Settlements and sites in N. Africa w/part of any name variant starting with "aby."</p>
-				  <p><a href="{{ settings.URL_FRONT }}/api/index/?name_startswith=aby&fclass=p,s&area=85" target="_blank">/api/index/?name_startswith=aby&fclass=p,s&area=85</a>
-				</div>
+        <div class="col-sm-7 smallish">
+          <h4>Endpoints</h4>
+          <ul id="api_tabs" class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="datasets-tab" data-toggle="tab" href="#datasets" role="tab"
+                 aria-controls="datasets" aria-selected="true">Datasets</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="search-tab" data-toggle="tab" href="#search" role="tab"
+                 aria-controls="search" aria-selected="false">Place search</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="records-tab" data-toggle="tab" href="#records" role="tab"
+                 aria-controls="records" aria-selected="false">Place records</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="spatial-tab" data-toggle="tab" href="#spatial" role="tab"
+                 aria-controls="spatial" aria-selected="false">Spatial</a>
+            </li>
+          </ul>
 
-			  </div> <!-- place_idx -->
-			  <div id="spatial" class="tab-pane fade" role="tabpanel" aria-labelledby="spatial-tab">
-				<p class="mb-0"><span class="red-head strong">Spatial queries</span> (<b>whgazetteer.org/api/spatial?</b>)</p>
-				<p class="mb-1 small"><i>Note that spatial queries can take several seconds to complete.</i></p>
-				<table class="table table-striped table-api">
-				  <thead>
-					<tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
-				  </thead>
-				  <tbody>
-					<tr><td>type<sup>&#x02733;</sup></td><td>string</td><td><b>bbox</b> <i>or</i> <b>nearby</b> (required)</td></tr>
-					<tr><td>sw<sup>&#8224;</sup></td><td>decimal&nbsp;deg.</td><td>bbox southwest corner</td></tr>
-					<tr><td>ne<sup>&#8224;</sup></td><td>decimal&nbsp;deg.</td><td>bbox northeast corner</td></tr>
-					<tr><td>lon<sup>&#8225;</sup></td><td>decimal&nbsp;deg.</td><td>longitude (wgs84)</td></tr>
-					<tr><td>lat<sup>&#8225;</sup></td><td>decimal&nbsp;deg.</td><td>longitude (wgs84)</td></tr>
-					<tr><td>km<sup>&#8225;</sup></td><td>integer</td><td>buffer distance in km</td></tr>
-					<tr style="border-top: 2px solid lightgray;">
-						<td>dataset</td>
-						<td>string</td>
-						<td>dataset label</td>
-					</tr>
-					<tr>
-						<td>collection</td>
-						<td>integer</td>
-						<td>collection ID</td>
-					</tr>
-					<tr>
-						<td>fclass</td>
-						<td>string</td>
-						<td>1 or more <a href="#" data-html="true" onClick='return false;'
-								title="A=administrative; H=hydrological; L=landscape; P=settlements;<br/> S='sites';<br/> T=topographical"
-								rel="tooltip" class="ttip">GeoNames feature class code</a>, comma-separated</span></td>
-					</tr>
-					<tr>
-						<td>pagesize</td>
-						<td>integer</td>
-						<td>Default is 20; maximum allowed=200</td>
-					</tr>
-				  </tbody>
-				</table>
-				<p class="my-1 ml-2">&#x02733; always required; &nbsp;&nbsp;&#8224 required for <b>bbox</b>; &nbsp;&nbsp;&#8225; required for <b>nearby</b></p>
-				<div id="examples" class="">
-				  <p class="mb-0 strong">Examples</p>
-				  <p class="mb-0">Settlements & sites within a bounding box (feature classes 'P' and 'S')</p>
-				  <p class="mb-1"><a href="{% url 'api-spatial' %}?type=bbox&sw=31.918,26.186&ne=32.918,27.186&fc=P,S" target="_blank">
-						/api/spatial/?type=bbox&sw=31.918,26.186&ne=33.918,28.186&fc=P,S
-				  </a></p>
-				  <p class="mb-0">Places in Old World Trade dataset within 100km of given point, ordered</p>
-				  <p class=mb-1><a href="{% url 'api-spatial' %}?type=nearby&lon=31.918&lat=26.186&km=100&dataset=owtrad" target="_blank">
-						/api/spatial/?type=nearby&lon=31.918&lat=26.186&km=100&dataset=owtrad
-				  </a></p>
-				  <p class="mb-0">Settlements in HGIS de Las Indias collection within 10km of given point, ordered</p>
-				  <p class=mb-1><a href="{% url 'api-spatial' %}?type=nearby&lon=-98.3067&lat=19.1302&km=10&fc=P&collection=5" target="_blank">
-						/api/spatial/?type=nearby&lon=-98.3067&lat=19.1302&km=10&fc=P&collection=5
-				  </a></p>
-				</div>
-			  </div>
-			  <div id="areas" class="tab-pane fade" role="tabpanel" aria-labelledby="areas-tab">
-				<p class="mb-0">Search <span class="red-head strong">regions &amp; areas</span> (<b>whgazetteer.org/api/areas?</b>)</p>
-				<table class="table table-striped table-api">
-				  <thead>
-					<tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
-				  </thead>
-				  <tbody>
-					<tr><td>&lt;none&gt;</td><td>n/a</td><td>all regions &amp; study areas flagged 'public'</td></tr>
-					<tr><td>id</td><td>integer</td><td>a single region/area</td></tr>
-					<tr><td>q</td><td>string</td><td>Search region/area names</td></tr>
-				  </tbody>
-				</table>
-				<div id="examples" class="">
-				  <p class="mb-0 strong">Examples</p>
-				  <p class="mb-0">All regions and public user study areas</p>
-				  <p><a href="{% url 'area-features' %}" target="_blank">
-				  http://whgazetteer.org/api/areas</a></p>
-				  <p class="mb-0">A region by id</p>
-				  <p><a href="{% url 'area-features' %}?id=75" target="_blank">
-				  http://whgazetteer.org/api/areas?id=75</a></p>
-				  <p class="mb-0">Search string</p>
-				  <p><a href="{% url 'area-features' %}?q=africa" target="_blank">
-				  http://whgazetteer.org/api/areas?q=africa</a></p>
-				</div>
-			  </div> <!-- areas -->
-			  <div id="datasets" class="tab-pane fade" role="tabpanel" aria-labelledby="datasets-tab">
-				<p class="mb-0">Search <span class="red-head strong">datasets</span> (<b>whgazetteer.org/api/datasets</b>)</p>
-				<table class="table table-striped table-api">
-				  <thead>
-					<tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
-				  </thead>
-				  <tbody>
-					<tr><td>&lt;none&gt;</td><td>n/a</td><td>metadata for all datasets flagged 'public'</td></tr>
-					<tr><td>id</td><td>integer</td><td>metadata for a single 'public' dataset</td></tr>
-					<tr><td>label</td><td>string</td><td>metadata for a single 'public' dataset</td></tr>
-					<tr><td>q</td><td>string</td><td>string in dataset title or description</td></tr>
-				  </tbody>
-				</table>
-				<p class="mb-2"><span class="text-danger strong">NOTE:</span> All places in a dataset may be downloaded as a file from the owner's dataset portal page, by the dataset owner and collaborators, or if flagged as "public," from the public dataset page.</span></p>
-				<div id="examples">
-				  <p class="mb-0 strong">Examples</p>
-				  <p class="mb-0">List all 'public' datasets</p>
-				  <p><a href="{% url 'ds-list' %}" target="_blank">
-					http://whgazetteer.org/api/datasets</a></p>
-				  <p class="mb-0">A 'public' dataset by id</p>
-				  <p><a href="{% url 'ds-list' %}?id=1" target="_blank">
-					http://whgazetteer.org/api/datasets?id=1</a></p>
-				  <p class="mb-0">A 'public' dataset by label identifier</p>
-				  <p><a href="{% url 'ds-list' %}?label=dplace" target="_blank">
-					http://whgazetteer.org/api/datasets?label=dplace</a></p>
-				  <p class="mb-0">Search title and description for term</p>
-				  <p><a href="{% url 'ds-list' %}?q=spanish" target="_blank">
-					http://whgazetteer.org/api/datasets?q=spanish</a></p>					
-				</div>
-			  </div> <!-- datasets -->
-			</div>
+          <div class="tab-content">
+
+            {# ---------------------------------------------------------------- datasets #}
+            <div id="datasets" class="tab-pane fade show active" role="tabpanel" aria-labelledby="datasets-tab">
+              <p class="mb-1 mt-2"><b>/api/datasets/</b> lists the public datasets with their metadata and record
+                counts.</p>
+              <table class="table table-striped table-api">
+                <thead>
+                  <tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>&lt;none&gt;</td><td>n/a</td><td>all public datasets</td></tr>
+                  <tr><td>q</td><td>string</td><td>text in the dataset title or description</td></tr>
+                  <tr><td>datatype</td><td>string</td><td><b>place</b> or <b>people</b></td></tr>
+                  <tr><td>label</td><td>string</td><td>a single dataset by label</td></tr>
+                  <tr><td>id</td><td>integer</td><td>a single dataset by id</td></tr>
+                </tbody>
+              </table>
+              <p class="mb-1"><b>/api/datasets/&lt;label&gt;/</b> returns the metadata of one dataset.</p>
+              <p class="mb-2"><b>/api/datasets/&lt;label&gt;/places/</b> lists every record in the dataset:
+                its <code>id</code>, <code>src_id</code> and <code>title</code>, ordered by id. Fetch a full
+                record with <a href="#records" class="tab-link">/api/place/&lt;id&gt;/</a>.</p>
+              <div class="examples">
+                <p class="mb-0 strong">Examples</p>
+                <p class="mb-0">All public datasets</p>
+                <p><a href="{% url 'ds-list' %}" target="_blank">/api/datasets/</a></p>
+                <p class="mb-0">Datasets from Kima, the historical Hebrew-script place-name database</p>
+                <p><a href="{% url 'ds-list' %}?q=kima" target="_blank">/api/datasets/?q=kima</a></p>
+                <p class="mb-0">Datasets of people rather than places</p>
+                <p><a href="{% url 'ds-list' %}?datatype=people" target="_blank">/api/datasets/?datatype=people</a></p>
+                <p class="mb-0">Metadata of the DiJeSt places dataset</p>
+                <p><a href="{% url 'ds-detail' 'DiJeSt-DB' %}" target="_blank">/api/datasets/DiJeSt-DB/</a></p>
+                <p class="mb-0">Ids of all records in KIMA-IL</p>
+                <p><a href="{% url 'ds-places' 'KIMA-IL' %}" target="_blank">/api/datasets/KIMA-IL/places/</a></p>
+              </div>
+            </div>
+
+            {# ---------------------------------------------------------------- search #}
+            <div id="search" class="tab-pane fade" role="tabpanel" aria-labelledby="search-tab">
+              <p class="mb-1 mt-2"><b>/api/db/</b> searches the records of all public datasets. Returns a
+                FeatureCollection; <code>count</code> is the total number of matches.</p>
+              <table class="table table-striped table-api">
+                <thead>
+                  <tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>name</td><td>string</td><td>matches any name variant; exact matches first, then
+                    names starting with or containing it, then close spellings. Ignores case and accents.
+                    <b>name, name_contains or id is required</b></td></tr>
+                  <tr><td>name_contains</td><td>string</td><td>text in the record title</td></tr>
+                  <tr><td>id</td><td>integer</td><td>a single record by place_id; other parameters are ignored</td></tr>
+                  <tr><td>dataset</td><td>string</td><td>dataset label</td></tr>
+                  <tr><td>fc</td><td>string</td><td>1 or more <a href="#" data-html="true" onClick='return false;'
+                    title="A=administrative; H=hydrological; L=landscape; P=settlements;<br/>S=sites; T=topographical"
+                    rel="tooltip" class="ttip">GeoNames feature class</a> letters, e.g. <code>P,S</code></td></tr>
+                  <tr><td>year</td><td>integer</td><td>within the record's attested timespan; negative for BCE</td></tr>
+                  <tr><td>ccode</td><td>string</td><td>1 or more 2-letter ISO country codes, comma separated</td></tr>
+                  <tr><td>pagesize</td><td>integer</td><td>default 20, maximum 200</td></tr>
+                </tbody>
+              </table>
+              <div class="examples">
+                <p class="mb-0 strong">Examples</p>
+                <p class="mb-0">Jerusalem across all datasets, best matches first</p>
+                <p><a href="{% url 'api-search' %}?name=jerusalem" target="_blank">/api/db/?name=jerusalem</a></p>
+                <p class="mb-0">Jerusalem in KIMA-IL only</p>
+                <p><a href="{% url 'api-search' %}?name=jerusalem&dataset=KIMA-IL" target="_blank">/api/db/?name=jerusalem&amp;dataset=KIMA-IL</a></p>
+                <p class="mb-0">KIMA-IL records with "forest" in the title</p>
+                <p><a href="{% url 'api-search' %}?name_contains=forest&dataset=KIMA-IL" target="_blank">/api/db/?name_contains=forest&amp;dataset=KIMA-IL</a></p>
+                <p class="mb-0">A single record by place_id</p>
+                <p><a href="{% url 'api-search' %}?id=218003" target="_blank">/api/db/?id=218003</a></p>
+              </div>
+            </div>
+
+            {# ---------------------------------------------------------------- records #}
+            <div id="records" class="tab-pane fade" role="tabpanel" aria-labelledby="records-tab">
+              <p class="mb-1 mt-2"><b>/api/place/&lt;place_id&gt;/</b> returns one full record, by its MEHDIE
+                place_id.</p>
+              <p class="mb-2"><b>/api/place/&lt;label&gt;/&lt;src_id&gt;/</b> returns the same record by the dataset
+                label and the record's id in its source.</p>
+              <p class="mb-2">Besides names, types, links, dates and geometry, a record includes a small graph
+                (<code>nodes</code>, <code>edges</code>) of the records it is linked to: matches in other MEHDIE
+                datasets, external authorities such as Wikidata, and related places such as the region it lies in.</p>
+              <div class="examples">
+                <p class="mb-0 strong">Examples</p>
+                <p class="mb-0">Jerusalem in the Himme dataset, by place_id</p>
+                <p><a href="{% url 'place-detail' 44942 %}" target="_blank">/api/place/44942/</a></p>
+                <p class="mb-0">The same record by dataset label and src_id</p>
+                <p><a href="{% url 'place-detail-src' 'himme' '280' %}" target="_blank">/api/place/himme/280/</a></p>
+              </div>
+            </div>
+
+            {# ---------------------------------------------------------------- spatial #}
+            <div id="spatial" class="tab-pane fade" role="tabpanel" aria-labelledby="spatial-tab">
+              <p class="mb-1 mt-2"><b>/api/spatial/</b> finds records with point geometry near a location
+                (<b>nearby</b>, nearest first) or inside a bounding box (<b>bbox</b>). Records without coordinates
+                are not included. Returns a FeatureCollection.</p>
+              <table class="table table-striped table-api">
+                <thead>
+                  <tr><th scope="col">parameter</th><th scope="col">value</th><th scope="col">notes</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>type<sup>&#x02733;</sup></td><td>string</td><td><b>nearby</b> or <b>bbox</b></td></tr>
+                  <tr><td>lon<sup>&#8225;</sup></td><td>decimal&nbsp;deg.</td><td>longitude (WGS84)</td></tr>
+                  <tr><td>lat<sup>&#8225;</sup></td><td>decimal&nbsp;deg.</td><td>latitude (WGS84)</td></tr>
+                  <tr><td>km<sup>&#8225;</sup></td><td>number</td><td>search radius in km</td></tr>
+                  <tr><td>sw<sup>&#8224;</sup></td><td>lon,lat</td><td>southwest corner of the box</td></tr>
+                  <tr><td>ne<sup>&#8224;</sup></td><td>lon,lat</td><td>northeast corner of the box</td></tr>
+                  <tr style="border-top: 2px solid lightgray;"><td>dataset</td><td>string</td><td>dataset label</td></tr>
+                  <tr><td>fc</td><td>string</td><td>1 or more GeoNames feature class letters, e.g. <code>P,S</code></td></tr>
+                  <tr><td>pagesize</td><td>integer</td><td>default 20, maximum 200</td></tr>
+                </tbody>
+              </table>
+              <p class="my-1 ml-2">&#x02733; always required; &nbsp;&#8225; required for <b>nearby</b>;
+                &nbsp;&#8224; required for <b>bbox</b></p>
+              <div class="examples">
+                <p class="mb-0 strong">Examples</p>
+                <p class="mb-0">Records within 5 km of Jerusalem's Old City, nearest first</p>
+                <p><a href="{% url 'api-spatial' %}?type=nearby&lon=35.2167&lat=31.7833&km=5" target="_blank">/api/spatial/?type=nearby&amp;lon=35.2167&amp;lat=31.7833&amp;km=5</a></p>
+                <p class="mb-0">The same, KIMA-IL records within 10 km</p>
+                <p><a href="{% url 'api-spatial' %}?type=nearby&lon=35.2167&lat=31.7833&km=10&dataset=KIMA-IL" target="_blank">/api/spatial/?type=nearby&amp;lon=35.2167&amp;lat=31.7833&amp;km=10&amp;dataset=KIMA-IL</a></p>
+                <p class="mb-0">Records in a box around Jerusalem</p>
+                <p><a href="{% url 'api-spatial' %}?type=bbox&sw=35.15,31.74&ne=35.26,31.81" target="_blank">/api/spatial/?type=bbox&amp;sw=35.15,31.74&amp;ne=35.26,31.81</a></p>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
     </div>
   </div>
   <script type="text/javascript">
-	$(function(){
-	  $("[rel='tooltip']").tooltip();
-	})
+    $(function () {
+      $("[rel='tooltip']").tooltip();
+      // links to another tab on this page
+      $("a.tab-link").click(function (e) {
+        e.preventDefault();
+        $('#api_tabs a[href="' + $(this).attr('href') + '"]').tab('show');
+      });
+    })
   </script>
 {% endblock %}
-

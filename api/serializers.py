@@ -475,7 +475,7 @@ class LPFSerializer(serializers.Serializer):
     uri = serializers.SerializerMethodField('get_uri')
 
     def get_uri(self, place):
-        return "https://whgazetteer.org/api/place/" + str(place.id)
+        return f"https://tools.mehdie.org/api/place/{place.id}/"
 
     properties = serializers.SerializerMethodField('get_properties')
 

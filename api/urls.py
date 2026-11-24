@@ -23,6 +23,8 @@ urlpatterns = [
     # 2022-09 name conflict with new remote api
     # path('datasets/', views.DatasetAPIView.as_view(), name='dataset-list'),
     path('datasets/', views.DatasetAPIView.as_view(), name='ds-list'),
+    path('datasets/<str:label>/', views.DatasetDetailAPIView.as_view(), name='ds-detail'),
+    path('datasets/<str:label>/places/', views.DatasetPlacesAPIView.as_view(), name='ds-places'),
 
 
     # *** PLACES ***
@@ -66,8 +68,9 @@ urlpatterns = [
     # 
     # *** USERS ***
     #   
-    path('users/', views.UserList.as_view(),name='user-list'),
-    path('user/<int:pk>/', views.UserDetail.as_view(),name='user-detail'),
+    # removed: they listed every user's e-mail address publicly
+    # path('users/', views.UserList.as_view(),name='user-list'),
+    # path('user/<int:pk>/', views.UserDetail.as_view(),name='user-detail'),
     
     # 
     # *** INDEX ***
