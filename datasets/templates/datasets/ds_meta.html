@@ -124,8 +124,7 @@
                                     </td>
                                     <td id="citation"><span>{% if object.citation %}{{ object.citation }}{% else %}
                                         {{ object.creator }}. {{ object.title }}. [Data file, last modified
-                                        {{ object.last_modified_text }}]. Retrieved from https://tools.mehdie.org/datasets/
-                                        {{ object.id }}, {% now 'd M Y' %}{% endif %}</td>
+                                        {{ object.last_modified_text }}]. Retrieved from https://tools.mehdie.org/datasets/{{ object.id }}, {% now 'd M Y' %}{% endif %}</td>
                                 </tr>
                             </table>
                         </div>
