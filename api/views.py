@@ -105,7 +105,7 @@ class SpatialAPIView(generics.ListAPIView):
                 filter(geom__distance_lte=(pnt, D(km=dist))).order_by('distance')
             # filter on params
             if coll:
-                collids = Collection.objects.get(id=coll).places.all().values_list('id', flat=True)
+                collids = get_object_or_404(Collection, id=coll).places.all().values_list('id', flat=True)
                 qs = qs.filter(place_id__in=collids)
             qs = qs.filter(place__dataset=ds) if ds else qs
             qs = qs.filter(place__fclasses__overlap=fclasses) if fclasses else qs
@@ -129,8 +129,7 @@ class SpatialAPIView(generics.ListAPIView):
                 qs = qs.filter(id__in=placeids)
                 # filter on params
                 if coll:
-                    collids = Collection.objects.get(
-                        id=coll).places.all().values_list('id', flat=True)
+                    collids = get_object_or_404(Collection, id=coll).places.all().values_list('id', flat=True)
                     qs = qs.filter(id__in=collids)
                 qs = qs.filter(dataset=ds) if ds else qs
                 qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
@@ -138,7 +137,7 @@ class SpatialAPIView(generics.ListAPIView):
                 msg = "bbox query (sw, ne): " + str(bbox)
                 print(msg)
 
-        filtered = qs[:pagesize] if pagesize and pagesize < 200 else qs[:20]
+        filtered = qs[:int(pagesize)] if pagesize and pagesize.isdigit() and int(pagesize) < 200 else qs[:20]
         serial = LPFSerializer if qtype == 'bbox' else PlaceGeomSerializer
         serializer = serial(filtered, many=True, context={'request': self.request})
         serialized_data = serializer.data
@@ -515,7 +514,7 @@ class SearchAPIView(generics.ListAPIView):
                 qs = qs.filter(dataset=ds) if ds else qs
                 qs = qs.filter(ccodes__overlap=cc) if cc else qs
 
-            filtered = qs[:pagesize] if pagesize and pagesize < 200 else qs[:20]
+            filtered = qs[:int(pagesize)] if pagesize and pagesize.isdigit() and int(pagesize) < 200 else qs[:20]
 
             # serial = LPFSerializer if context else SearchDatabaseSerializer
             serial = LPFSerializer
@@ -940,7 +939,7 @@ class GeomViewSet(viewsets.ModelViewSet):
             qs = PlaceGeom.objects.filter(place_id__in=dsPlaceIds)
         elif 'coll' in self.request.GET:
             cid = self.request.GET.get('coll')
-            coll = Collection.objects.get(id=cid)
+            coll = get_object_or_404(Collection, id=cid)
             collPlaceIds = [p.id for p in coll.places.all()]
             # leaves out polygons and linestrings
             qs = PlaceGeom.objects.filter(
@@ -972,7 +971,7 @@ class GeoJSONAPIView(generics.ListAPIView):
             qs = PlaceGeom.objects.filter(place_id__in=dsPlaceIds)
         elif 'coll' in self.request.GET:
             cid = self.request.GET.get('coll')
-            coll = Collection.objects.get(id=cid)
+            coll = get_object_or_404(Collection, id=cid)
             collPlaceIds = [p.id for p in coll.places.all()]
             qs = PlaceGeom.objects.filter(place_id__in=collPlaceIds, jsonb__type='Point')
         return qs
