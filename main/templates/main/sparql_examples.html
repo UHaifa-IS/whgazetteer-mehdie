@@ -1,0 +1,866 @@
+{% extends "main/base.html" %}
+{% block title %}<title>MEHDIE::SPARQL examples</title>{% endblock %}
+{% block extra_head %}
+<style>
+  pre.sparql-query { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 4px; padding: .75rem;
+                     font-size: 12.5px; max-height: 26em; overflow: auto; white-space: pre; }
+  .query-result { max-height: 28em; overflow: auto; }
+  .query-result table { font-size: 13px; }
+  .query-result .lang { color: #6a737d; font-size: 11px; margin-left: .25em; }
+  .query-result td { vertical-align: top; }
+</style>
+{% endblock %}
+{% block content %}
+{% verbatim %}
+  <div class="container mt-3 mb-5">
+    <h3>Querying the MEHDIE knowledge graph</h3>
+    <p>The MEHDIE gazetteer is published as linked data and can be queried with SPARQL at
+      <code>https://tools.mehdie.org/sparql/mehdie/query</code>
+      (interactive editor: <a href="/sparql/#/dataset/mehdie/query" target="_blank">Fuseki query UI</a>).
+      All data is in the named graph <code>&lt;https://tools.mehdie.org/&gt;</code>, rebuilt from the
+      public datasets of this site whenever the data changes.</p>
+    <p>The model is <a href="https://cidoc-crm.org/" target="_blank">CIDOC-CRM</a>: places are
+      <code>crm:E53_Place</code>, people <code>crm:E21_Person</code>; every name is an appellation
+      (<code>crm:P1_is_identified_by</code> / <code>crm:P190_has_symbolic_content</code>) tagged with its
+      script (<code>und-Arab</code>, <code>und-Hebr</code>, <code>und-Latn</code>, ...) or language.
+      Entities belong to their datasets (<code>dcterms:isPartOf</code>, <code>dcat:Dataset</code>),
+      geometries use GeoSPARQL, time spans <code>dcterms:temporal</code>, the hierarchy
+      <code>gvp:broaderPartitive</code>, and links to other gazetteers <code>skos:closeMatch</code>
+      (Wikidata, GeoNames, Pleiades, Kima, VIAF, ...).</p>
+    <p>Press <b>Run</b> to execute an example here, or copy it into the query editor and change it.
+      Examples marked <span class="badge badge-info">live Wikidata</span> combine MEHDIE with
+      <a href="https://www.wikidata.org/" target="_blank">Wikidata</a> through a federated
+      <code>SERVICE</code> query; they take a few seconds.</p>
+
+    <h4 class="mt-4 mb-3">Inside MEHDIE</h4>
+
+      <div class="card mb-4" id="ex-datasets">
+        <div class="card-body">
+          <h5 class="card-title">The datasets in the graph</h5>
+          <p class="card-text">Every public MEHDIE dataset with the number of places or people it contributes and its licence.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+SELECT ?dataset ?title (COUNT(?entity) AS ?entities) ?license
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?dataset a dcat:Dataset ;
+             dcterms:title ?title .
+    OPTIONAL { ?dataset dcterms:license ?license }
+    OPTIONAL { ?entity dcterms:isPartOf ?dataset }
+  }
+}
+GROUP BY ?dataset ?title ?license
+ORDER BY DESC(?entities)</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-names">
+        <div class="card-body">
+          <h5 class="card-title">One place, many names: Antakya (Antioch)</h5>
+          <p class="card-text">All names MEHDIE has for Antakya, found through its Wikidata ID, with the script or language tag of each name and the datasets it comes from: Arabic, Hebrew, Greek, Armenian, Syriac and Latin forms.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# All names of Antakya (Antioch), with their script / language tag
+SELECT ?name (LANG(?name) AS ?script)
+       (GROUP_CONCAT(DISTINCT ?dataset; separator=&quot; | &quot;) AS ?datasets)
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place skos:closeMatch wd:Q80561 ;
+           crm:P1_is_identified_by/crm:P190_has_symbolic_content ?name ;
+           dcterms:isPartOf/dcterms:title ?dataset .
+  }
+}
+GROUP BY ?name
+ORDER BY ?script ?name</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-scripts">
+        <div class="card-body">
+          <h5 class="card-title">How multilingual is the gazetteer?</h5>
+          <p class="card-text">For each number of scripts, how many places have names in that many different scripts (names tagged only <code>und</code> are left out).</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# How many places have names in how many scripts?
+SELECT ?scripts (COUNT(?place) AS ?places)
+WHERE {
+  SELECT ?place (COUNT(DISTINCT LCASE(LANG(?name))) AS ?scripts)
+  WHERE {
+    GRAPH &lt;https://tools.mehdie.org/&gt; {
+      ?place a crm:E53_Place ;
+             crm:P1_is_identified_by/crm:P190_has_symbolic_content ?name .
+      FILTER(LANG(?name) != &quot;und&quot;)
+    }
+  }
+  GROUP BY ?place
+}
+GROUP BY ?scripts
+ORDER BY ?scripts</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-trilingual">
+        <div class="card-body">
+          <h5 class="card-title">Places named in Arabic, Hebrew and Latin script</h5>
+          <p class="card-text">Places with at least one name in each of the three scripts: the cross-lingual core that entity resolution works on.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Places that have names in Arabic, Hebrew and Latin script
+SELECT ?place (SAMPLE(?ar) AS ?arabic) (SAMPLE(?he) AS ?hebrew) (SAMPLE(?la) AS ?latin)
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place a crm:E53_Place ;
+           crm:P1_is_identified_by/crm:P190_has_symbolic_content ?ar , ?he , ?la .
+    FILTER(LCASE(LANG(?ar)) = &quot;und-arab&quot;)
+    FILTER(LCASE(LANG(?he)) = &quot;und-hebr&quot;)
+    FILTER(LCASE(LANG(?la)) = &quot;und-latn&quot;)
+  }
+}
+GROUP BY ?place
+LIMIT 100</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-merged">
+        <div class="card-body">
+          <h5 class="card-title">Places merged from several datasets</h5>
+          <p class="card-text">Datasets drawn from the same source (record groups) are merged: the same record in a Hebrew, a Latin and a regional version becomes one place. These places come from four or more datasets.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Places merged from several datasets
+SELECT ?place (COUNT(DISTINCT ?ds) AS ?datasets)
+       (GROUP_CONCAT(DISTINCT ?title; separator=&quot; | &quot;) AS ?in)
+       (SAMPLE(?name) AS ?a_name)
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place a crm:E53_Place ;
+           dcterms:isPartOf ?ds ;
+           crm:P1_is_identified_by/crm:P190_has_symbolic_content ?name .
+    ?ds dcterms:title ?title .
+  }
+}
+GROUP BY ?place
+HAVING (COUNT(DISTINCT ?ds) &gt;= 4)
+ORDER BY DESC(?datasets)
+LIMIT 50</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-bce">
+        <div class="card-body">
+          <h5 class="card-title">The oldest dated places</h5>
+          <p class="card-text">Places with their own attestation period (time spans, negative years are BCE), oldest first.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# The oldest dated places (negative years = BCE)
+SELECT ?place (SAMPLE(?name) AS ?a_name) ?from ?to
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place dcterms:temporal ?span ;
+           crm:P1_is_identified_by/crm:P190_has_symbolic_content ?name .
+    ?span crm:P82a_begin_of_the_begin ?from ;
+          crm:P82b_end_of_the_end ?to .
+  }
+}
+GROUP BY ?place ?from ?to
+ORDER BY xsd:integer(STR(?from))
+LIMIT 50</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-hierarchy">
+        <div class="card-body">
+          <h5 class="card-title">Which place is part of which</h5>
+          <p class="card-text">The part-of hierarchy (<code>gvp:broaderPartitive</code>) with the primary name of each place and its parent.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Part-of hierarchy: places and the larger place they belong to
+SELECT DISTINCT ?placeName ?parentName ?dataset
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place gvp:broaderPartitive ?parent ;
+           crm:P1_is_identified_by ?pa ;
+           dcterms:isPartOf/dcterms:title ?dataset .
+    FILTER(STRENDS(STR(?pa), &quot;/appellation/primary&quot;))
+    ?pa crm:P190_has_symbolic_content ?placeName .
+    ?parent crm:P1_is_identified_by ?pp .
+    FILTER(STRENDS(STR(?pp), &quot;/appellation/primary&quot;))
+    ?pp crm:P190_has_symbolic_content ?parentName .
+  }
+}
+LIMIT 100</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+
+    <h4 class="mt-4 mb-3">Relations MEHDIE finds between places</h4>
+    <p>MEHDIE's reconciliation records that a place in one dataset is the same as a place in another
+      (<code>skos:exactMatch</code>, about 270 links between some 400 places). Because "the same as" is
+      symmetric and transitive, chains of these links reveal more than was recorded: in SPARQL the path
+      <code>(skos:exactMatch|^skos:exactMatch)+</code> follows them in both directions. The 270 links form
+      168 groups, imply about 200 further matches nobody recorded, give about 150 places a Wikidata link
+      through a neighbour, and connect 66 groups that no other source links at all.</p>
+
+      <div class="card mb-4" id="ex-chain">
+        <div class="card-body">
+          <h5 class="card-title">One place, nine datasets: following same-as links from Baghdad</h5>
+          <p class="card-text">Starting from Baghdad in the Princeton Geniza Project data, every place that a chain of same-as links leads to. Only the link to Benjamin of Tudela's Baghdad was recorded; the matches with Usaybi'a, Damast, al-Thurayya and Kima (where Baghdad even appears twice) follow only from the chain.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Baghdad across MEHDIE: every place reachable from PGP&#x27;s &quot;Baghdad&quot; through a
+# chain of same-as links, and whether that match was recorded or only inferred
+SELECT ?place (GROUP_CONCAT(DISTINCT ?name; separator=&quot; | &quot;) AS ?names)
+       (GROUP_CONCAT(DISTINCT ?title; separator=&quot; | &quot;) AS ?datasets) ?match
+WHERE {
+  {
+    SELECT DISTINCT ?place WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; {
+        &lt;https://tools.mehdie.org/place/232920&gt; (skos:exactMatch|^skos:exactMatch)+ ?place .
+      }
+    }
+  }
+  FILTER(?place != &lt;https://tools.mehdie.org/place/232920&gt;)
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place crm:P1_is_identified_by ?primary ;
+           dcterms:isPartOf/dcterms:title ?title .
+    FILTER(STRENDS(STR(?primary), &quot;/appellation/primary&quot;))
+    ?primary crm:P190_has_symbolic_content ?name .
+    BIND(IF(EXISTS { &lt;https://tools.mehdie.org/place/232920&gt; skos:exactMatch|^skos:exactMatch ?place },
+            &quot;recorded&quot;, &quot;inferred&quot;) AS ?match)
+  }
+}
+GROUP BY ?place ?match
+ORDER BY DESC(?match)</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-groups">
+        <div class="card-body">
+          <h5 class="card-title">Groups of places joined by chains of links</h5>
+          <p class="card-text">Each group is one place as seen by several datasets, in Hebrew, Arabic and Latin script: Baghdad (7 MEHDIE places), Damascus, Jerusalem, Kufa, Mecca, Ramla, Zabid, Bilbays... A group is identified by its alphabetically first member. Takes a few seconds.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Groups of places joined by chains of same-as links (4+ places)
+SELECT ?group (COUNT(DISTINCT ?place) AS ?places) (GROUP_CONCAT(DISTINCT ?name; separator=&quot; | &quot;) AS ?names)
+WHERE {
+  {
+    SELECT ?place (MIN(STR(?member)) AS ?group)
+    WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; {
+        ?place (skos:exactMatch|^skos:exactMatch)+ ?member .
+      }
+    }
+    GROUP BY ?place
+  }
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place crm:P1_is_identified_by ?primary .
+    FILTER(STRENDS(STR(?primary), &quot;/appellation/primary&quot;))
+    ?primary crm:P190_has_symbolic_content ?name .
+  }
+}
+GROUP BY ?group
+HAVING (COUNT(DISTINCT ?place) &gt;= 4)
+ORDER BY DESC(?places)</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-inferred">
+        <div class="card-body">
+          <h5 class="card-title">Matches nobody recorded</h5>
+          <p class="card-text">Pairs of places that were never linked to each other, but are the same place because a chain of same-as links connects them, e.g. the Hebrew Zabid of Benjamin of Tudela and the Zabid of Usaybi'a. About 200 such pairs. Takes a few seconds.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Matches that were never recorded but follow from a chain of same-as links
+SELECT ?nameA (GROUP_CONCAT(DISTINCT ?dsA; separator=&quot; | &quot;) AS ?datasetsA)
+       ?nameB (GROUP_CONCAT(DISTINCT ?dsB; separator=&quot; | &quot;) AS ?datasetsB)
+WHERE {
+  {
+    SELECT DISTINCT ?a ?b
+    WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; {
+        ?a (skos:exactMatch|^skos:exactMatch)+ ?b .
+        FILTER(STR(?a) &lt; STR(?b))
+        FILTER NOT EXISTS { ?a skos:exactMatch|^skos:exactMatch ?b }
+      }
+    }
+  }
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?a crm:P1_is_identified_by ?pa ; dcterms:isPartOf/dcterms:title ?dsA .
+    FILTER(STRENDS(STR(?pa), &quot;/appellation/primary&quot;))
+    ?pa crm:P190_has_symbolic_content ?nameA .
+    ?b crm:P1_is_identified_by ?pb ; dcterms:isPartOf/dcterms:title ?dsB .
+    FILTER(STRENDS(STR(?pb), &quot;/appellation/primary&quot;))
+    ?pb crm:P190_has_symbolic_content ?nameB .
+  }
+}
+GROUP BY ?a ?b ?nameA ?nameB
+LIMIT 300</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-gainsWikidata">
+        <div class="card-body">
+          <h5 class="card-title">Places that inherit a Wikidata link</h5>
+          <p class="card-text">About 150 places have no Wikidata link of their own, but another place in their chain has one. Through MEHDIE they become linkable to Wikidata (and to everything Wikidata links to). Takes a few seconds.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Places without a Wikidata link that get one through a chain of same-as links
+SELECT ?place (SAMPLE(?name) AS ?a_name) ?wikidata
+       (GROUP_CONCAT(DISTINCT ?via; separator=&quot; | &quot;) AS ?through)
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place (skos:exactMatch|^skos:exactMatch)+ ?other .
+    FILTER NOT EXISTS { ?place skos:closeMatch ?w . FILTER(STRSTARTS(STR(?w), &quot;http://www.wikidata.org/entity/&quot;)) }
+    ?other skos:closeMatch ?wikidata ;
+           dcterms:isPartOf/dcterms:title ?via .
+    FILTER(STRSTARTS(STR(?wikidata), &quot;http://www.wikidata.org/entity/&quot;))
+    ?place crm:P1_is_identified_by ?primary .
+    FILTER(STRENDS(STR(?primary), &quot;/appellation/primary&quot;))
+    ?primary crm:P190_has_symbolic_content ?name .
+  }
+}
+GROUP BY ?place ?wikidata
+ORDER BY ?a_name</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-noWikidata">
+        <div class="card-body">
+          <h5 class="card-title">Matches only MEHDIE knows</h5>
+          <p class="card-text">Groups of linked places where no member has a Wikidata link: Mosul (Hebrew, Arabic and Latin forms from the Geniza, Tudela, Damast and Usaybi'a data), Shiraz, Basra, Raqqa, Wasit, Ukbara... These connections exist nowhere else.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Matches only MEHDIE knows: groups of linked places where no member has a Wikidata link
+SELECT ?group (COUNT(DISTINCT ?place) AS ?places)
+       (GROUP_CONCAT(DISTINCT ?name; separator=&quot; | &quot;) AS ?names)
+       (GROUP_CONCAT(DISTINCT ?title; separator=&quot; | &quot;) AS ?datasets)
+WHERE {
+  {
+    SELECT ?place (MIN(STR(?member)) AS ?group)
+    WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; {
+        ?place (skos:exactMatch|^skos:exactMatch)+ ?member .
+        FILTER NOT EXISTS { ?member skos:closeMatch ?w . FILTER(STRSTARTS(STR(?w), &quot;http://www.wikidata.org/entity/&quot;)) }
+      }
+    }
+    GROUP BY ?place
+  }
+  FILTER NOT EXISTS { GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place (skos:exactMatch|^skos:exactMatch)* ?m .
+    ?m skos:closeMatch ?w . FILTER(STRSTARTS(STR(?w), &quot;http://www.wikidata.org/entity/&quot;)) } }
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?place dcterms:isPartOf/dcterms:title ?title ;
+           crm:P1_is_identified_by ?primary .
+    FILTER(STRENDS(STR(?primary), &quot;/appellation/primary&quot;))
+    ?primary crm:P190_has_symbolic_content ?name .
+  }
+}
+GROUP BY ?group
+ORDER BY DESC(?places)</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-sharedIds">
+        <div class="card-body">
+          <h5 class="card-title">New candidate matches from shared identifiers</h5>
+          <p class="card-text">Places without a Wikidata link that point to the same GeoNames, Pleiades or Kima record but are not linked to each other, e.g. Nemyriv and Kamianets-Podilskyi in the Hasidic data and in DiJeSt. Candidates for review, since a shared external record is strong but not certain evidence.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# New candidate matches from shared identifiers: places that point to the same
+# GeoNames, Pleiades or Kima record, have no Wikidata link, and are not linked yet
+SELECT ?id ?nameA (GROUP_CONCAT(DISTINCT ?dsA; separator=&quot; | &quot;) AS ?datasetsA)
+       ?nameB (GROUP_CONCAT(DISTINCT ?dsB; separator=&quot; | &quot;) AS ?datasetsB)
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?a skos:closeMatch ?id .
+    FILTER(STRSTARTS(STR(?id), &quot;https://sws.geonames.org/&quot;) ||
+           STRSTARTS(STR(?id), &quot;https://pleiades.stoa.org/&quot;) ||
+           STRSTARTS(STR(?id), &quot;https://data.geo-kima.org/&quot;))
+    ?b skos:closeMatch ?id .
+    FILTER(STR(?a) &lt; STR(?b))
+    FILTER NOT EXISTS { ?a skos:closeMatch ?w . FILTER(STRSTARTS(STR(?w), &quot;http://www.wikidata.org/entity/&quot;)) }
+    FILTER NOT EXISTS { ?b skos:closeMatch ?w . FILTER(STRSTARTS(STR(?w), &quot;http://www.wikidata.org/entity/&quot;)) }
+    FILTER NOT EXISTS { ?a skos:exactMatch|^skos:exactMatch ?b }
+    ?a dcterms:isPartOf/dcterms:title ?dsA ; crm:P1_is_identified_by ?pa .
+    FILTER(STRENDS(STR(?pa), &quot;/appellation/primary&quot;))
+    ?pa crm:P190_has_symbolic_content ?nameA .
+    ?b dcterms:isPartOf/dcterms:title ?dsB ; crm:P1_is_identified_by ?pb .
+    FILTER(STRENDS(STR(?pb), &quot;/appellation/primary&quot;))
+    ?pb crm:P190_has_symbolic_content ?nameB .
+  }
+}
+GROUP BY ?id ?a ?b ?nameA ?nameB
+ORDER BY ?id
+LIMIT 200</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-conflicts">
+        <div class="card-body">
+          <h5 class="card-title">When chains go wrong</h5>
+          <p class="card-text">Transitivity also spreads mistakes: one wrong link joins two groups. This lists places joined by a chain whose Wikidata IDs disagree. Some are real errors (Kadima and Raina, Jerusalem and Tel Goded), others differ in granularity (Yazd the city and Yazd the province; Baghdad and the historical Round City). Takes a few seconds.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX dcat: &lt;http://www.w3.org/ns/dcat#&gt;
+PREFIX gvp: &lt;http://vocab.getty.edu/ontology#&gt;
+PREFIX xsd: &lt;http://www.w3.org/2001/XMLSchema#&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+# Possible wrong links: places joined by a chain of same-as links
+# whose Wikidata IDs disagree
+SELECT DISTINCT ?nameA ?wikidataA ?nameB ?wikidataB
+WHERE {
+  GRAPH &lt;https://tools.mehdie.org/&gt; {
+    ?a (skos:exactMatch|^skos:exactMatch)+ ?b .
+    FILTER(STR(?a) &lt; STR(?b))
+    ?a skos:closeMatch ?wikidataA .
+    ?b skos:closeMatch ?wikidataB .
+    FILTER(STRSTARTS(STR(?wikidataA), &quot;http://www.wikidata.org/entity/&quot;))
+    FILTER(STRSTARTS(STR(?wikidataB), &quot;http://www.wikidata.org/entity/&quot;))
+    FILTER(?wikidataA != ?wikidataB)
+    FILTER NOT EXISTS { ?a skos:closeMatch ?wikidataB }
+    FILTER NOT EXISTS { ?b skos:closeMatch ?wikidataA }
+    ?a crm:P1_is_identified_by ?pa .
+    FILTER(STRENDS(STR(?pa), &quot;/appellation/primary&quot;))
+    ?pa crm:P190_has_symbolic_content ?nameA .
+    ?b crm:P1_is_identified_by ?pb .
+    FILTER(STRENDS(STR(?pb), &quot;/appellation/primary&quot;))
+    ?pb crm:P190_has_symbolic_content ?nameB .
+  }
+}</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+
+    <h4 class="mt-4 mb-3">MEHDIE and Wikidata</h4>
+    <p>About 5,200 MEHDIE places (4,687 distinct Wikidata items) are linked to Wikidata. These examples
+      start from MEHDIE and ask Wikidata live about the linked items.</p>
+
+      <div class="card mb-4" id="ex-wdFacts">
+        <div class="card-body">
+          <h5 class="card-title">What Wikidata says about a MEHDIE place <span class="badge badge-info">live Wikidata</span></h5>
+          <p class="card-text">MEHDIE finds Antakya's Wikidata item, then asks Wikidata live for every statement that points to another item (country, founder, capital of, ...).</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt: &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX wikibase: &lt;http://wikiba.se/ontology#&gt;
+# Live from Wikidata: what Wikidata says about a MEHDIE place (Antakya)
+SELECT ?property ?value
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; { ?place skos:closeMatch ?item }
+      VALUES ?item { wd:Q80561 }
+  } }
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    ?item ?p ?v .
+    ?prop wikibase:directClaim ?p ;
+          wikibase:propertyType wikibase:WikibaseItem ;
+          rdfs:label ?property .
+    FILTER(LANG(?property) = &quot;en&quot;)
+    ?v rdfs:label ?value .
+    FILTER(LANG(?value) = &quot;en&quot;)
+  }
+}
+ORDER BY ?property ?value</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-wdLinks">
+        <div class="card-body">
+          <h5 class="card-title">Wikidata relations from one place to other MEHDIE places <span class="badge badge-info">live Wikidata</span></h5>
+          <p class="card-text">Direct Wikidata statements from Nablus whose target is also a place in MEHDIE: it replaced ancient Shechem, and it is twinned with Fez, Naples and others.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt: &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX wikibase: &lt;http://wikiba.se/ontology#&gt;
+# Live from Wikidata: direct relations from one MEHDIE place (Nablus)
+# to other places that are also in MEHDIE
+SELECT DISTINCT ?relation ?otherName ?target
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; { ?place skos:closeMatch ?item }
+      VALUES ?item { wd:Q214178 }
+  } }
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    ?item ?p ?target .
+    ?prop wikibase:directClaim ?p ;
+          rdfs:label ?relation .
+    FILTER(LANG(?relation) = &quot;en&quot;)
+    ?target rdfs:label ?otherName .
+    FILTER(LANG(?otherName) = &quot;en&quot;)
+  }
+  FILTER EXISTS { GRAPH &lt;https://tools.mehdie.org/&gt; { ?other skos:closeMatch ?target } }
+}
+ORDER BY ?relation ?otherName</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-wdCount">
+        <div class="card-body">
+          <h5 class="card-title">Counting relation types for a whole dataset <span class="badge badge-info">live Wikidata</span></h5>
+          <p class="card-text">For every place of one dataset (KIMA-SY, 41 places with a Wikidata ID), the types of direct Wikidata relation to any other MEHDIE place. Jena asks Wikidata once per place, so a dataset with hundreds of linked places takes minutes; the figure for the whole graph is below.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt: &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX wikibase: &lt;http://wikiba.se/ontology#&gt;
+# Live from Wikidata: types of direct relation between the places of one
+# dataset (here KIMA-SY) and any other place in MEHDIE
+SELECT ?relation (COUNT(*) AS ?links)
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; {
+        ?place dcterms:isPartOf &lt;https://tools.mehdie.org/dataset/277&gt; ;
+               skos:closeMatch ?item .
+        FILTER(STRSTARTS(STR(?item), &quot;http://www.wikidata.org/entity/&quot;))
+      }
+  } }
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    ?item ?p ?target .
+    ?prop wikibase:directClaim ?p ;
+          rdfs:label ?relation .
+    FILTER(LANG(?relation) = &quot;en&quot;)
+  }
+  FILTER(?target != ?item)
+  FILTER EXISTS { GRAPH &lt;https://tools.mehdie.org/&gt; { ?other skos:closeMatch ?target } }
+}
+GROUP BY ?relation
+ORDER BY DESC(?links)</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-peopleBorn">
+        <div class="card-body">
+          <h5 class="card-title">People born in a MEHDIE place <span class="badge badge-info">live Wikidata</span></h5>
+          <p class="card-text">People Wikidata records as born in Antakya before 1500. Change the item or the year to explore other places.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt: &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX wikibase: &lt;http://wikiba.se/ontology#&gt;
+# Live from Wikidata: people born in a MEHDIE place (Antakya) before 1500
+SELECT ?person ?name ?born
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; { ?place skos:closeMatch ?item }
+      VALUES ?item { wd:Q80561 }
+  } }
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    ?person wdt:P19 ?item ;
+            wdt:P31 wd:Q5 ;
+            wdt:P569 ?birth .
+    FILTER(YEAR(?birth) &lt; 1500)
+    ?person rdfs:label ?name .
+    FILTER(LANG(?name) = &quot;en&quot;)
+  }
+  BIND(YEAR(?birth) AS ?born)
+}
+ORDER BY ?born</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-connectors">
+        <div class="card-body">
+          <h5 class="card-title">People who connect two MEHDIE places <span class="badge badge-info">live Wikidata</span></h5>
+          <p class="card-text">People born in Baghdad before 1600 who died in another place that is also in MEHDIE, such as al-Ma'mun (died in Tarsus) or scholars who died in Samarra, Kufa or Medina.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt: &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX wikibase: &lt;http://wikiba.se/ontology#&gt;
+# Live from Wikidata: people born in one MEHDIE place (Baghdad)
+# who died in another MEHDIE place
+SELECT DISTINCT ?name ?born ?diedIn ?died
+WHERE {
+  { SELECT DISTINCT ?item WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; { ?place skos:closeMatch ?item }
+      VALUES ?item { wd:Q1530 }
+  } }
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    ?person wdt:P19 ?item ;
+            wdt:P31 wd:Q5 ;
+            wdt:P20 ?deathPlace ;
+            wdt:P569 ?b ;
+            wdt:P570 ?d .
+    FILTER(YEAR(?b) &lt; 1600 &amp;&amp; ?deathPlace != ?item)
+    ?person rdfs:label ?name . FILTER(LANG(?name) = &quot;en&quot;)
+    ?deathPlace rdfs:label ?diedIn . FILTER(LANG(?diedIn) = &quot;en&quot;)
+  }
+  FILTER EXISTS { GRAPH &lt;https://tools.mehdie.org/&gt; { ?other skos:closeMatch ?deathPlace } }
+  BIND(YEAR(?b) AS ?born) BIND(YEAR(?d) AS ?died)
+}
+ORDER BY ?born</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+      <div class="card mb-4" id="ex-personMatch">
+        <div class="card-body">
+          <h5 class="card-title">Finding MEHDIE people in Wikidata <span class="badge badge-info">live Wikidata</span></h5>
+          <p class="card-text">MEHDIE's people have no Wikidata links yet. This looks up the first 20 DiJeSt scholars in Wikidata by their exact German name: some match one person, others several (Martin Noth the theologian and a musician), which is where entity resolution comes in.</p>
+          <pre class="sparql-query">PREFIX crm: &lt;http://www.cidoc-crm.org/cidoc-crm/&gt;
+PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
+PREFIX schema: &lt;http://schema.org/&gt;
+PREFIX wd: &lt;http://www.wikidata.org/entity/&gt;
+PREFIX wdt: &lt;http://www.wikidata.org/prop/direct/&gt;
+PREFIX wikibase: &lt;http://wikiba.se/ontology#&gt;
+# Live from Wikidata: candidate Wikidata matches for MEHDIE people
+# (DiJeSt scholars), by exact German name
+SELECT ?mehdiePerson ?name ?wikidata ?description
+WHERE {
+  { SELECT ?mehdiePerson ?name WHERE {
+      GRAPH &lt;https://tools.mehdie.org/&gt; {
+        ?mehdiePerson a crm:E21_Person ;
+                      dcterms:isPartOf &lt;https://tools.mehdie.org/dataset/329&gt; ;
+                      crm:P1_is_identified_by/crm:P190_has_symbolic_content ?name .
+      }
+  } LIMIT 20 }
+  SERVICE &lt;https://query.wikidata.org/sparql&gt; {
+    ?wikidata rdfs:label ?name ;
+              wdt:P31 wd:Q5 .
+    OPTIONAL { ?wikidata schema:description ?description . FILTER(LANG(?description) = &quot;en&quot;) }
+  }
+}</pre>
+          <button class="btn btn-sm btn-primary run-query">Run</button>
+          <button class="btn btn-sm btn-outline-secondary copy-query">Copy</button>
+          <span class="query-status small text-muted ml-2"></span>
+          <div class="query-result mt-3"></div>
+        </div>
+      </div>
+
+    <h4 class="mt-4 mb-3">Wikidata relations between all MEHDIE places</h4>
+    <p>Counting the relations for all linked places at once would take about 20 minutes as a federated
+      query, because the endpoint asks Wikidata once per place. Computed directly against Wikidata on
+      13 November 2026, in batches: <b>6,557 direct Wikidata statements</b> connect two MEHDIE places
+      (6,227 pairs, involving 3,489 of the 4,687 linked items), using 63 different properties. The 20 most
+      frequent:</p>
+    <table class="table table-sm" style="max-width: 40em">
+      <thead><tr><th>Property</th><th>Meaning</th><th class="text-right">Statements</th></tr></thead>
+      <tbody>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P17" target="_blank">P17</a></td><td>country</td><td class="text-right">2,734</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P190" target="_blank">P190</a></td><td>twinned administrative body</td><td class="text-right">1,189</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P131" target="_blank">P131</a></td><td>located in the administrative territorial entity</td><td class="text-right">799</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P47" target="_blank">P47</a></td><td>shares border with</td><td class="text-right">612</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P530" target="_blank">P530</a></td><td>diplomatic relation</td><td class="text-right">177</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P150" target="_blank">P150</a></td><td>contains the administrative territorial entity</td><td class="text-right">146</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P36" target="_blank">P36</a></td><td>capital</td><td class="text-right">143</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P1376" target="_blank">P1376</a></td><td>capital of</td><td class="text-right">132</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P206" target="_blank">P206</a></td><td>located in or next to body of water</td><td class="text-right">83</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P1889" target="_blank">P1889</a></td><td>different from</td><td class="text-right">83</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P2596" target="_blank">P2596</a></td><td>culture</td><td class="text-right">61</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P361" target="_blank">P361</a></td><td>part of</td><td class="text-right">47</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P706" target="_blank">P706</a></td><td>located in/on physical feature</td><td class="text-right">36</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P2348" target="_blank">P2348</a></td><td>time period</td><td class="text-right">34</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P276" target="_blank">P276</a></td><td>location</td><td class="text-right">29</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P205" target="_blank">P205</a></td><td>basin country</td><td class="text-right">27</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P138" target="_blank">P138</a></td><td>named after</td><td class="text-right">22</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P1366" target="_blank">P1366</a></td><td>replaced by</td><td class="text-right">22</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P1365" target="_blank">P1365</a></td><td>replaces</td><td class="text-right">19</td></tr>
+            <tr><td><a href="https://www.wikidata.org/wiki/Property:P4552" target="_blank">P4552</a></td><td>mountain range</td><td class="text-right">16</td></tr>
+      </tbody>
+    </table>
+    <p class="small text-muted">Counted over <code>wdt:</code> (direct, "truthy") statements whose subject
+      and object are both Wikidata items linked from MEHDIE; statements from an item to itself are left out.</p>
+  </div>
+{% endverbatim %}
+<script>
+(function () {
+  var ENDPOINT = '/sparql/mehdie/query';
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
+      return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]; }); }
+  function cell(v) {
+    if (!v) return '';
+    if (v.type === 'uri') {
+      var label = v.value.replace('http://www.wikidata.org/entity/', 'wd:')
+                         .replace('https://tools.mehdie.org/', 'mehdie:');
+      return '<a href="' + esc(v.value) + '" target="_blank">' + esc(label) + '</a>';
+    }
+    var lang = v['xml:lang'] ? '<span class="lang">@' + esc(v['xml:lang']) + '</span>' : '';
+    var dir = /[\u0590-\u08FF]/.test(v.value) ? ' dir="auto"' : '';
+    return '<span' + dir + '>' + esc(v.value) + '</span>' + lang;
+  }
+  function render(box, data) {
+    var vars = data.head.vars, rows = data.results.bindings;
+    var h = '<table class="table table-sm table-striped"><thead><tr>';
+    vars.forEach(function (v) { h += '<th>' + esc(v) + '</th>'; });
+    h += '</tr></thead><tbody>';
+    rows.forEach(function (r) {
+      h += '<tr>';
+      vars.forEach(function (v) { h += '<td>' + cell(r[v]) + '</td>'; });
+      h += '</tr>';
+    });
+    box.innerHTML = h + '</tbody></table>';
+  }
+  document.querySelectorAll('.run-query').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var card = btn.closest('.card-body');
+      var query = card.querySelector('.sparql-query').textContent;
+      var status = card.querySelector('.query-status');
+      var box = card.querySelector('.query-result');
+      var t0 = Date.now();
+      btn.disabled = true; status.textContent = 'running...'; box.innerHTML = '';
+      fetch(ENDPOINT, {method: 'POST',
+                       headers: {'Content-Type': 'application/x-www-form-urlencoded',
+                                 'Accept': 'application/sparql-results+json'},
+                       body: 'query=' + encodeURIComponent(query)})
+        .then(function (r) { return r.ok ? r.json() : r.text().then(function (t) { throw new Error(t); }); })
+        .then(function (data) {
+          render(box, data);
+          status.textContent = data.results.bindings.length + ' rows, ' +
+                               ((Date.now() - t0) / 1000).toFixed(1) + ' s';
+        })
+        .catch(function (e) { status.textContent = 'error'; box.innerHTML = '<pre class="text-danger small">' + esc(e.message) + '</pre>'; })
+        .finally(function () { btn.disabled = false; });
+    });
+  });
+  document.querySelectorAll('.copy-query').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var q = btn.closest('.card-body').querySelector('.sparql-query').textContent;
+      navigator.clipboard.writeText(q).then(function () {
+        btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

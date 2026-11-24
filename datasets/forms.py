@@ -1,5 +1,6 @@
 # datasets.forms
 
+import re
 from django import forms
 from django.db import models
 from datasets.models import Dataset, Hit, DatasetFile
@@ -57,13 +58,28 @@ class DatasetFileModelForm(forms.ModelForm):
                 fieldname=field.label)}
 
 
+SCRIPT_LANG = re.compile(r'^(Arab|Hebr|Syrc|Armn|Grek|Cyrl|Latn)=[a-z]{2,3}(-[A-Za-z0-9]{1,8})*$')
+
+
+def clean_script_languages(value):
+    """"Arab=ar, Latn=ar-Latn" -> "Arab=ar Latn=ar-Latn"; raises on bad entries."""
+    parts = [p for p in re.split(r'[\s,;]+', (value or '').strip()) if p]
+    bad = [p for p in parts if not SCRIPT_LANG.match(p)]
+    if bad:
+        raise forms.ValidationError(
+            'Use script=language pairs, e.g. "Arab=ar Latn=ar-Latn"; scripts: Arab, Hebr, Syrc, Armn, Grek, '
+            'Cyrl, Latn. Not understood: ' + ', '.join(bad))
+    return ' '.join(parts) or None
+
+
 class DatasetDetailModelForm(forms.ModelForm):
     class Meta:
         model = Dataset
         # file fields = ('file','rev','uri_base','format','dataset_id','delimiter',
         #   'status','accepted_date','header','numrows')
         fields = ('owner', 'creator', 'contributors', 'source', 'id', 'label', 'title', 'uri_base', 'description',
-                  'citation', 'datatype', 'numlinked', 'public', 'webpage', 'featured', 'image_file')
+                  'citation', 'datatype', 'numlinked', 'public', 'webpage', 'license', 'record_group', 'script_languages', 'featured',
+                  'image_file')
         widgets = {
             'description': forms.Textarea(attrs={
                 'rows': 2, 'cols': 55, 'class': 'textarea', 'placeholder': 'Brief description'}),
@@ -73,6 +89,10 @@ class DatasetDetailModelForm(forms.ModelForm):
             'source': forms.TextInput(attrs={'size': 50}),
             'contributors': forms.TextInput(attrs={'size': 50}),
             'webpage': forms.TextInput(attrs={'size': 50}),
+            'license': forms.URLInput(attrs={'size': 50, 'list': 'license-options',
+                                             'placeholder': 'Licence URL, e.g. https://creativecommons.org/licenses/by/4.0/'}),
+            'record_group': forms.TextInput(attrs={'size': 20, 'placeholder': 'e.g. kima'}),
+            'script_languages': forms.TextInput(attrs={'size': 40, 'placeholder': 'e.g. Arab=ar Latn=ar-Latn'}),
             # 'uri_base': forms.TextInput(attrs={'size': 50}),
             'uri_base': forms.URLInput(attrs={'size': 50}),
             'featured': forms.TextInput(attrs={'size': 4})
@@ -84,6 +104,9 @@ class DatasetDetailModelForm(forms.ModelForm):
             print("there's a space goddamit")
             raise forms.ValidationError('label cannot contain any space')
         return label
+
+    def clean_script_languages(self):
+        return clean_script_languages(self.cleaned_data.get('script_languages'))
 
     file = forms.FileField(required=False)
     uri_base = forms.URLField(
@@ -114,7 +137,7 @@ class DatasetCreateModelForm(forms.ModelForm):
     class Meta:
         model = Dataset
         fields = ('owner', 'id', 'title', 'label', 'datatype', 'description', 'uri_base', 'public',
-                  'creator', 'contributors', 'source', 'webpage', 'image_file', 'featured')
+                  'creator', 'contributors', 'source', 'webpage', 'license', 'record_group', 'script_languages', 'image_file', 'featured')
         widgets = {
             'description': forms.Textarea(
                 attrs={'rows': 2, 'cols': 45, 'class': 'textarea', 'placeholder': 'Brief description'}),
@@ -124,7 +147,11 @@ class DatasetCreateModelForm(forms.ModelForm):
             'creator': forms.TextInput(attrs={'size': 45}),
             'source': forms.TextInput(attrs={'size': 45}),
             'featured': forms.TextInput(attrs={'size': 4}),
-            'webpage': forms.URLInput(attrs={'size': 45, 'placeholder': 'Project home page, if any'})
+            'webpage': forms.URLInput(attrs={'size': 45, 'placeholder': 'Project home page, if any'}),
+            'license': forms.URLInput(attrs={'size': 45, 'list': 'license-options',
+                                             'placeholder': 'Licence URL, e.g. https://creativecommons.org/licenses/by/4.0/'}),
+            'record_group': forms.TextInput(attrs={'size': 20, 'placeholder': 'e.g. kima (optional)'}),
+            'script_languages': forms.TextInput(attrs={'size': 40, 'placeholder': 'e.g. Arab=ar Latn=ar-Latn (optional)'})
         }
 
     def clean_label(self):
@@ -132,6 +159,9 @@ class DatasetCreateModelForm(forms.ModelForm):
         if ' ' in label:
             raise forms.ValidationError('Label cannot contain any spaces; replace with underscores (_)')
         return label
+
+    def clean_script_languages(self):
+        return clean_script_languages(self.cleaned_data.get('script_languages'))
 
     def __init__(self, *args, **kwargs):
         super(DatasetCreateModelForm, self).__init__(*args, **kwargs)

@@ -1,0 +1,147 @@
+#!/bin/bash
+# MEHDIE backup receiver - runs on the backup server (a256-gc1-01) as user
+# `mehdie-backup`.
+#
+# Never run by hand: it is the forced command for web01's SSH key (see
+# ~mehdie-backup/.ssh/authorized_keys). web01 can only:
+#
+#   begin                  start tonight's run (discards an unfinished upload)
+#   put db|globals|media   upload tonight's file (read from stdin)
+#   commit                 check tonight's files, store them, rotate old copies
+#
+# It cannot choose file names or dates, list, read, overwrite or delete stored
+# backups. Tonight's date comes from this server's clock, and at most one daily
+# backup per calendar day is kept, so a compromised web01 cannot push the old
+# backups out of the rotation faster than one per day.
+#
+# Layout under $DEST:
+#   daily/YYYY-MM-DD/    last $KEEP_DAILY nights
+#   weekly/YYYY-MM-DD/   Sunday copies, last $KEEP_WEEKLY (hard links; 0 = none)
+#   monthly/YYYY-MM-DD/  1st-of-month copies, last $KEEP_MONTHLY (hard links; 0 = none)
+#   LAST_SUCCESS         time of the last stored backup
+#
+# Install: /usr/local/bin/mehdie-backup-receive (root:root, 0755).
+# Settings can be overridden in /etc/default/mehdie-backup.
+set -euo pipefail
+umask 077
+
+[ -r /etc/default/mehdie-backup ] && . /etc/default/mehdie-backup
+DEST=${MEHDIE_BACKUP_DIR:-/srv/backup/mehdie}
+KEEP_DAILY=${KEEP_DAILY:-7}
+KEEP_WEEKLY=${KEEP_WEEKLY:-4}
+KEEP_MONTHLY=${KEEP_MONTHLY:-2}
+INCLUDE_MEDIA=${INCLUDE_MEDIA:-1}
+# Refuse a dump under this % of the previous one (a shrunken DB is suspicious).
+MIN_SIZE_PCT=${MIN_SIZE_PCT:-50}
+# Largest accepted upload per file (GB) - stops a runaway stream filling the disk.
+MAX_FILE_GB=${MAX_FILE_GB:-50}
+
+log() { echo "mehdie-backup: $*" >&2; logger -t mehdie-backup -- "$*" 2>/dev/null || true; }
+die() { log "ERROR: $*"; exit 1; }
+
+stamp=$(date +%F)
+incoming="$DEST/.incoming-$stamp"
+mkdir -p "$DEST/daily" "$DEST/weekly" "$DEST/monthly"
+
+# Remove unfinished uploads from earlier days.
+for old in "$DEST"/.incoming-*; do
+  [ -d "$old" ] && [ "$old" != "$incoming" ] && rm -rf -- "$old"
+done
+
+file_for() {
+  case "$1" in
+    db) echo mehdie.dump ;;
+    globals) echo globals.sql ;;
+    media) echo media.tar.gz ;;
+    *) return 1 ;;
+  esac
+}
+
+read -r verb arg extra <<< "${SSH_ORIGINAL_COMMAND:-}" || true
+[ -z "${extra:-}" ] || die "unexpected command: ${SSH_ORIGINAL_COMMAND}"
+
+case "${verb:-}" in
+  begin)
+    [ -z "${arg:-}" ] || die "begin takes no argument"
+    rm -rf -- "$incoming"
+    ;;
+
+  put)
+    name=$(file_for "${arg:-}") || die "put: expected db, globals or media"
+    mkdir -p "$incoming"
+    head -c "$((MAX_FILE_GB * 1024 * 1024 * 1024 + 1))" > "$incoming/$name.part"
+    size=$(stat -c %s "$incoming/$name.part")
+    [ "$size" -le $((MAX_FILE_GB * 1024 * 1024 * 1024)) ] \
+      || { rm -f "$incoming/$name.part"; die "$name is larger than ${MAX_FILE_GB} GB"; }
+    mv "$incoming/$name.part" "$incoming/$name"
+    log "received $name ($size bytes)"
+    ;;
+
+  commit)
+    [ -z "${arg:-}" ] || die "commit takes no argument"
+    [ -d "$incoming" ] || die "commit: nothing uploaded today"
+    work=$incoming
+    trap 'rm -rf "$work"' EXIT          # a failed check leaves nothing behind
+
+    [ -f "$work/mehdie.dump" ] || die "mehdie.dump missing"
+    [ -f "$work/globals.sql" ] || die "globals.sql missing"
+    [ "$INCLUDE_MEDIA" != 1 ] || [ -f "$work/media.tar.gz" ] || die "media.tar.gz missing"
+    rm -f "$work"/*.part
+
+    [ "$(head -c 5 "$work/mehdie.dump")" = "PGDMP" ] || die "mehdie.dump is not a pg_dump custom-format file"
+    if command -v pg_restore >/dev/null; then
+      tables=$(pg_restore --list "$work/mehdie.dump" | grep -c ' TABLE ' || true)
+      [ "$tables" -gt 0 ] || die "mehdie.dump lists no tables"
+      log "mehdie.dump: $tables tables"
+    fi
+    grep -q "PostgreSQL database cluster dump" "$work/globals.sql" || die "globals.sql looks wrong"
+    if [ -f "$work/media.tar.gz" ]; then
+      gzip -t "$work/media.tar.gz" || die "media.tar.gz is corrupt"
+    fi
+
+    size=$(stat -c %s "$work/mehdie.dump")
+    prev=""
+    for d in "$DEST"/daily/????-??-??; do        # globs sort by name = by date
+      [ -d "$d" ] && [ "${d##*/}" != "$stamp" ] && prev=$d
+    done
+    if [ -n "$prev" ] && [ -f "$prev/mehdie.dump" ]; then
+      prev_size=$(stat -c %s "$prev/mehdie.dump")
+      if [ $((size * 100)) -lt $((prev_size * MIN_SIZE_PCT)) ]; then
+        die "mehdie.dump is $size bytes, under ${MIN_SIZE_PCT}% of the previous ($prev_size bytes, $prev). Not kept; check the database. To accept it: MIN_SIZE_PCT=0 in /etc/default/mehdie-backup for one night."
+      fi
+    fi
+
+    (cd "$work" && sha256sum -- * > SHA256SUMS)
+
+    rm -rf "$DEST/daily/$stamp"                    # a re-run on the same day replaces it
+    mv "$work" "$DEST/daily/$stamp"
+    trap - EXIT
+    chmod 700 "$DEST/daily/$stamp"
+    log "stored $DEST/daily/$stamp ($(du -sh "$DEST/daily/$stamp" | cut -f1))"
+
+    if [ "$KEEP_WEEKLY" -gt 0 ] && [ "$(date +%u)" = 7 ]; then
+      rm -rf "$DEST/weekly/$stamp"; cp -al "$DEST/daily/$stamp" "$DEST/weekly/$stamp"
+    fi
+    if [ "$KEEP_MONTHLY" -gt 0 ] && [ "$(date +%d)" = 01 ]; then
+      rm -rf "$DEST/monthly/$stamp"; cp -al "$DEST/daily/$stamp" "$DEST/monthly/$stamp"
+    fi
+
+    prune() {  # prune <dir> <keep>: delete all but the newest <keep> dated folders
+      local all=() i
+      for i in "$1"/????-??-??; do [ -d "$i" ] && all+=("$i"); done
+      for ((i = 0; i < ${#all[@]} - $2; i++)); do
+        log "removing ${all[i]}"; rm -rf -- "${all[i]}"
+      done
+    }
+    prune "$DEST/daily" "$KEEP_DAILY"
+    prune "$DEST/weekly" "$KEEP_WEEKLY"
+    prune "$DEST/monthly" "$KEEP_MONTHLY"
+
+    date -Is > "$DEST/LAST_SUCCESS"
+    log "done"
+    ;;
+
+  *)
+    die "expected 'begin', 'put db|globals|media' or 'commit'"
+    ;;
+esac

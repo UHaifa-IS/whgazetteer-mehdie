@@ -37,7 +37,7 @@ function minmaxer(timespans) {
 // builds link for external placetype record
 function url_exttype(type) {
     link = ' <a href="#" class="exttab" data-id=' + type.identifier +
-        '>(' + type.label + ' {% fontawesome_icon "external-link" color="#336699" %})</a>'
+        '>(' + type.label + ' <i class="fa fa-external-link" style="color:#336699;"></i>)</a>'
     return link
 }
 

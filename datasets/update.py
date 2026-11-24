@@ -1,6 +1,6 @@
 from django.conf import settings
 from elasticsearch7 import Elasticsearch
-from sentry_sdk import capture_exception
+from whg.errors import capture_exception
 
 from elastic.es_utils import esq_pid
 

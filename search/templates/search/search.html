@@ -48,11 +48,12 @@
         {%comment%}<span class="ds-title ml-1 mr-3">Search
         <a id="search_help" class="pointer" data-toggle="popover" title="Search scope" data-html="true" data-trigger="focus">{% fontawesome_icon 'question-circle' color='#336699' %}</a>
         </span>{%endcomment%}
-        <li class="nav-item">
-        <a class="nav-link active" id="a_idx" data-scope="idx" href="#" role="tab" style="background:#f1fff1;"> Search Index {%fontawesome_icon 'link'%}</a>
+        {# index search retired: MEHDIE has no Elasticsearch #}
+        <li class="nav-item" style="display:none;">
+        <a class="nav-link" id="a_idx" data-scope="idx" href="#" role="tab" style="background:#f1fff1;"> Search Index {%fontawesome_icon 'link'%}</a>
         </li>
         <li class="nav-item ml-1">
-        <a class="nav-link" id="a_db" data-scope="db" href="#" role="tab" style="background:whitesmoke;">Search Database {%fontawesome_icon 'database'%}</a>
+        <a class="nav-link active" id="a_db" data-scope="db" href="#" role="tab" style="background:whitesmoke;">Search Database {%fontawesome_icon 'database'%}</a>
         </li>
       </ul>
       <div id="search_filters" class="tab-pane fade show active" role="tabpanel">
@@ -203,7 +204,8 @@
     return $("input[name=class]:checked").val()
   }
   searchScope = function(){
-    return !ls('search_scope')||ls('search_scope')=="undefined"?$(".nav-link.active").data('scope'):ls('search_scope')
+    // MEHDIE: database search only (the WHG union index / Elasticsearch is retired)
+    return 'db'
   }
   currentRows = function(){
     return $("#result_table tbody tr")
@@ -233,7 +235,8 @@
     if(localStorage['keep'] == 'true'){
       $("#search_info").remove()
     }
-    search_scope = ls('search_scope')?ls('search_scope'):'idx'
+    localStorage.setItem('search_scope', 'db')
+    search_scope = 'db'
     previous = ls('last_results')
     kept = ls('keep')
     state()
@@ -1816,6 +1819,10 @@
     other.removeClass('active')
     $(this).addClass('active')
   })
+  // MEHDIE: start in database-search styling (index tab is hidden)
+  $("#search_filters").css("background","whitesmoke")
+  $("#filter_spatial").hide()
+  $("#dbicon").show()
   // load place portal page from result_div item title links
   // TODO: links are nested so click produces 2 events
   $("#result_div").on('click', '.trace-link', function(e){

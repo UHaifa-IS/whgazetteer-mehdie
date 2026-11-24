@@ -15,6 +15,7 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.utils import DataError
 from django.forms import modelformset_factory
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -25,7 +26,8 @@ from elasticsearch7 import Elasticsearch
 from areas.models import Area
 from collection.models import Collection
 from datasets.forms import HitModelForm, DatasetDetailModelForm, DatasetCreateModelForm
-from datasets.models import DatasetFile
+from datasets.access import DatasetAccessMixin, require_dataset_access
+from datasets.models import DatasetFile, LICENSE_CHOICES
 from datasets.static.hashes import mimetypes_plus as mthash_plus
 from datasets.static.hashes.parents import ccodes as cchash
 from datasets.tasks import maxID, run_mehdi_er
@@ -2154,8 +2156,13 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
     template_name = 'datasets/dataset_create.html'
     success_message = 'dataset created'
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context['license_choices'] = LICENSE_CHOICES  # licence suggestions (FIXES D14)
+        return context
+
     def form_invalid(self, form):
-        context = {'form': form}
+        context = {'form': form, 'license_choices': LICENSE_CHOICES}
         return self.render_to_response(context=context)
 
     @transaction.atomic()
@@ -2334,7 +2341,7 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
 """
 
 
-class DatasetPublicView(DetailView):
+class DatasetPublicView(DatasetAccessMixin, DetailView):
     template_name = 'datasets/ds_meta.html'
 
     model = Dataset
@@ -2402,6 +2409,7 @@ class DatasetDeleteView(DeleteView):
 
 
 def ds_list(request, label):
+    require_dataset_access(request, get_object_or_404(Dataset, label=label))
     qs = Place.objects.all().filter(dataset=label)
     geoms = []
     for p in qs.all():
@@ -2457,20 +2465,44 @@ class DatasetSummaryView(LoginRequiredMixin, UpdateView):
 
     template_name = 'datasets/ds_summary.html'
 
-    # Dataset has been edited, form submitted
+    # Fields this page never changes. 'public' is shown as text only, so it is
+    # never posted: a plain form.save() would make every edited dataset private.
+    PROTECTED_FIELDS = ('id', 'owner', 'label', 'datatype', 'numlinked', 'public')
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        for name in self.PROTECTED_FIELDS:
+            if name in form.fields:
+                form.fields[name].required = False
+        return form
+
+    # Dataset has been edited, form submitted. Only the fields present in the
+    # POST are saved; fields the page does not render (featured and image for
+    # non-superusers, numlinked, public) keep their values. (Previously the
+    # form never validated, because datatype was not posted, and form_valid
+    # read a 'file' field the form does not have.)
     def form_valid(self, form):
-        data = form.cleaned_data
         ds = get_object_or_404(Dataset, pk=self.kwargs.get("id"))
-        if data["file"] == None:
-            ds.title = data['title']
-            ds.description = data['description']
-            ds.uri_base = data['uri_base']
-            ds.save()
-        return super().form_valid(form)
+        user = self.request.user
+        # the page hides the edit links from others; enforce it here too
+        if not (user.is_superuser or user in ds.owners or user in ds.collaborators.all()):
+            raise PermissionDenied('Only owners and collaborators can edit this dataset.')
+        posted = set(self.request.POST) | set(self.request.FILES)
+        # the form also has upload fields (file, format, ...) that are not
+        # Dataset columns; Dataset.format is a read-only property
+        columns = {f.name for f in Dataset._meta.concrete_fields}
+        changed = []
+        for name, value in form.cleaned_data.items():
+            if name in posted and name in columns and name not in self.PROTECTED_FIELDS:
+                setattr(ds, name, value)
+                changed.append(name)
+        if changed:
+            ds.save(update_fields=changed)
+        self.object = ds
+        return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
-        context = {}
-        context['errors'] = form.errors
+        # errors are shown at the top of the form (ds_summary.html)
         return super().form_invalid(form)
 
     def get_object(self):
@@ -2503,6 +2535,7 @@ class DatasetSummaryView(LoginRequiredMixin, UpdateView):
             file.save()
 
         # build context for rendering ds_summary.html
+        context['license_choices'] = LICENSE_CHOICES  # licence suggestions (FIXES D14)
         me = self.request.user
         placeset = ds.places.all()
 
@@ -2584,7 +2617,7 @@ class DatasetBrowseView(LoginRequiredMixin, DetailView):
 """
 
 
-class DatasetPlacesView(DetailView):
+class DatasetPlacesView(DatasetAccessMixin, DetailView):
     login_url = '/accounts/login/'
     redirect_field_name = 'redirect_to'
 

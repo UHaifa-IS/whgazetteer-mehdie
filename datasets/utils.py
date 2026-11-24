@@ -13,7 +13,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.http import FileResponse, JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
-from sentry_sdk import capture_exception
+from whg.errors import capture_exception
 
 from chardet import detect
 from frictionless import validate as fvalidate
@@ -21,6 +21,7 @@ from goodtables import validate as gvalidate
 from jsonschema import draft7_format_checker, validate
 from shapely import wkt
 
+from datasets.access import require_dataset_access
 from datasets.models import Dataset, DatasetUser, Hit
 from datasets.static.hashes import parents, aat_q
 from datasets.static.hashes import aliases as al
@@ -54,6 +55,8 @@ def downloader(request, *args, **kwargs):
     dsid = request.POST.get('dsid') or None
     collid = request.POST.get('collid') or None
     from datasets.tasks import make_download
+    if dsid:
+        require_dataset_access(request, get_object_or_404(Dataset, pk=dsid))
     # POST *should* be the only case...
     if request.method == 'POST' and request.is_ajax:
         format = request.POST['format']
@@ -81,6 +84,7 @@ def download_augmented(request, *args, **kwargs):
     from django.db import connection
     username = request.user.username
     ds = get_object_or_404(Dataset, pk=kwargs['id'])
+    require_dataset_access(request, ds)
     dslabel = ds.label
     url_prefix = 'http://whgazetteer.org/api/place/'
     fileobj = ds.files.all().order_by('-rev')[0]
@@ -218,6 +222,7 @@ def download_augmented(request, *args, **kwargs):
 
 def download_file(request, *args, **kwargs):
     ds = get_object_or_404(Dataset, pk=kwargs['id'])
+    require_dataset_access(request, ds)
     file_obj = ds.files.all().order_by('-rev')[0]
     file_handle = file_obj.file.open()
     # set content type
@@ -230,6 +235,7 @@ def download_file(request, *args, **kwargs):
 def download_augmented_slow(request, *args, **kwargs):
     user = request.user.username
     ds = get_object_or_404(Dataset, pk=kwargs['id'])
+    require_dataset_access(request, ds)
     fileobj = ds.files.all().order_by('-rev')[0]
     date = makeNow()
 
@@ -322,6 +328,7 @@ def download_augmented_slow(request, *args, **kwargs):
 def fetch_geojson_ds(request, *args, **kwargs):
     dsid = kwargs['dsid']
     ds = get_object_or_404(Dataset, pk=dsid)
+    require_dataset_access(request, ds)
 
     # build a fast FeatureCollection
     features = PlaceGeom.objects.filter(place_id__in=ds.placeids).values_list(
@@ -348,6 +355,7 @@ def fetch_geojson_ds(request, *args, **kwargs):
 def fetch_geojson_flat(request, *args, **kwargs):
     dsid = kwargs['dsid']
     ds = get_object_or_404(Dataset, pk=dsid)
+    require_dataset_access(request, ds)
 
     # from places.models import PlaceGeom
     # from datasets.models import Dataset
@@ -1080,6 +1088,7 @@ class UpdateCountsView(View):
             [integer] ds_id: dataset id
         """
         ds = get_object_or_404(Dataset, id=request.GET.get('ds_id'))
+        require_dataset_access(request, ds)
 
         # deferred counts
         def defcountfunc(taskname, place_ids, th):

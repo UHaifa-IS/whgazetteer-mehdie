@@ -6,6 +6,7 @@ from django.urls import path, re_path, include
 from django.views.generic.base import TemplateView
 
 from main import views
+from main.kg_views import kg_entity_redirect
 from datasets.views import PublicListsView, DataListsView
 from resources.views import TeachingPortalView
 
@@ -24,6 +25,9 @@ urlpatterns = [
     path('areas/', include('areas.urls')),
     path('collections/', include('collection.urls')),
     path('places/', include('places.urls')),
+    # knowledge-graph identifiers (https://tools.mehdie.org/place/<id> etc.) -> the page about that record
+    re_path(r'^(?P<kind>place|person|dataset|place-name|geometry)/(?P<id>\d+)(?:/(?P<rest>.*))?$',
+            kg_entity_redirect, name='kg-entity'),
     path('elastic/', include('elastic.urls')),
     path('tutorials/', include('main.urls')),
     path('resources/', include('resources.urls')),
@@ -50,6 +54,7 @@ urlpatterns = [
     path('licensing/', TemplateView.as_view(template_name="main/licensing.html"), name="licensing"),
     path('system/', TemplateView.as_view(template_name="main/system.html"), name="system"),
     path('usingapi/', TemplateView.as_view(template_name="main/usingapi.html"), name="usingapi"),
+    path('sparql-examples/', TemplateView.as_view(template_name="main/sparql_examples.html"), name="sparql-examples"),
     path('tinymce/', include('tinymce.urls')),
 
     path('comment/<int:rec_id>', views.CommentCreateView.as_view(), name='comment-create'),

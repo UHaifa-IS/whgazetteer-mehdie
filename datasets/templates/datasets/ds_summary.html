@@ -66,6 +66,13 @@
                 <div id="summary" class="tab-pane fade show active" role="tabpanel" aria-labelledby="summary-tab">
                     <form id="ds_form" method="POST" action="#" enctype="multipart/form-data">
                         {% csrf_token %}
+                        {% if form.errors %}
+                            <div class="alert alert-danger small">Not saved:
+                                {% for field, errors in form.errors.items %}
+                                    <br/><b>{{ field }}</b>: {{ errors|join:" " }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                         <div class="row">
                             <div id="ds_details" class="col-sm-7 small">
                                 {% if object.owner.id == user.id or user.is_superuser %}
@@ -97,6 +104,40 @@
                                         <td>
                                             <span class="form-webpage">{{ form.webpage.value|default_if_none:"..." }}</span>
                                             <span class="hidden editing-webpage">{{ form.webpage }}</span>&nbsp;
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align:top;"><b>Licence</b>
+                                            <a href="#"
+                                               class="edit-license">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="form-license">{% if ds.license %}<a href="{{ ds.license }}" target="_blank">{{ ds.license_label }}</a>{% else %}...{% endif %}</span>
+                                            <span class="hidden editing-license">{{ form.license }}
+                                                <datalist id="license-options">
+    {% for url, name in license_choices %}<option value="{{ url }}">{{ name }}</option>{% endfor %}
+</datalist></span>&nbsp;
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align:top;"><b>Record group</b>
+                                            <a href="#"
+                                               class="edit-record_group">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="form-record_group">{{ form.record_group.value|default_if_none:"..." }}</span>
+                                            <span class="hidden editing-record_group">{{ form.record_group }}<br/><small class="text-muted">Datasets from the same source share a group; records with the same source id are merged in the knowledge graph.</small></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="vertical-align:top;"><b>Name languages</b>
+                                            <a href="#"
+                                               class="edit-script_languages">{% fontawesome_icon 'edit' color='#336699' %}</a>
+                                        </td>
+                                        <td>
+                                            <span class="form-script_languages">{{ form.script_languages.value|default_if_none:"..." }}</span>
+                                            <span class="hidden editing-script_languages">{{ form.script_languages }}<br/><small class="text-muted">Language of names by script, for names without one, e.g. <code>Arab=ar Latn=ar-Latn</code>. Used by the knowledge graph.</small></span>
+                                            {% if form.script_languages.errors %}<div class="text-danger small">{{ form.script_languages.errors|join:" " }}</div>{% endif %}
                                         </td>
                                     </tr>
                                     <tr>
@@ -251,8 +292,8 @@
                                             </tr>
                                             <tr>
                                                 <td><b>License</b></td>
-                                                <td><a href="https://creativecommons.org/licenses/by/4.0/"
-                                                       target="_blank">CC BY 4.0</a></td>
+                                                <td>{% if ds.license %}<a href="{{ ds.license }}"
+                                                       target="_blank">{{ ds.license_label }}</a>{% else %}not recorded{% endif %}</td>
                                             </tr>
                                             {% if current_file.format == 'delimited' %}
                                                 <tr>
@@ -780,6 +821,21 @@
         $(".edit-webpage").click(function () {
             $(".editing-webpage").toggleClass("hidden")
             $(".form-webpage").toggleClass("hidden")
+            $(".btn-ds").toggleClass("hidden")
+        })
+        $(".edit-record_group").click(function () {
+            $(".editing-record_group").toggleClass("hidden")
+            $(".form-record_group").toggleClass("hidden")
+            $(".btn-ds").toggleClass("hidden")
+        })
+        $(".edit-script_languages").click(function () {
+            $(".editing-script_languages").toggleClass("hidden")
+            $(".form-script_languages").toggleClass("hidden")
+            $(".btn-ds").toggleClass("hidden")
+        })
+        $(".edit-license").click(function () {
+            $(".editing-license").toggleClass("hidden")
+            $(".form-license").toggleClass("hidden")
             $(".btn-ds").toggleClass("hidden")
         })
         $(".edit-featured").click(function () {

@@ -1,0 +1,12 @@
+# /etc/systemd/system/mehdie-backup.timer on cs-mehdie-web01
+[Unit]
+Description=Nightly MEHDIE backup to a256-gc1-01
+
+[Timer]
+OnCalendar=*-*-* 02:17
+RandomizedDelaySec=10min
+# Run at the next boot if the server was off at 02:17.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

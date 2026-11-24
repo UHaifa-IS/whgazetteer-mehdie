@@ -37,6 +37,7 @@ from api.serializers import (UserSerializer, DatasetSerializer, PlaceSerializer,
                              LPFSerializer)  # , SearchDatabaseSerializer)
 from areas.models import Area
 from collection.models import Collection
+from datasets.access import can_view_dataset, require_dataset_access
 from datasets.models import Dataset
 from datasets.tasks import get_bounds_filter
 from places.models import Place, PlaceGeom, PlaceLink, PlaceRelated
@@ -298,7 +299,6 @@ def collector(q, datatype, idx):
 
 
 def bundler(q, whgid, idx):
-    print('key', settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY)
     es = Elasticsearch([{'host': 'localhost',
                          'port': 9200,
                          'api_key': (settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY),
@@ -306,7 +306,6 @@ def bundler(q, whgid, idx):
                          'timeout': 30,
                          'max_retries': 10,
                          'retry_on_timeout': True}])
-    print('bundler es connector', es)
     res = es.search(index=idx, body=q)
     hits = res['hits']['hits']
     bundle = []
@@ -374,7 +373,6 @@ class TracesAPIView(View):
 class IndexAPIView(View):
     # @staticmethod
     def get(self, request):
-        print('key', settings.ES_APIKEY_ID, settings.ES_APIKEY_KEY)
         params = request.GET
         print('IndexAPIView request params', params)
         """
@@ -725,6 +723,11 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     authentication_classes = [SessionAuthentication]
 
+    def get_object(self):
+        place = super().get_object()
+        require_dataset_access(self.request, place.dataset)  # FIXES O15
+        return place
+
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)  # Get the original response
         place_title = response.data['title']
@@ -783,6 +786,11 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
             return related_info
 
         def process_link(from_node, link_type, link_identifier, reverse=False):
+            # records of datasets the visitor may not read are left out of the graph (FIXES O15)
+            if isinstance(link_identifier, str) and re.match(r'^\d+:\d+$', link_identifier):
+                linked_ds = Dataset.objects.filter(id=link_identifier.split(':')[0]).first()
+                if linked_ds is not None and not can_view_dataset(request.user, linked_ds):
+                    return None
             # Check if link type is not 'closeMatch' and identifier has the correct format
             if link_type != "closeMatch":
                 # check if the link_identifier is a string
@@ -832,6 +840,8 @@ class PlaceDetailAPIView(generics.RetrieveAPIView):
 
             link_identifier = link.get('identifier')
             node_label = process_link(place_title, link_type, link_identifier)
+            if node_label is None:
+                continue
 
             # If this link leads to a place, retrieve and process its links (second-order)
             if link_type != "closeMatch" and ':' in link_identifier:  # Assuming this indicates a place
@@ -901,6 +911,11 @@ class PlaceDetailSourceAPIView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     authentication_classes = [SessionAuthentication]
 
+    def get_queryset(self):
+        ds = get_object_or_404(Dataset, label=self.kwargs.get('dslabel'))
+        require_dataset_access(self.request, ds)  # FIXES O15
+        return Place.objects.filter(dataset=ds.label)
+
 
 """ 
     /api/geoms?ds={{ ds.label }}} 
@@ -920,6 +935,7 @@ class GeomViewSet(viewsets.ModelViewSet):
         # PlaceGeom objects do not have dataset id or label :^(
         if 'ds' in self.request.GET:
             dslabel = self.request.GET.get('ds')
+            require_dataset_access(self.request, get_object_or_404(Dataset, label=dslabel))  # FIXES O15
             dsPlaceIds = Place.objects.values('id').filter(dataset=dslabel)
             qs = PlaceGeom.objects.filter(place_id__in=dsPlaceIds)
         elif 'coll' in self.request.GET:
@@ -949,7 +965,9 @@ class GeoJSONAPIView(generics.ListAPIView):
     def get_queryset(self, format=None, *args, **kwargs):
         if 'id' in self.request.GET:
             dsid = self.request.GET.get('id')
-            dslabel = get_object_or_404(Dataset, pk=dsid).label
+            ds = get_object_or_404(Dataset, pk=dsid)
+            require_dataset_access(self.request, ds)  # FIXES O15
+            dslabel = ds.label
             dsPlaceIds = Place.objects.values('id').filter(dataset=dslabel)
             qs = PlaceGeom.objects.filter(place_id__in=dsPlaceIds)
         elif 'coll' in self.request.GET:
@@ -977,6 +995,7 @@ class PlaceTableViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         ds = get_object_or_404(Dataset, label=self.request.GET.get('ds'))
+        require_dataset_access(self.request, ds)  # FIXES O15
         # qs = ds.places.all().order_by('place_id')
         qs = ds.places.all().order_by('id')
         # qs = ds.places.all()

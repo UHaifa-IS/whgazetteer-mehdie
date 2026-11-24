@@ -1,0 +1,49 @@
+#!/bin/bash
+# MEHDIE backup push - runs on cs-mehdie-web01 as root, from mehdie-backup.timer.
+#
+# Streams the database dump, the Postgres globals and the media folder to the
+# backup server, then asks it to check and store them. Nothing is written to
+# web01's disk. The backup server's forced command (mehdie-backup-receive)
+# decides where things go; this key cannot read or delete stored backups.
+#
+# A failed run exits non-zero (visible in `systemctl status mehdie-backup`) and
+# skips the final commit, so nothing incomplete is stored.
+#
+# Install: /usr/local/sbin/mehdie-backup-push (root:root, 0755).
+# Settings can be overridden in /etc/default/mehdie-backup.
+set -euo pipefail
+
+[ -r /etc/default/mehdie-backup ] && . /etc/default/mehdie-backup
+DST=${MEHDIE_BACKUP_DST:-mehdie-backup@a256-gc1-01.srv.aau.dk}
+KEY=${MEHDIE_BACKUP_KEY:-/root/.ssh/id_ed25519_mehdie_backup}
+DB=${MEHDIE_DB:-mehdie}
+MEDIA_PARENT=${MEHDIE_MEDIA_PARENT:-/srv/www/tools.mehdie.org/app}
+INCLUDE_MEDIA=${INCLUDE_MEDIA:-1}
+
+log() { echo "mehdie-backup: $*"; }
+die() { echo "mehdie-backup: ERROR: $*" >&2; exit 1; }
+
+remote() {  # remote <command...>; stdin is sent to the backup server
+  ssh -i "$KEY" -o BatchMode=yes -o ConnectTimeout=30 -o ServerAliveInterval=60 \
+      -o StrictHostKeyChecking=yes -o UpdateHostKeys=no "$DST" "$@"
+}
+
+remote begin < /dev/null || die "cannot reach the backup server ($DST)"
+
+log "sending db"
+runuser -u postgres -- pg_dump --format=custom --compress=6 "$DB" | remote put db \
+  || die "sending the database dump failed"
+
+log "sending globals"
+runuser -u postgres -- pg_dumpall --globals-only | remote put globals \
+  || die "sending the Postgres globals failed"
+
+if [ "$INCLUDE_MEDIA" = 1 ]; then
+  log "sending media"
+  tar -C "$MEDIA_PARENT" -czf - media | remote put media \
+    || die "sending the media folder failed"
+fi
+
+log "committing"
+remote commit < /dev/null || die "the backup server rejected tonight's backup (see its journal: journalctl -t mehdie-backup)"
+log "done"

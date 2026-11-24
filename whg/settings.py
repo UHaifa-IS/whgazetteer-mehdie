@@ -8,8 +8,6 @@ updates: 2.2.10 (20200211); 2.2.8(20191204); 2.2.4 (20190819); 2.1.7 (?); 2.1.2 
 import os
 from celery.schedules import crontab
 from django.contrib.messages import constants as messages
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -78,6 +76,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # MEHDIE has no Elasticsearch: turn leftover ES calls into 503s, not 500s + emails
+    'main.search_index.SearchIndexUnavailableMiddleware',
 ]
 
 ROOT_URLCONF = 'whg.urls'
@@ -267,16 +267,33 @@ if os.name == 'nt':
     os.environ['PROJ_LIB'] = OSGEO4W + r"\share\proj"
     os.environ['PATH'] = OSGEO4W + r"\bin;" + os.environ['PATH']
 
-sentry_sdk.init(
-    dsn="https://8ed85dfd268f456c978b6c1c19bd4124@o4504564890271745.ingest.sentry.io/4504564892893184",
-    integrations=[DjangoIntegration()],
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    traces_sample_rate=1.0,
-    send_default_pii=True
-)
+# Error reporting. Tracebacks of server errors (HTTP 500) and of errors the app
+# catches (whg/errors.py) go to stderr, which systemd puts in the journal:
+# journalctl -u gunicorn-tools / -u celery@whg. Server errors are also e-mailed
+# to ADMINS through the normal mail settings. Set in local_settings.py:
+#     ADMINS = [('Name', 'maintainer@example.org')]
+# (SERVER_EMAIL, the sender, defaults to DEFAULT_FROM_EMAIL if that is set.)
+ADMINS = []
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'plain': {'format': '%(asctime)s %(levelname)s %(name)s: %(message)s'}},
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'plain'},
+        'mail_admins': {'class': 'django.utils.log.AdminEmailHandler', 'level': 'ERROR'},
+    },
+    'loggers': {
+        'django.request': {'handlers': ['console', 'mail_admins'], 'level': 'ERROR', 'propagate': False},
+        'django.security': {'handlers': ['console', 'mail_admins'], 'level': 'ERROR', 'propagate': False},
+        'mehdie.errors': {'handlers': ['console'], 'level': 'ERROR', 'propagate': False},
+    },
+}
 
 try:
     from .local_settings import *
 except ImportError:
     pass
+
+# Sender of the error e-mails: use the site's normal sender unless set explicitly.
+if 'SERVER_EMAIL' not in globals() and globals().get('DEFAULT_FROM_EMAIL'):
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL

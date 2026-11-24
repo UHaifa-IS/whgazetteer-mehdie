@@ -3,7 +3,7 @@
 # TODO: called only from tasks.py?
 import time, datetime, json
 
-from sentry_sdk import capture_exception
+from whg.errors import capture_exception
 
 
 # makeNow, HitRecord, bestParent, post_recon_update, getQ, parse_wkt, hully, elapsed
