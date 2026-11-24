@@ -1,5 +1,6 @@
 # api.views
 import logging
+import math
 import re
 
 from django.conf import settings
@@ -23,6 +24,7 @@ from rest_framework import generics
 from rest_framework import permissions
 # from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.exceptions import ParseError
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
@@ -55,6 +57,86 @@ class StandardResultsSetPagination(PageNumberPagination):
 # 
 #
 
+
+#
+# Query-parameter parsing for the public API. Each helper raises ParseError,
+# which DRF turns into a 400 response with a JSON {"detail": ...} message.
+#
+
+def _range_text(lo, hi):
+    if lo is not None and hi is not None:
+        return f"between {lo} and {hi}"
+    return f"at least {lo}" if lo is not None else f"at most {hi}"
+
+
+def _raw_param(params, name, required):
+    raw = params.get(name)
+    if raw is None or raw.strip() == '':
+        if required:
+            raise ParseError(f"Missing required parameter '{name}'.")
+        return None
+    return raw.strip()
+
+
+def _float_param(params, name, lo=None, hi=None, required=False):
+    raw = _raw_param(params, name, required)
+    if raw is None:
+        return None
+    try:
+        value = float(raw)
+    except ValueError:
+        raise ParseError(f"Parameter '{name}' must be a number, got {raw!r}.")
+    if not math.isfinite(value) or (lo is not None and value < lo) or (hi is not None and value > hi):
+        raise ParseError(f"Parameter '{name}' must be {_range_text(lo, hi)}, got {raw!r}.")
+    return value
+
+
+def _int_param(params, name, lo=None, hi=None, required=False):
+    raw = _raw_param(params, name, required)
+    if raw is None:
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        raise ParseError(f"Parameter '{name}' must be a whole number, got {raw!r}.")
+    if (lo is not None and value < lo) or (hi is not None and value > hi):
+        raise ParseError(f"Parameter '{name}' must be {_range_text(lo, hi)}, got {raw!r}.")
+    return value
+
+
+def _lonlat_param(params, name, required=False):
+    """'lon,lat' -> (lon, lat), e.g. the sw/ne corners of a bbox query."""
+    raw = _raw_param(params, name, required)
+    if raw is None:
+        return None
+    parts = raw.split(',')
+    try:
+        if len(parts) != 2:
+            raise ValueError
+        lon, lat = float(parts[0]), float(parts[1])
+    except ValueError:
+        raise ParseError(f"Parameter '{name}' must be 'lon,lat', got {raw!r}.")
+    if not (math.isfinite(lon) and math.isfinite(lat) and -180 <= lon <= 180 and -90 <= lat <= 90):
+        raise ParseError(f"Parameter '{name}' is out of range (lon -180..180, lat -90..90), got {raw!r}.")
+    return lon, lat
+
+
+def _fclasses_param(params):
+    """Feature-class letters, comma separated or not ('P,S' or 'PS') -> ['P', 'S']."""
+    raw = _raw_param(params, 'fc', required=False)
+    if raw is None:
+        return None
+    letters = {c.upper() for c in raw if c not in ', '}
+    if not letters or not all(c.isalpha() and c.isascii() for c in letters):
+        raise ParseError(f"Parameter 'fc' takes feature-class letters, e.g. 'P,S', got {raw!r}.")
+    return sorted(letters)
+
+
+def _pagesize_param(params, default=20, cap=200):
+    value = _int_param(params, 'pagesize', lo=1)
+    return default if value is None else min(value, cap)
+
+
 """
 nearby and bbox spatial db queries
 """
@@ -68,76 +150,50 @@ class SpatialAPIView(generics.ListAPIView):
 
     def get(self, format=None, *args, **kwargs):
         params = self.request.query_params
-        print('SpatialAPIView() params', params)
-
         qtype = params.get('type', None)
-        lon = params.get('lon', None)
-        lat = params.get('lat', None)
-        dist = params.get('km', None)
-        sw = params.get('sw', None)
-        ne = params.get('ne', None)
-        fc = params.get('fc', None)
-        fclasses = list(set([x.upper() for x in ','.join(fc)])) if fc else None
+        if qtype not in ('nearby', 'bbox'):
+            raise ParseError("Spatial queries need ?type=nearby (with lon, lat and km) "
+                             "or ?type=bbox (with sw and ne).")
+        fclasses = _fclasses_param(params)
         ds = params.get('dataset', None)
-        coll = params.get('collection', None)
-        pagesize = params.get('pagesize', None)
-        # year = params.get('year', None)
-
+        coll = _int_param(params, 'collection', lo=1)
+        pagesize = _pagesize_param(params)
         err_note = None
 
-        if not qtype:
-            return HttpResponse(
-                content=b'<div style="margin:3rem; font-size: 1.2rem; border:1px solid gainsboro; padding:.5rem;">' +
-                        b'<p>Spatial query parameters must include either either <ul><li><b>?type=nearby</b> (with <b>&lng=</b> and <b>&lat=</b>) <i>or</i></li>' +
-                        b'<li><b>?type=bbox</b> (with <b>&sw=</b> and <b>&ne+</b>).</p></div')
+        collids = None
+        if coll is not None:
+            collids = get_object_or_404(Collection, id=coll).places.all().values_list('id', flat=True)
 
         # uses PlaceGeom records and PlaceGeomSerializer
         if qtype == 'nearby':
-            if not all(v for v in [lon, lat, dist]):
-                return HttpResponse(
-                    content=b'<div style="margin:3rem; font-size: 1.2rem; border:1px solid gainsboro; padding:.5rem;">' +
-                            b'<p>A <b>nearby</b> spatial query requires <b>lng</b>, <b>lat</b>, and <b>km</b> parameters</p></div>')
-            pnt = Point(float(lon), float(lat), srid=4326)
+            lon = _float_param(params, 'lon', lo=-180, hi=180, required=True)
+            lat = _float_param(params, 'lat', lo=-90, hi=90, required=True)
+            dist = _float_param(params, 'km', lo=0, required=True)
+            pnt = Point(lon, lat, srid=4326)
             # PlaceGeom records, only points
             qs = PlaceGeom.objects.extra(
                 where=["geometrytype(geom) LIKE 'POINT'"]). \
                 annotate(distance=Distance('geom', pnt)). \
                 filter(geom__distance_lte=(pnt, D(km=dist))).order_by('distance')
             # filter on params
-            if coll:
-                collids = get_object_or_404(Collection, id=coll).places.all().values_list('id', flat=True)
-                qs = qs.filter(place_id__in=collids)
+            qs = qs.filter(place_id__in=collids) if collids is not None else qs
             qs = qs.filter(place__dataset=ds) if ds else qs
             qs = qs.filter(place__fclasses__overlap=fclasses) if fclasses else qs
-            # qs = qs.filter(place__minmax__0__lte=year, place__minmax__1__gte=year) if year else qs
-
-            msg = "nearby query (lon, lat): " + str(pnt.coords) + ' w/' + str(dist) + 'km buffer'
-            print(msg)
 
         # uses Place records and LPFSerializer
-        elif qtype == 'bbox':
-            if not all(v for v in [sw, ne]):
-                return HttpResponse(
-                    content=b'<div style="margin:3rem; font-size: 1.2rem; border:1px solid gainsboro; padding:.5rem;">' +
-                            b'<p>A <b>bbox</b> spatial query requires both <b>sw</b> and <b>ne</b> parameters</p></div>')
-            else:
-                qs = Place.objects.filter(dataset__public=True, geoms__jsonb__type='Point')
-                bb = [float(sw.split(',')[0]), float(sw.split(',')[1]),
-                      float(ne.split(',')[0]), float(ne.split(',')[1])]
-                bbox = Polygon.from_bbox(bb)  # [xmin, ymin, xmax, ymax]
-                placeids = PlaceGeom.objects.filter(geom__within=bbox).values_list('place_id')
-                qs = qs.filter(id__in=placeids)
-                # filter on params
-                if coll:
-                    collids = get_object_or_404(Collection, id=coll).places.all().values_list('id', flat=True)
-                    qs = qs.filter(id__in=collids)
-                qs = qs.filter(dataset=ds) if ds else qs
-                qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
+        else:
+            sw = _lonlat_param(params, 'sw', required=True)
+            ne = _lonlat_param(params, 'ne', required=True)
+            qs = Place.objects.filter(dataset__public=True, geoms__jsonb__type='Point')
+            bbox = Polygon.from_bbox((sw[0], sw[1], ne[0], ne[1]))  # [xmin, ymin, xmax, ymax]
+            placeids = PlaceGeom.objects.filter(geom__within=bbox).values_list('place_id')
+            qs = qs.filter(id__in=placeids)
+            # filter on params
+            qs = qs.filter(id__in=collids) if collids is not None else qs
+            qs = qs.filter(dataset=ds) if ds else qs
+            qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
 
-                msg = "bbox query (sw, ne): " + str(bbox)
-                print(msg)
-
-        filtered = qs[:int(pagesize)] if pagesize and pagesize.isdigit() and int(pagesize) < 200 else qs[:20]
+        filtered = qs[:pagesize]
         serial = LPFSerializer if qtype == 'bbox' else PlaceGeomSerializer
         serializer = serial(filtered, many=True, context={'request': self.request})
         serialized_data = serializer.data
@@ -474,34 +530,31 @@ class SearchAPIView(generics.ListAPIView):
         params = self.request.query_params
         print('SearchAPIView() params', params)
 
-        id_ = params.get('id', None)
+        id_ = _int_param(params, 'id', lo=1)
         name = params.get('name', None)
         name_contains = params.get('name_contains', None)
-        cc = map(str.upper, params.get('ccode').split(',')) if params.get('ccode') else None
+        cc = [c.strip().upper() for c in params.get('ccode').split(',') if c.strip()] \
+            if params.get('ccode') else None
         ds = params.get('dataset', None)
-        fc = params.get('fc', None)
-        fclasses = list(set([x.upper() for x in ','.join(fc)])) if fc else None
-        year = params.get('year', None)
-        pagesize = params.get('pagesize', None)
+        fclasses = _fclasses_param(params)
+        year = _int_param(params, 'year', lo=-9999, hi=9999)
+        pagesize = _pagesize_param(params)
         err_note = None
         context = params.get('context', None)
-        # params
-        print({"cc": cc, "fclasses": fclasses})
 
         qs = Place.objects.filter(Q(dataset__public=True) | Q(dataset__core=True))
 
         if all(v is None for v in [name, name_contains, id_]):
-            # TODO: return a template with API instructions
-            return HttpResponse(content=b'<h3>Needs either a "name", a "name_contains", or "id" parameter at \
-          minimum <br/>(e.g. ?name=myplacename or ?name_contains=astring or ?id=integer)</h3>')
+            raise ParseError('Needs a "name", "name_contains" or "id" parameter at minimum '
+                             '(e.g. ?name=myplacename, ?name_contains=astring or ?id=integer).')
         else:
             if id_:
                 qs = qs.filter(id=id_)
                 err_note = 'id given, other parameters ignored' if len(params.keys()) > 1 else None
                 print('qs', qs)
             else:
-                qs = qs.filter(minmax__0__lte=year, minmax__1__gte=year) if year else qs
-                qs = qs.filter(fclasses__overlap=fclasses) if fc else qs
+                qs = qs.filter(minmax__0__lte=year, minmax__1__gte=year) if year is not None else qs
+                qs = qs.filter(fclasses__overlap=fclasses) if fclasses else qs
 
                 # res=qs.filter(names__jsonb__toponym__icontains=name)
 
@@ -514,7 +567,7 @@ class SearchAPIView(generics.ListAPIView):
                 qs = qs.filter(dataset=ds) if ds else qs
                 qs = qs.filter(ccodes__overlap=cc) if cc else qs
 
-            filtered = qs[:int(pagesize)] if pagesize and pagesize.isdigit() and int(pagesize) < 200 else qs[:20]
+            filtered = qs[:pagesize]
 
             # serial = LPFSerializer if context else SearchDatabaseSerializer
             serial = LPFSerializer
