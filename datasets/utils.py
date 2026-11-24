@@ -86,7 +86,7 @@ def download_augmented(request, *args, **kwargs):
     ds = get_object_or_404(Dataset, pk=kwargs['id'])
     require_dataset_access(request, ds)
     dslabel = ds.label
-    url_prefix = 'http://whgazetteer.org/api/place/'
+    url_prefix = 'https://tools.mehdie.org/api/place/'
     fileobj = ds.files.all().order_by('-rev')[0]
     date = makeNow()
 
@@ -175,7 +175,7 @@ def download_augmented(request, *args, **kwargs):
             'type','Feature',
             '@id', p.src_id,
             'properties', jsonb_build_object(
-                'pid', '{urlpre}'||p.id,
+                'pid', '{urlpre}'||p.id||'/',
                 'title', p.title),
             'names', n.names,
             'types', coalesce(pt.types, '[]'),
@@ -292,7 +292,7 @@ def download_augmented_slow(request, *args, **kwargs):
             for f in features:
                 feat = {"type": "Feature",
                         "properties": {
-                            "@id": f.dataset.uri_base + f.src_id,
+                            "@id": f.dataset.record_uri(f),
                             "src_id": f.src_id,
                             "title": f.title,
                             "whg_pid": f.id}}

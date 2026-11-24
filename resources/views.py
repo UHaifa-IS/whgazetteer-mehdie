@@ -12,33 +12,6 @@ from .models import *
 from main.models import Log
 
 #
-# TeachingPortalView()
-# displays essay and gallery of resources
-
-class TeachingPortalView(ListView):
-  redirect_field_name = 'redirect_to'
-
-  context_object_name = 'resource_list'
-  template_name = 'resources/teaching.html'
-  model = Resource
-
-  def get_queryset(self):
-    # original qs
-    qs = super().get_queryset()
-    # return qs.filter(public=True).order_by('pub_date', 'title')
-    return qs.filter(public=True, featured__isnull=True).order_by('?')
-
-  def get_context_data(self, *args, **kwargs):
-    context = super(TeachingPortalView, self).get_context_data(*args, **kwargs)
-    context['beta_or_better'] = True if self.request.user.groups.filter(
-        name__in=['beta', 'admins']).exists() else False
-    regions = list(Resource.objects.all().values_list('regions', flat=True))
-    context['regions'] = [x for l in regions for x in l]
-    context['mbtokenmb'] = settings.MAPBOX_TOKEN_MB
-    context['featured'] = Resource.objects.filter(featured__isnull=False).order_by('featured')
-    return context
-
-
 def handle_resource_file(f):
   with open('media/resources/'+f._name, 'wb+') as destination:
     for chunk in f.chunks():

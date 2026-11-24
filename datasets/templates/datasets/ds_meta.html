@@ -98,7 +98,7 @@
                                 {% endif %}
                                 <tr>
                                     <td><b>WHG Permalink</b></td>
-                                    <td><a href="http://whgazetteer.org/datasets/{{ object.id }}">http://whgazetteer.org/datasets/{{ object.id }}</a>
+                                    <td><a href="https://tools.mehdie.org/datasets/{{ object.id }}">https://tools.mehdie.org/datasets/{{ object.id }}</a>
                                     </td>
                                 </tr>
                                 <tr>
@@ -124,7 +124,7 @@
                                     </td>
                                     <td id="citation"><span>{% if object.citation %}{{ object.citation }}{% else %}
                                         {{ object.creator }}. {{ object.title }}. [Data file, last modified
-                                        {{ object.last_modified_text }}]. Retrieved fromhttp://whgazetteer.org/datasets/
+                                        {{ object.last_modified_text }}]. Retrieved from https://tools.mehdie.org/datasets/
                                         {{ object.id }}, {% now 'd M Y' %}{% endif %}</td>
                                 </tr>
                             </table>

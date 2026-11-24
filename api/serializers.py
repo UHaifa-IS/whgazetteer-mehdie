@@ -415,7 +415,7 @@ class PlaceGeomSerializer(serializers.ModelSerializer):
     uri = serializers.SerializerMethodField('get_uri')
 
     def get_uri(self, placegeom):
-        return "https://whgazetteer.org/api/place/" + str(placegeom.place.id)
+        return f"https://tools.mehdie.org/api/place/{placegeom.place.id}/"
 
     properties = serializers.SerializerMethodField('get_properties')
 

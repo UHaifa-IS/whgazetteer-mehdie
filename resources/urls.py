@@ -23,8 +23,6 @@ urlpatterns = [
     path('<int:pk>/detail', views.ResourceDetailView.as_view(),
          name='resource-detail'),
 
-    # teaching/
-    # path('', TemplateView.as_view(template_name="resources/teaching.html"), name="teaching-page"),
     path('asian_history/', TemplateView.as_view(
         template_name="resources/asian_history.html"), name="lesson-asian"),
 

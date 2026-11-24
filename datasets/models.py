@@ -99,6 +99,19 @@ class Dataset(models.Model):
         # return '%d: %s' % (self.id, self.label)
 
     @property
+    def source_uri_base(self):
+        """Prefix that turns a record's src_id into its URI at the source, or None.
+        Uploads made before 2026-11 without a URI base were given a WHG placeholder
+        (https://whgazetteer.org/api/db/?id=), which is not a real source; treat it as none."""
+        base = (self.uri_base or '').strip()
+        return base if base and 'whgazetteer.org' not in base else None
+
+    def record_uri(self, place):
+        """URI of one of this dataset's records: at its source if known, else on MEHDIE."""
+        base = self.source_uri_base
+        return base + str(place.src_id) if base else f'https://tools.mehdie.org/api/place/{place.id}/'
+
+    @property
     def license_label(self):
         # readable name for well-known licence URLs, else the URL itself
         if not self.license:

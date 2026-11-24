@@ -2256,8 +2256,7 @@ class DatasetCreateView(LoginRequiredMixin, CreateView):
             dsobj = form.save(commit=False)
             dsobj.ds_status = 'format_ok'
             dsobj.numrows = result['count']
-            if not form.cleaned_data['uri_base']:
-                dsobj.uri_base = 'https://whgazetteer.org/api/db/?id='
+            # no uri_base given: records have no source URI (see Dataset.source_uri_base)
 
             # links will be counted later on insert
             dsobj.numlinked = 0
@@ -2380,11 +2379,10 @@ class DatasetDeleteView(DeleteView):
     template_name = 'datasets/dataset_delete.html'
 
     def delete_complete(self):
+        # runs from get_success_url(), i.e. before the dataset row is deleted.
+        # No Elasticsearch index to update: MEHDIE retired it (2026-11).
         ds = get_object_or_404(Dataset, pk=self.kwargs.get("id"))
         dataset_file_delete(ds)
-        if ds.ds_status == 'indexed':
-            pids = list(ds.placeids)
-            removePlacesFromIndex(es, 'whg', pids)
 
     def get_object(self):
         id_ = self.kwargs.get("id")

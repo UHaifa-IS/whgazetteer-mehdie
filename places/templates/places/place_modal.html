@@ -40,8 +40,8 @@
           <tr><td>WHG identifier:</td><td>{{ object.id }} (<a href="/api/db/?id={{object.id}}" target="_blank">Linked Places record</a>)</td></tr>
           <tr><td>Source identifier:</td>
             <td>{{ object.src_id }}
-                {%if not 'whg' in dataset.uri_base %}
-                    <a href="{{dataset.uri_base}}{{object.src_id}}" target="_blank">
+                {% if dataset.source_uri_base %}
+                    <a href="{{ dataset.source_uri_base }}{{ object.src_id }}" target="_blank">
                         source record {% fontawesome_icon 'external-link' color='#336699' %}</a>
                 {%endif%}
             </td>

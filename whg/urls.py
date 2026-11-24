@@ -8,7 +8,6 @@ from django.views.generic.base import TemplateView
 from main import views
 from main.kg_views import kg_entity_redirect
 from datasets.views import PublicListsView, DataListsView
-from resources.views import TeachingPortalView
 
 app_name='main'
 #handler404 = 'datasets.views.handler404',
@@ -31,7 +30,6 @@ urlpatterns = [
     path('elastic/', include('elastic.urls')),
     path('tutorials/', include('main.urls')),
     path('resources/', include('resources.urls')),
-    path('teaching/', TeachingPortalView.as_view(), name="teaching-page"),
     path('graph/', views.GraphView.as_view(), name='graph'),
 
 

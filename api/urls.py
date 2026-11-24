@@ -14,8 +14,6 @@ urlpatterns = [
     path('index/', index_retired, name='api-index-search'),
     # spatial (nearby or bbox)
     path('spatial/', views.SpatialAPIView.as_view(), name='api-spatial'),
-    # traces (deprecated)
-    # path('traces/', views.TracesAPIView.as_view(), name='traces-search'),
 
     # *** DATASETS ***
 
@@ -71,13 +69,6 @@ urlpatterns = [
     # removed: they listed every user's e-mail address publicly
     # path('users/', views.UserList.as_view(),name='user-list'),
     # path('user/<int:pk>/', views.UserDetail.as_view(),name='user-detail'),
-    
-    # 
-    # *** INDEX ***
-    # 
-    # use: single union record in usingapi.html ?idx=whg&_id={whg_id}
-    # TODO: build from place_id
-    #url('union/', views.indexAPIView.as_view(), name='union_api')
     
 ]
 
